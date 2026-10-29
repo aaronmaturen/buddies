@@ -8,7 +8,6 @@
 ### Upcoming
 - [ ] Advanced traits: brow length/thickness, eye height on the face, resting tilt
 - [ ] Paste or load a copied config back into the stage
-- [ ] More head styles: Inked, Comic halftone, Clay, Fuzzy, Hologram, Paper cutout, Chalk
 - [ ] Hands and props don't adapt to Neon yet (white gloves on a neon buddy)
 - [ ] Move off Node 20 actions (`actions/checkout@v4`, `cloudflare/wrangler-action@v3`) once Node 24 versions are available
 - [ ] Idle emotes picked by personality (twitchy → nervous, aloof → snooze)
@@ -23,6 +22,7 @@
 - [x] Repo, docs and Cloudflare deploy workflow (2026-10-29)
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Obovoid (upside-down egg) head; renamed to Build a Buddy (2026-10-29)
+- [x] Seven more head styles: Inked, Comic, Clay, Fuzzy, Hologram, Paper, Chalk; all 13 drawn styles are seeded, so every buddy on the page differs (2026-10-29)
 - [x] Tunable traits in the Buddy tab: eye shape, eye size, spacing, temper, attention, gaze, blinks, with From seed reset; Copy config saves only changed traits (2026-10-29)
 - [x] Controls split into Emotes / Mood / Look / Buddy tabs so the stage stays in view; stage pins to the top on phones (2026-10-29)
 - [x] Head picker changes only the stage buddy, like Shape and Color; "From seed" restores its own style (2026-10-29)
@@ -49,6 +49,7 @@
 - No automated tests; `makeSpec` deserves a snapshot test now that it's importable on its own.
 
 ### Recurring Issues & Solutions
+- Dark styles vanish on the dark-mode stage: INK (#16181e) is nearly the dark surface (#181b23). Give ink-outlined styles a light rim outside the ink (see inked.js).
 - Local preview served old ES modules from cache after edits (a new file loaded fresh while a changed one didn't) → refetch modules with `fetch(url, { cache: 'reload' })` or hard-reload before judging a change.
 - Browser-pane screenshots: when the pane is hidden or the Claude window is out of focus (as low as 1 fps) the browser throttles requestAnimationFrame, so captures freeze; simulate emotes in Node with EmotePlayer instead. The first capture in a batch can also be stale; check canvas pixels or capture twice before assuming a draw failed.
 - Cast looked all green/gray → tones were equally weighted and earthy only picked orange/green; fixed with tone weights and `spreadColors()`.

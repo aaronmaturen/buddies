@@ -24,8 +24,8 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `loop.js` — one shared animation loop (`animate`, `stopAnimating`).
   - `spec.js` — seeded generation (`makeSpec`), `describe`, shape/style/color overrides (`setHeadShape`, `setHeadStyle`, `setColor`), tunable traits (`TRAITS`, `setTrait`, `setEyeShape`, `resetTraits`; changes recorded in `spec.traitOverrides`), `toConfig`/`fromConfig` (the JSON the stage's Copy config button produces).
   - `moods.js` — mood presets over `BASE`.
-  - `heads.js` — head silhouettes (`HEADS`), `headPath`, floor shadow.
-  - `styles/` — head styles, one file each (cel/ghost, sticker, sketch, jelly, neon); `styles/index.js` is the `HEAD_STYLES` table with labels and face colors. Pixel reuses cel with a whole-buddy pixel pass in `Buddy.draw`.
+  - `heads.js` — head silhouettes (`HEADS`), `headPath`, `outlinePoints` (points and normals along the edge, for fur and chalk), floor shadow.
+  - `styles/` — head styles, one file each (cel/ghost, sticker, sketch, jelly, neon, inked, comic, clay, fuzzy, hologram, paper, chalk); `styles/index.js` is the `HEAD_STYLES` table with labels and face colors. Pixel reuses cel with a whole-buddy pixel pass in `Buddy.draw`.
   - `face.js` — eye shapes, eye and brow drawing.
   - `emotes.js` — emote table (data only): duration, borrowed mood, mouth, head motion, timed events.
   - `emote-player.js` — runs one emote per buddy: head motions, events, symbol lifetimes.
@@ -59,6 +59,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Seeded traits added later are drawn at the end of `makeSpec` (e.g. `handStyle`) so older seeds don't change.
 - `makeSpec(seed, forcedShape)` uses FNV hash → mulberry32. The order of `r()` calls is part of the format: reordering or removing one changes every existing seed (there is a retired draw kept on purpose).
 - `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()` → `render(ctx, px, style)`. Options: `scale`, `headMode` — `"mixed"` (default: each buddy draws its own `spec.headStyle`) or a `HEAD_STYLES` key to force one style; `styleKey` is the style actually drawn.
+- `SEEDED_STYLES` (styles/index.js) lists the styles a seed can pick and the cast deals out; all 13 head-drawing styles are in it, so each of the 13 buddies on the page gets a different one. Adding a style there changes which style existing seeds pick (only that).
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).
