@@ -54,23 +54,55 @@ export function headPath(ctx, cx, cy, R, H, now, begin = true) {
     ctx.closePath();
     return;
   }
-  const N = H.bumps ? 140 : 72, e = 2 / H.n;
+  const N = H.bumps ? 140 : 72;
   if (begin) ctx.beginPath();
   for (let i = 0; i < N; i++) {
-    const th = i / N * TAU, c = Math.cos(th), s = Math.sin(th);
-    let x = Math.sign(c) * Math.abs(c) ** e * H.sx, y = Math.sign(s) * Math.abs(s) ** e * H.sy;
-    x *= 1 + H.taper * y;
-    if (H.wobble) {
-      const w = 1 + H.wobble * (Math.sin(3 * th + H.phase) * .7 + Math.sin(5 * th + H.phase * 2 + (reducedMotion ? 0 : now * .6)) * .3);
-      x *= w; y *= w;
-    }
-    if (H.bumps) {
-      const w = 1 + H.bumps * (Math.abs(Math.sin(H.lobes * th / 2)) - .5);
-      x *= w; y *= w;
-    }
+    const [x, y] = curvePoint(H, i / N * TAU, now);
     if (i) ctx.lineTo(cx + x * R, cy + y * R); else ctx.moveTo(cx + x * R, cy + y * R);
   }
   ctx.closePath();
+}
+
+// A point on a curved head's outline at angle th, in head units.
+function curvePoint(H, th, now) {
+  const e = 2 / H.n, c = Math.cos(th), s = Math.sin(th);
+  let x = Math.sign(c) * Math.abs(c) ** e * H.sx, y = Math.sign(s) * Math.abs(s) ** e * H.sy;
+  x *= 1 + H.taper * y;
+  if (H.wobble) {
+    const w = 1 + H.wobble * (Math.sin(3 * th + H.phase) * .7 + Math.sin(5 * th + H.phase * 2 + (reducedMotion ? 0 : now * .6)) * .3);
+    x *= w; y *= w;
+  }
+  if (H.bumps) {
+    const w = 1 + H.bumps * (Math.abs(Math.sin(H.lobes * th / 2)) - .5);
+    x *= w; y *= w;
+  }
+  return [x, y];
+}
+
+// n points evenly spread around the outline, in head units, each with an outward normal [x, y, nx, ny].
+// Polygon corners are left sharp here; it's close enough for decorating the edge (fur, chalk).
+export function outlinePoints(H, n, now = 0) {
+  let pts;
+  if (H.verts) {
+    const v = H.verts, lens = v.map((p, i) => Math.hypot(v[(i + 1) % v.length][0] - p[0], v[(i + 1) % v.length][1] - p[1]));
+    const total = lens.reduce((a, b) => a + b, 0);
+    pts = Array.from({ length: n }, (_, k) => {
+      let d = k / n * total, i = 0;
+      while (d > lens[i]) d -= lens[i++];
+      const p = v[i], q = v[(i + 1) % v.length], u = d / lens[i];
+      return [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
+    });
+  } else {
+    pts = Array.from({ length: n }, (_, k) => curvePoint(H, k / n * TAU, now));
+  }
+  return pts.map((p, i) => {
+    const a = pts[(i - 1 + n) % n], b = pts[(i + 1) % n];
+    let nx = b[1] - a[1], ny = a[0] - b[0];
+    const len = Math.hypot(nx, ny) || 1;
+    nx /= len; ny /= len;
+    if (nx * p[0] + ny * p[1] < 0) { nx = -nx; ny = -ny; }
+    return [p[0], p[1], nx, ny];
+  });
 }
 
 // Soft ellipse under the head; shrinks and fades as the head lifts.
