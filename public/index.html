@@ -30,47 +30,53 @@
     </div>
 
     <div class="panel">
-      <div class="group">
-        <span class="label">Mood</span>
+      <div class="tabs" role="tablist" aria-label="Controls">
+        <button class="tab" role="tab" id="tab-emotes" aria-controls="panel-emotes" aria-selected="true">Emotes</button>
+        <button class="tab" role="tab" id="tab-mood" aria-controls="panel-mood" aria-selected="false" tabindex="-1">Mood</button>
+        <button class="tab" role="tab" id="tab-look" aria-controls="panel-look" aria-selected="false" tabindex="-1">Look</button>
+        <button class="tab" role="tab" id="tab-buddy" aria-controls="panel-buddy" aria-selected="false" tabindex="-1">Buddy</button>
+      </div>
+
+      <div class="tab-panel" role="tabpanel" id="panel-emotes" aria-labelledby="tab-emotes">
+        <div class="moods emote-grid" id="emotes"></div>
+      </div>
+
+      <div class="tab-panel" role="tabpanel" id="panel-mood" aria-labelledby="tab-mood" hidden>
         <div class="moods" id="moods"></div>
         <label class="toggle"><input type="checkbox" id="cycle"> Cycle through moods</label>
       </div>
 
-      <div class="group">
-        <span class="label">Emotes</span>
-        <div class="moods" id="emotes"></div>
-      </div>
-
-      <div class="group">
-        <span class="label">Head</span>
-        <div class="swatches" id="head-modes"></div>
-      </div>
-
-      <div class="group">
-        <span class="label">Shape</span>
-        <div class="swatches" id="shapes">
-          <button class="chip" data-shape="seed" aria-pressed="true">From seed</button>
+      <div class="tab-panel" role="tabpanel" id="panel-look" aria-labelledby="tab-look" hidden>
+        <div class="group">
+          <span class="label">Head</span>
+          <div class="swatches" id="head-modes"></div>
+        </div>
+        <div class="group">
+          <span class="label">Shape</span>
+          <div class="swatches" id="shapes">
+            <button class="chip" data-shape="seed" aria-pressed="true">From seed</button>
+          </div>
+        </div>
+        <div class="group">
+          <span class="label">Color</span>
+          <div class="swatches" id="swatches">
+            <button class="chip" data-color="seed" aria-pressed="true">From seed</button>
+          </div>
         </div>
       </div>
 
-      <div class="group">
-        <span class="label">Color</span>
-        <div class="swatches" id="swatches">
-          <button class="chip" data-color="seed" aria-pressed="true">From seed</button>
+      <div class="tab-panel" role="tabpanel" id="panel-buddy" aria-labelledby="tab-buddy" hidden>
+        <div class="group">
+          <label class="label" for="seed">Seed</label>
+          <div class="row seed-row">
+            <input type="text" id="seed" value="glance" autocomplete="off" spellcheck="false">
+            <button class="btn" id="reroll">Reroll everyone</button>
+          </div>
         </div>
-      </div>
-
-      <div class="group">
-        <label class="label" for="seed">Seed</label>
-        <div class="row seed-row">
-          <input type="text" id="seed" value="glance" autocomplete="off" spellcheck="false">
-          <button class="btn" id="reroll">Reroll everyone</button>
+        <div class="group">
+          <span class="label">Traits</span>
+          <dl class="traits" id="traits"></dl>
         </div>
-      </div>
-
-      <div class="group">
-        <span class="label">Traits</span>
-        <dl class="traits" id="traits"></dl>
       </div>
     </div>
 

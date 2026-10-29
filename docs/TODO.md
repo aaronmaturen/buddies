@@ -22,6 +22,7 @@
 - [x] Repo, docs and Cloudflare deploy workflow (2026-10-29)
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Obovoid (upside-down egg) head; renamed to Build a Buddy (2026-10-29)
+- [x] Controls split into Emotes / Mood / Look / Buddy tabs so the stage stays in view; stage pins to the top on phones (2026-10-29)
 - [x] Head picker changes only the stage buddy, like Shape and Color; "From seed" restores its own style (2026-10-29)
 - [x] Whistle emote: puckered lips, colored music notes float out (2026-10-29)
 - [x] Seeded head style per buddy; cast styles spread so neighbours differ; (2026-10-29)
