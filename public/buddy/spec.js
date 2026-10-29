@@ -44,7 +44,44 @@ export function makeSpec(seed, forcedShape) {
     headStyle: pick(SEEDED_STYLES),
   };
   spec.seedHeadStyle = spec.headStyle; spec.headStyleKey = "seed";
+  spec.eyeSize = size;
+  spec.seedTraits = Object.fromEntries(["shape", ...Object.keys(TRAITS)].map(k => [k, spec[k]]));
+  spec.traitOverrides = {};
   return spec;
+}
+
+// Traits a person can tune, with slider ranges a little wider than what seeds produce.
+export const TRAITS = {
+  eyeSize: { label: "eye size", min: .16, max: .34, step: .005 },
+  spacing: { label: "eye spacing", min: .22, max: .44, step: .005 },
+  stiffness: { label: "temper", min: .5, max: 1.8, step: .01 },
+  attention: { label: "attention", min: .1, max: 1, step: .01 },
+  curiosity: { label: "gaze", min: .3, max: 1.8, step: .01 },
+  blinkRate: { label: "blinks", min: .4, max: 2, step: .01 },
+};
+
+// Eye width, height and roundness follow from the eye shape and size.
+function applyEyes(spec) {
+  const [sw, sh, corner] = EYE_SHAPES[spec.shape];
+  spec.eyeW = spec.eyeSize * sw; spec.eyeH = spec.eyeSize * sh; spec.corner = corner;
+}
+
+export function setTrait(spec, key, value) {
+  spec[key] = value;
+  spec.traitOverrides[key] = value;
+  if (key === "eyeSize") applyEyes(spec);
+}
+
+export function setEyeShape(spec, shape) {
+  spec.shape = shape;
+  spec.traitOverrides.shape = shape;
+  applyEyes(spec);
+}
+
+export function resetTraits(spec) {
+  Object.assign(spec, spec.seedTraits);
+  spec.traitOverrides = {};
+  applyEyes(spec);
 }
 
 // Plain-language reading of a spec's personality.
@@ -76,12 +113,19 @@ export function setColor(spec, key, palette) {
 // A small, shareable description of a buddy. The seed rebuilds everything else; head shape and color are
 // stored too because pickers and the cast's color spreading can change them away from the seed's own.
 export function toConfig(spec) {
-  return { seed: spec.seed, name: spec.name, headShape: spec.headShape, color: { ...spec.color }, headStyle: spec.headStyle };
+  const config = { seed: spec.seed, name: spec.name, headShape: spec.headShape, color: { ...spec.color }, headStyle: spec.headStyle };
+  // Only traits someone changed; the seed covers the rest.
+  if (Object.keys(spec.traitOverrides || {}).length) config.traits = { ...spec.traitOverrides };
+  return config;
 }
 
 export function fromConfig(config) {
   const spec = makeSpec(config.seed, config.headShape);
   if (config.color) spec.color = spec.seedColor = { ...config.color };
   if (HEAD_STYLES[config.headStyle]) spec.headStyle = spec.seedHeadStyle = config.headStyle;
+  for (const [k, v] of Object.entries(config.traits || {})) {
+    if (k === "shape" && EYE_SHAPES[v]) setEyeShape(spec, v);
+    else if (TRAITS[k] && typeof v === "number") setTrait(spec, k, v);
+  }
   return spec;
 }

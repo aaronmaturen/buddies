@@ -38,6 +38,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 
 ### Page
 - One featured character with the cast of 12 beneath it, each with a unique head shape and well-spread colors.
+- Tunable traits for the stage buddy: eye shape, eye size, eye spacing, temper, attention, gaze and blink rate, with a reset to the seed.
 - Controls: mood, emotes, head style for the stage buddy (from seed, invisible, ghost, cel-shaded, sticker, sketch, jelly, pixel or neon), shape, color, seed, reroll.
 - Light and dark themes, phone width, reduced motion.
 

@@ -6,6 +6,7 @@
 - [ ] Tune the polygon head shapes in a real browser (corner rounding, face height, eye size on small heads)
 
 ### Upcoming
+- [ ] Advanced traits: brow length/thickness, eye height on the face, resting tilt
 - [ ] Paste or load a copied config back into the stage
 - [ ] More head styles: Inked, Comic halftone, Clay, Fuzzy, Hologram, Paper cutout, Chalk
 - [ ] Hands and props don't adapt to Neon yet (white gloves on a neon buddy)
@@ -22,6 +23,7 @@
 - [x] Repo, docs and Cloudflare deploy workflow (2026-10-29)
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Obovoid (upside-down egg) head; renamed to Build a Buddy (2026-10-29)
+- [x] Tunable traits in the Buddy tab: eye shape, eye size, spacing, temper, attention, gaze, blinks, with From seed reset; Copy config saves only changed traits (2026-10-29)
 - [x] Controls split into Emotes / Mood / Look / Buddy tabs so the stage stays in view; stage pins to the top on phones (2026-10-29)
 - [x] Head picker changes only the stage buddy, like Shape and Color; "From seed" restores its own style (2026-10-29)
 - [x] Whistle emote: puckered lips, colored music notes float out (2026-10-29)
