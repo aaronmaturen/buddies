@@ -2,21 +2,22 @@ import { TAU, clamp, reducedMotion } from "./util.js";
 import { Spring } from "./spring.js";
 import { rotation, surfaceFrame } from "./sphere.js";
 import { BASE, MOODS } from "./moods.js";
-import { INK, drawHead, drawShadow } from "./heads.js";
+import { drawShadow } from "./heads.js";
 import { drawEye, drawBrow, browOffset } from "./face.js";
 import { MOUTHS, MOUTH_REST, drawMouth } from "./mouth.js";
 import { EmotePlayer } from "./emote-player.js";
 import { drawSymbols } from "./symbols.js";
 import { HandRig } from "./hands.js";
 import { WearRig } from "./wear.js";
-
-const GLOVE = "#fbfbfd";
+import { HEAD_STYLES } from "./styles/index.js";
 import { headColors } from "./colors.js";
 import { theme } from "./theme.js";
 import { pointer } from "./pointer.js";
 
+const GLOVE = "#fbfbfd";
+
 // One animated buddy drawn into one canvas.
-// headMode: "solid" (cel-shaded), "ghost" (faint) or "none" (eyes and brows only).
+// headMode: any key of HEAD_STYLES (styles/index.js), e.g. "solid", "ghost", "none", "sketch", "pixel".
 // scale: head radius as a fraction of the canvas's shorter side.
 export class Buddy {
   constructor(canvas, spec, { scale = .3, headMode = "solid" } = {}) {
@@ -157,12 +158,28 @@ export class Buddy {
     this.boost.step(dt, 160, .55);
   }
 
+  // Pixel style draws the whole buddy into a small canvas, then scales it up without smoothing.
   draw() {
-    const { ctx, w: W, h: H, dpr, spec, headMode: mode } = this;
+    const { ctx, w: W, h: H, dpr } = this;
     if (!W) return;
+    const style = HEAD_STYLES[this.headMode] || HEAD_STYLES.solid;
+    if (!style.pixel) { this.render(ctx, dpr, style); return; }
+    const k = Math.max(3, Math.min(W, H) / 70);
+    const off = this.pixelCanvas ||= document.createElement("canvas");
+    off.width = Math.ceil(W / k); off.height = Math.ceil(H / k);
+    this.render(off.getContext("2d"), 1 / k, style);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    const base = new DOMMatrix([dpr, 0, 0, dpr, 0, 0]);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(off, 0, 0, off.width * k * dpr, off.height * k * dpr);
+  }
+
+  // px is device pixels per CSS pixel for this target (dpr on screen, smaller for the pixel pass).
+  render(ctx, px, style) {
+    const { w: W, h: H, spec } = this;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    const base = new DOMMatrix([px, 0, 0, px, 0, 0]);
     const head = spec.head;
     const R = Math.min(W, H) * this.scale * this.lean.x / (head.fit || Math.max(1, head.sy, head.sx * .9));
     const lift = this.bobY + this.jump.x;
@@ -174,13 +191,10 @@ export class Buddy {
     const sq = this.squash.x;
     const m = base.translate(cx, cy + R).scale(2 - sq, sq).translate(-cx, -(cy + R));
     const colors = headColors(spec.color, theme.dark);
-    if (mode !== "none") drawHead(ctx, m, { cx, cy, R, head, colors, mode, roll: this.hRoll.x * 180 / Math.PI, now: this.now });
+    style.head?.(ctx, m, { cx, cy, R, head, colors, color: spec.color, roll: this.hRoll.x * 180 / Math.PI, now: this.now, px });
 
-    // Dark heads get light brows so the face still reads; eye whites stay white everywhere.
-    const solid = mode === "solid";
-    const browInk = solid ? (colors.deep ? "#f4f5f8" : INK) : theme.fg;
-    const eyeInk = solid ? INK : theme.fg;
-    const lidFill = solid ? colors.lit : theme.surface;
+    const face = style.face(colors, spec.color);
+    const eyeInk = face.eye, browInk = face.brow, lidFill = face.lid;
     const M = rotation(this.hYaw.x, this.hPitch.x, this.hRoll.x);
     const dy = clamp(this.gYaw.x - this.hYaw.x, -.4, .4);
     const dp = clamp(this.gPitch.x - this.hPitch.x, -.35, .35);
@@ -195,9 +209,12 @@ export class Buddy {
 
     const faceLat = spec.eyeLat + (head.faceY || 0) - dp * slide;
     const symbols = this.emotes.symbols, fx = { base, cx, cy, R, place };
+    // Glowing styles put a blurred halo around every face line.
+    const glow = on => { ctx.shadowColor = face.glow || "transparent"; ctx.shadowBlur = on && face.glow ? R * .15 * px : 0; };
     if (this.wear.visible) this.wear.drawTop(ctx, base, { cx, cy, R, head, yaw: this.hYaw.x, pitch: this.hPitch.x, roll: this.hRoll.x });
     drawSymbols(ctx, symbols, { ...fx, layer: "under" });
 
+    glow(true);
     const eyes = [];
     for (const s of [-1, 1]) {
       const lon = s * spec.spacing + dy * slide;
@@ -205,7 +222,7 @@ export class Buddy {
       const boost = s === this.boostSide ? this.boost.x : 1;
       const Pe = boost === 1 ? P : { ...P, eyeScale: P.eyeScale * boost };
       place(lon, faceLat);
-      drawEye(ctx, { s, spec, P: Pe, open: this.open, dy, dp, ink: eyeInk, lidFill });
+      drawEye(ctx, { s, spec, P: Pe, open: this.open, dy, dp, ink: eyeInk, lidFill, fill: face.eyeFill, pupil: face.pupil });
       place(lon, faceLat + browOffset(s, spec, P));
       drawBrow(ctx, { s, spec, P, ink: browInk });
       eyes.push({ lon, lat: faceLat, w: spec.eyeW * P.eyeScale, h: spec.eyeH * P.eyeScale });
@@ -223,9 +240,10 @@ export class Buddy {
       drawMouth(ctx, { m: mouth, show: this.mouthShow.x, ink: eyeInk });
     }
 
+    glow(false);
     if (this.hands.visible) {
-      const style = spec.handStyle || "glove";
-      this.hands.draw(ctx, base, { cx, cy, R, style, fill: style === "glove" ? GLOVE : colors.lit, now: this.now });
+      const hand = spec.handStyle || "glove";
+      this.hands.draw(ctx, base, { cx, cy, R, style: hand, fill: hand === "glove" ? GLOVE : colors.lit, now: this.now });
     }
 
     drawSymbols(ctx, symbols, { ...fx, layer: "over" });

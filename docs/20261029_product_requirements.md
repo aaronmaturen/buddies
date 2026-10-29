@@ -38,7 +38,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 
 ### Page
 - One featured character with the cast of 11 beneath it, each with a unique head shape and well-spread colors.
-- Controls: mood, head mode (invisible / ghost / cel-shaded), shape, color, seed, reroll.
+- Controls: mood, emotes, head style (invisible, ghost, cel-shaded, sticker, sketch, jelly, pixel, neon), shape, color, seed, reroll.
 - Light and dark themes, phone width, reduced motion.
 
 ### Hosting
