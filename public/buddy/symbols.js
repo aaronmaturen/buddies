@@ -71,6 +71,24 @@ const DRAW = {
     outlined(ctx, "#ffe066");
     ctx.beginPath(); ctx.roundRect(-.13, .28, .26, .16, .04); outlined(ctx, "#b8bfcc", .06);
   },
+  // A soap bubble; in its last POP seconds it bursts into a ring of droplets instead.
+  bubble(ctx, p) {
+    const u = (p.age - (p.life - POP)) / POP;
+    if (u > 0) {
+      ctx.lineCap = "round"; ctx.lineWidth = .09; ctx.strokeStyle = `rgba(40, 90, 140, ${1 - u})`;
+      for (let i = 0; i < 8; i++) {
+        const a = i / 8 * TAU + .2, r0 = .35 + u * .35, r1 = r0 + .14;
+        ctx.beginPath(); ctx.moveTo(Math.cos(a) * r0, Math.sin(a) * r0); ctx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1); ctx.stroke();
+      }
+      return;
+    }
+    ctx.beginPath(); ctx.arc(0, 0, .5, 0, TAU);
+    ctx.fillStyle = "rgba(225, 245, 255, .5)"; ctx.fill();
+    ctx.lineWidth = .07; ctx.strokeStyle = "rgba(40, 90, 140, .9)"; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, .36, Math.PI * 1.1, Math.PI * 1.45);
+    ctx.lineWidth = .07; ctx.lineCap = "round"; ctx.strokeStyle = "rgba(255, 255, 255, .95)"; ctx.stroke();
+    ctx.beginPath(); ctx.arc(.18, .2, .05, 0, TAU); ctx.fillStyle = "rgba(255, 190, 240, .7)"; ctx.fill();
+  },
   confetti(ctx, p) {
     ctx.beginPath(); ctx.rect(-.5, -.25, 1, .5); ctx.fillStyle = p.color; ctx.fill();
   },
@@ -83,6 +101,7 @@ const DRAW = {
 };
 
 const rand = (a, b) => a + Math.random() * (b - a);
+const POP = .18;
 
 // How each symbol is born and moves. spawn returns one or more particles; tick adjusts size/rotation as it ages.
 const KINDS = {
@@ -110,6 +129,11 @@ const KINDS = {
   bulb: { anchor: "float", life: 1.3, size: .5,
     spawn: () => [{ x: .85, y: -1.3, vy: -.1 }],
     tick: p => { p.rot = .1 * Math.sin(p.age * 8) * Math.max(0, 1 - p.age); } },
+  // Blown from the mouth, drifting up and away; each pops on its own timing.
+  bubble: { anchor: "float", noFade: true, life: 1.6, size: .2,
+    spawn: spec => [{ x: rand(.05, .2), y: faceLat(spec) + spec.eyeH * .5 + .2, vx: rand(.6, 1.05), vy: rand(-.6, -.25),
+      sway: rand(.1, .2), size: rand(.2, .36), life: rand(1.2, 2.2) }],
+    tick: p => { p.grow = Math.min(1, .25 + p.age * 2.5); } },
   confetti: { anchor: "float", life: 1.6, size: .09,
     spawn: () => Array.from({ length: 16 }, () => ({
       x: rand(-.3, .3), y: -1.05, vx: rand(-1.4, 1.4), vy: rand(-1.6, -.6), g: 2.2, spin: rand(-12, 12),
@@ -154,10 +178,10 @@ export function drawSymbols(ctx, list, { layer, base, cx, cy, R, place }) {
     if (p.anchor === "head") {
       place(p.lon, p.lat);
       ctx.transform(s, 0, 0, s, 0, 0);
-      ctx.globalAlpha *= fade(p);
+      ctx.globalAlpha *= KINDS[p.kind].noFade ? 1 : fade(p);
     } else {
       ctx.setTransform(base.translate(cx + p.x * R, cy + p.y * R).rotate(p.rot * 180 / Math.PI).scale(R * s));
-      ctx.globalAlpha = fade(p);
+      ctx.globalAlpha = KINDS[p.kind].noFade ? 1 : fade(p);
     }
     ctx.rotate(p.anchor === "head" ? p.rot : 0);
     DRAW[KINDS[p.kind].draw || p.kind](ctx, p);

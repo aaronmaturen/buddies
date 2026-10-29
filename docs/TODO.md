@@ -20,6 +20,7 @@
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Upside-down egg head; renamed to Build a Buddy (2026-10-29)
 - [x] Split the single page into a `buddy/` ES-module library, `app.js` and `styles.css`; verified identical specs for 2,000 seeds (2026-10-29)
+- [x] Bubbles emote: blows bubbles that drift off and pop (2026-10-29)
 - [x] Emotes step 3: accessories (sunglasses, party hat, nightcap, mug, gift, magnifier) and cool, party, idea, coffee, gift, inspect emotes; cast moved under the stage (2026-10-29)
 - [x] Emotes step 2: floating hands (gloves or mittens by seed) with wave, facepalm, peekaboo, thumbs up, shrug, clap, think and a wagging no (2026-10-29)
 - [x] Emotes step 1: 12 emotes with emote-only mouths, symbols and head motions; boop plays Love (2026-10-29)
@@ -36,6 +37,6 @@
 - No automated tests; `makeSpec` deserves a snapshot test now that it's importable on its own.
 
 ### Recurring Issues & Solutions
-- Browser-pane screenshots: the first capture in a batch can be stale; check canvas pixels or capture twice before assuming a draw failed.
+- Browser-pane screenshots: when the pane is hidden the browser throttles requestAnimationFrame, so captures freeze; simulate emotes in Node with EmotePlayer instead. The first capture in a batch can also be stale; check canvas pixels or capture twice before assuming a draw failed.
 - Cast looked all green/gray → tones were equally weighted and earthy only picked orange/green; fixed with tone weights and `spreadColors()`.
 - A Claude Code auto-update rewrote `~/.claude.json` and dropped a just-added MCP server → re-add it with `claude mcp add`.
