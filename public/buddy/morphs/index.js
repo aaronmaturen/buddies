@@ -1,4 +1,3 @@
-import { airplane } from "./airplane.js";
 import { balloon } from "./balloon.js";
 import { rocket } from "./rocket.js";
 import { ball } from "./ball.js";
@@ -17,4 +16,4 @@ import { star } from "./star.js";
 //   events    [{ at: 0..1, symbol, from: "nose" }] symbols spawned during the act, at the object or its nose
 //   nose      [x, y] where "nose" events come out
 //   detail    (ctx, flight) draws extras over the shape in the object's frame
-export const MORPHS = { airplane, balloon, rocket, ball, ghost, fish, star };
+export const MORPHS = { balloon, rocket, ball, ghost, fish, star };
