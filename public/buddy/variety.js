@@ -40,6 +40,6 @@ export function spreadStyles(specs, rand) {
       for (let j = deck.length - 1; j > 0; j--) { const k = Math.floor(rand() * (j + 1)); [deck[j], deck[k]] = [deck[k], deck[j]]; }
       if (i && deck[0] === specs[i - 1].headStyle) deck.push(deck.shift());
     }
-    sp.headStyle = deck.shift();
+    sp.headStyle = sp.seedHeadStyle = deck.shift();
   });
 }
