@@ -22,7 +22,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `index.js` — public API (re-exports).
   - `buddy.js` — `Buddy` class: per-frame thinking, spring integration, drawing.
   - `loop.js` — one shared animation loop (`animate`, `stopAnimating`).
-  - `spec.js` — seeded generation (`makeSpec`), `describe`, shape/style/color overrides (`setHeadShape`, `setHeadStyle`, `setColor`), `toConfig`/`fromConfig` (the JSON the stage's Copy config button produces).
+  - `spec.js` — seeded generation (`makeSpec`), `describe`, shape/style/color overrides (`setHeadShape`, `setHeadStyle`, `setColor`), tunable traits (`TRAITS`, `setTrait`, `setEyeShape`, `resetTraits`; changes recorded in `spec.traitOverrides`), `toConfig`/`fromConfig` (the JSON the stage's Copy config button produces).
   - `moods.js` — mood presets over `BASE`.
   - `heads.js` — head silhouettes (`HEADS`), `headPath`, floor shadow.
   - `styles/` — head styles, one file each (cel/ghost, sticker, sketch, jelly, neon); `styles/index.js` is the `HEAD_STYLES` table with labels and face colors. Pixel reuses cel with a whole-buddy pixel pass in `Buddy.draw`.
@@ -62,7 +62,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).
-- `app.js` never touches springs or drawing; it only creates buddies, sets specs and moods. The Shape, Head and Color pickers change only the stage buddy's spec, so a pick travels with that buddy if it's swapped into the cast.
+- `app.js` never touches springs or drawing; it only creates buddies, sets specs and moods. The Shape, Head, Color and trait controls change only the stage buddy's spec, so a pick travels with that buddy if it's swapped into the cast.
 
 ## UI/UX Standards
 

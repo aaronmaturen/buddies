@@ -151,6 +151,15 @@ button, input[type="text"] { font: inherit; color: inherit; }
   padding: 10px 14px; cursor: pointer; font-weight: 700;
 }
 
+.label-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.chip.mini { padding: 4px 10px; font-size: 12px; }
+.chip:disabled { opacity: .45; cursor: default; }
+.trait-sliders { display: grid; gap: 10px; }
+.trait { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 2px 12px; }
+.trait label { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.trait input[type="range"] { width: 100%; min-width: 0; accent-color: var(--accent); }
+.trait output { grid-column: 2; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.trait[data-changed] label { color: var(--accent); }
 dl.traits { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; }
 dl.traits dt { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
 dl.traits dd { margin: 0; font-variant-numeric: tabular-nums; }

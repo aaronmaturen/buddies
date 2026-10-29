@@ -17,7 +17,7 @@ animate(buddy);
 buddy.setMood("happy");
 ```
 
-The **Copy config** button on the stage copies the featured buddy as JSON (seed, name, head shape, color, head style, mood). Rebuild it with:
+The **Copy config** button on the stage copies the featured buddy as JSON (seed, name, head shape, color, head style, mood, and any traits you tuned in the Buddy tab). Rebuild it with:
 
 ```js
 import { Buddy, fromConfig, animate } from "./buddy/index.js";

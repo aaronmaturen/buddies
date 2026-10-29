@@ -1,5 +1,6 @@
 import {
   Buddy, animate, makeSpec, describe, setHeadShape, setHeadStyle, setColor, toConfig,
+  TRAITS, setTrait, setEyeShape, resetTraits, EYE_SHAPES,
   MOOD_NAMES, EMOTE_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
   castShapes, spreadColors, spreadStyles, mulberry32, reducedMotion,
 } from "./buddy/index.js";
@@ -8,7 +9,7 @@ const SEEDS = ["glance", "pip", "moss", "orbit", "juniper", "tock", "ember", "bi
 const WORDS = ["fern", "pixel", "dune", "otter", "kite", "nimbus", "pebble", "sprout", "quill", "comet", "maple", "zinc"];
 const $ = id => document.getElementById(id);
 
-const seedInput = $("seed"), traitsEl = $("traits"), moodsEl = $("moods"), cycleEl = $("cycle");
+const seedInput = $("seed"), moodsEl = $("moods"), cycleEl = $("cycle");
 const shapesEl = $("shapes"), swatchesEl = $("swatches"), castEl = $("cast");
 let mood = "neutral";
 
@@ -63,20 +64,7 @@ spreadStyles(all.map(b => b.spec), mulberry32(13));
 function render() {
   const sp = featured.spec, d = describe(sp);
   $("stage-name").textContent = sp.name;
-  const rows = [
-    ["head", `${shapeLabel(sp.headShape).toLowerCase()}, ${d.colorName}`],
-    ["style", HEAD_STYLES[featured.styleKey].label.toLowerCase()],
-    ["eyes", EYE_LABELS[sp.shape]],
-    ["temper", `${d.temper} · spring ×${sp.stiffness.toFixed(2)}`],
-    ["attention", `${d.attn} · ${Math.round(sp.attention * 100)}% follows you`],
-    ["gaze", d.look],
-    ["blinks", `${d.blink} · ×${sp.blinkRate.toFixed(2)}`],
-  ];
-  traitsEl.replaceChildren(...rows.flatMap(([k, v]) => {
-    const dt = document.createElement("dt"); dt.textContent = k;
-    const dd = document.createElement("dd"); dd.textContent = v;
-    return [dt, dd];
-  }));
+  renderTraits(sp);
   for (const b of cast) {
     const cd = describe(b.spec);
     b.card.querySelector("strong").textContent = b.spec.name;
@@ -86,6 +74,49 @@ function render() {
   for (const el of swatchesEl.children) el.setAttribute("aria-pressed", String(el.dataset.color === sp.colorKey));
   for (const el of shapesEl.children) el.setAttribute("aria-pressed", String(el.dataset.shape === sp.headKey));
   for (const el of $("head-modes").children) el.setAttribute("aria-pressed", String(el.dataset.head === sp.headStyleKey));
+}
+
+// ---------- traits ----------
+// Plain-language readout for each slider, from describe() where it has words for it.
+function readout(key, sp) {
+  const d = describe(sp), v = sp[key];
+  return {
+    eyeSize: `${v < .22 ? "small" : v > .28 ? "big" : "medium"} · ${Math.round(v * 100)}`,
+    spacing: `${v < .3 ? "close-set" : v > .37 ? "wide-set" : "even"} · ${Math.round(v * 100)}`,
+    stiffness: `${d.temper} · spring ×${v.toFixed(2)}`,
+    attention: `${d.attn} · ${Math.round(v * 100)}% follows you`,
+    curiosity: `${d.look} · ×${v.toFixed(2)}`,
+    blinkRate: `${d.blink} · ×${v.toFixed(2)}`,
+  }[key];
+}
+
+const traitRows = {};
+for (const [key, T] of Object.entries(TRAITS)) {
+  const row = document.createElement("div");
+  row.className = "trait";
+  row.innerHTML = `<label for="trait-${key}">${T.label}</label><input type="range" id="trait-${key}" min="${T.min}" max="${T.max}" step="${T.step}"><output for="trait-${key}"></output>`;
+  const input = row.querySelector("input");
+  input.addEventListener("input", () => { setTrait(featured.spec, key, +input.value); renderTraits(featured.spec); });
+  traitRows[key] = { row, input, out: row.querySelector("output") };
+  $("trait-sliders").append(row);
+}
+for (const key of Object.keys(EYE_SHAPES)) {
+  const b = chip("chip", EYE_LABELS[key]);
+  b.dataset.eye = key;
+  b.addEventListener("click", () => { setEyeShape(featured.spec, key); renderTraits(featured.spec); });
+  $("eye-shapes").append(b);
+}
+$("traits-reset").addEventListener("click", () => { resetTraits(featured.spec); renderTraits(featured.spec); });
+
+function renderTraits(sp) {
+  const changed = sp.traitOverrides || {};
+  for (const [key, { row, input, out }] of Object.entries(traitRows)) {
+    if (document.activeElement !== input) input.value = sp[key];
+    out.textContent = readout(key, sp);
+    row.toggleAttribute("data-changed", key in changed);
+  }
+  for (const el of $("eye-shapes").children) el.setAttribute("aria-pressed", String(el.dataset.eye === sp.shape));
+  $("traits-reset").disabled = !Object.keys(changed).length;
 }
 
 function chip(className, text) {
