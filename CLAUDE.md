@@ -13,9 +13,26 @@ Buddies (page title "Build a Buddy") is a browser-only toy: seeded characters ma
 
 ## Directory Structure
 
-- `public/index.html` — the whole app: markup, CSS and one inline script (2D canvas).
+Native ES modules, no bundler. Every file stays small and does one thing.
+
+- `public/index.html` — page markup only; loads `styles.css` and `app.js`.
+- `public/styles.css` — page styles and theme tokens.
+- `public/app.js` — page wiring: the featured buddy, the cast, and every control.
+- `public/buddy/` — the buddy library; import from `buddy/index.js` only.
+  - `index.js` — public API (re-exports).
+  - `buddy.js` — `Buddy` class: per-frame thinking, spring integration, drawing.
+  - `loop.js` — one shared animation loop (`animate`, `stopAnimating`).
+  - `spec.js` — seeded generation (`makeSpec`), `describe`, shape/color overrides.
+  - `moods.js` — mood presets over `BASE`.
+  - `heads.js` — head silhouettes, head and shadow drawing.
+  - `face.js` — eye shapes, eye and brow drawing.
+  - `colors.js` — tones, palette, color names, cel-shading tones.
+  - `sphere.js` — rotation and surface frames for the invisible head.
+  - `variety.js` — `castShapes`, `spreadColors` for showing many buddies together.
+  - `spring.js`, `random.js`, `pointer.js`, `theme.js`, `util.js` — small shared pieces.
 - `wrangler.jsonc` — Cloudflare Worker config: serves `public/`, binds the custom domain.
 - `.github/workflows/deploy.yml` — deploys on every push to `main`.
+- `.claude/launch.json` — local static server for previews.
 - `docs/` — TODO log and product requirements.
 
 ## Project Documentation Index
@@ -25,13 +42,13 @@ Buddies (page title "Build a Buddy") is a browser-only toy: seeded characters ma
 
 ## Code Organization Patterns
 
-Inside the script in `public/index.html`:
-
-- `SHAPES` (eye shapes), `HEADS` (head silhouettes), `TONES` and `PALETTE` (colors) — data tables; add entries to extend.
-- `MOODS` — each mood is a set of target values over `BASE`; every value is spring-smoothed, so moods blend.
-- `makeSpec(seed, forcedShape)` — seeded generation (FNV hash → mulberry32). Changing the order of `r()` calls changes every seed's output.
-- `Character` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()`.
-- `castShapes()` / `spreadColors()` — keep the cast varied: unique shapes, golden-angle hues, at most one gray.
+- Data tables drive looks: `EYE_SHAPES` (face.js), `HEADS` (heads.js), `TONES` and `PALETTE` (colors.js), `MOODS` (moods.js). Add an entry to extend; pickers and the cast pick it up automatically.
+- Every mood value is a spring target over `BASE`, so moods blend.
+- `makeSpec(seed, forcedShape)` uses FNV hash → mulberry32. The order of `r()` calls is part of the format: reordering or removing one changes every existing seed (there is a retired draw kept on purpose).
+- `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()`. Options: `scale`, `headMode`.
+- Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
+- The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).
+- `app.js` never touches springs or drawing; it only creates buddies, sets specs, moods and head modes.
 
 ## UI/UX Standards
 
@@ -50,5 +67,5 @@ GitHub Actions secrets (repo settings → Secrets → Actions):
 
 ## Common Commands
 
-- Preview locally: `npx wrangler dev` (or open `public/index.html` directly)
+- Preview locally: `python3 -m http.server 8790 --directory public` or `npx wrangler dev` (modules don't load from `file://`)
 - Deploy manually: `npx wrangler deploy`
