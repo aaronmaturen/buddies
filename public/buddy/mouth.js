@@ -10,6 +10,7 @@ export const MOUTHS = {
   grin: { w: .34, open: .9, smile: .7 },
   o: { w: .17, open: .85, round: 1 },
   small: { w: .13, open: .4, round: .8 },
+  pucker: { w: .085, open: .28, round: 1 },
   flat: { w: .22, smile: -.05 },
   frown: { w: .25, smile: -.7 },
   wavy: { w: .28, smile: -.1, wave: 1 },
