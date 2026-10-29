@@ -48,8 +48,21 @@ h1 {
 }
 header p { margin: 0; color: var(--muted); max-width: 60ch; line-height: 1.5; }
 
-.studio { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 24px; align-items: start; }
-@media (max-width: 860px) { .studio { grid-template-columns: minmax(0, 1fr); } }
+.studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  grid-template-areas: "stage panel" "cast panel";
+  grid-template-rows: auto 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.stage { grid-area: stage; }
+.panel { grid-area: panel; }
+.cast-area { grid-area: cast; }
+/* On phones: stage, then the controls, then the cast. */
+@media (max-width: 860px) {
+  .studio { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "panel" "cast"; grid-template-rows: auto; }
+}
 
 .stage {
   position: relative;
@@ -125,7 +138,7 @@ dl.traits dd { margin: 0; font-variant-numeric: tabular-nums; }
 .cast-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .cast-head h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; letter-spacing: -0.02em; }
 .cast-head span { color: var(--muted); font-size: 14px; }
-.cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 12px; }
 .member {
   display: flex; flex-direction: column; gap: 2px;
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px;

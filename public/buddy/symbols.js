@@ -56,6 +56,24 @@ const DRAW = {
     ctx.quadraticCurveTo(0, 0, -.5, 0); ctx.quadraticCurveTo(0, 0, 0, -.5);
     outlined(ctx, "#ffe066", .07);
   },
+  thought(ctx, p) {
+    for (const [x, y, r] of [[-.62, .62, .07], [-.42, .4, .11]]) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); outlined(ctx, "#ffffff", .05); }
+    ctx.beginPath();
+    for (const [x, y, r] of [[-.25, 0, .26], [0, -.14, .3], [.28, -.02, .26], [.06, .14, .26]]) { ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, TAU); }
+    ctx.lineWidth = .1; ctx.strokeStyle = INK; ctx.stroke(); ctx.fillStyle = "#ffffff"; ctx.fill();
+    const lit = Math.floor(p.age * 4) % 4;
+    for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(-.18 + i * .18, 0, .055, 0, TAU); ctx.fillStyle = i < lit ? INK : "#c8ccd6"; ctx.fill(); }
+  },
+  bulb(ctx) {
+    ctx.lineCap = "round"; ctx.lineWidth = .07; ctx.strokeStyle = "#ffd23f";
+    for (let i = 0; i < 7; i++) { const a = -Math.PI * (.1 + i * .8 / 6); ctx.beginPath(); ctx.moveTo(Math.cos(a) * .5, Math.sin(a) * .5 - .1); ctx.lineTo(Math.cos(a) * .68, Math.sin(a) * .68 - .1); ctx.stroke(); }
+    ctx.beginPath(); ctx.arc(0, -.1, .3, Math.PI * .8, Math.PI * .2); ctx.lineTo(.12, .28); ctx.lineTo(-.12, .28); ctx.closePath();
+    outlined(ctx, "#ffe066");
+    ctx.beginPath(); ctx.roundRect(-.13, .28, .26, .16, .04); outlined(ctx, "#b8bfcc", .06);
+  },
+  confetti(ctx, p) {
+    ctx.beginPath(); ctx.rect(-.5, -.25, 1, .5); ctx.fillStyle = p.color; ctx.fill();
+  },
   blush(ctx) {
     ctx.beginPath(); ctx.ellipse(0, 0, .5, .28, 0, 0, TAU);
     ctx.fillStyle = "rgba(255, 110, 140, .6)"; ctx.fill();
@@ -87,6 +105,17 @@ const KINDS = {
   anger: { anchor: "head", life: 1.7, size: .3,
     spawn: () => [{ lon: .45, lat: -.5 }],
     tick: p => { p.grow = 1 + .15 * Math.sin(p.age * 14); } },
+  thought: { anchor: "float", life: 1.5, size: .55,
+    spawn: () => [{ x: .85, y: -1.25 }] },
+  bulb: { anchor: "float", life: 1.3, size: .5,
+    spawn: () => [{ x: .85, y: -1.3, vy: -.1 }],
+    tick: p => { p.rot = .1 * Math.sin(p.age * 8) * Math.max(0, 1 - p.age); } },
+  confetti: { anchor: "float", life: 1.6, size: .09,
+    spawn: () => Array.from({ length: 16 }, () => ({
+      x: rand(-.3, .3), y: -1.05, vx: rand(-1.4, 1.4), vy: rand(-1.6, -.6), g: 2.2, spin: rand(-12, 12),
+      color: ["#ff6b8b", "#ffd23f", "#7cc7ff", "#8be08b", "#c9b8ff"][Math.floor(Math.random() * 5)],
+    })),
+    tick: p => { p.rot += p.spin / 60; } },
   blush: { anchor: "head", layer: "under", life: 2, size: .16,
     spawn: spec => [-1, 1].map(s => ({ lon: s * spec.spacing * 1.05, lat: faceLat(spec) + spec.eyeH * .5 + .1 })) },
 };
@@ -107,6 +136,7 @@ export function updateSymbols(list, dt) {
     const p = list[i];
     p.age += dt;
     if (p.age >= p.life) { list.splice(i, 1); continue; }
+    p.vy += (p.g || 0) * dt;
     p.x += (p.vx + p.sway * Math.cos(p.age * 6)) * dt; p.y += p.vy * dt; p.lat += p.vlat * dt;
     KINDS[p.kind].tick?.(p);
   }
@@ -130,7 +160,7 @@ export function drawSymbols(ctx, list, { layer, base, cx, cy, R, place }) {
       ctx.globalAlpha = fade(p);
     }
     ctx.rotate(p.anchor === "head" ? p.rot : 0);
-    DRAW[KINDS[p.kind].draw || p.kind](ctx);
+    DRAW[KINDS[p.kind].draw || p.kind](ctx, p);
   }
   ctx.globalAlpha = 1;
 }

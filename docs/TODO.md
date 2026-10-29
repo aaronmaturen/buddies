@@ -8,7 +8,6 @@
 ### Upcoming
 - [ ] Move off Node 20 actions (`actions/checkout@v4`, `cloudflare/wrangler-action@v3`) once Node 24 versions are available
 - [ ] Idle emotes picked by personality (twitchy → nervous, aloof → snooze)
-- [ ] Emotes, step 3: accessories (sunglasses, party hat, props)
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
@@ -21,6 +20,7 @@
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Upside-down egg head; renamed to Build a Buddy (2026-10-29)
 - [x] Split the single page into a `buddy/` ES-module library, `app.js` and `styles.css`; verified identical specs for 2,000 seeds (2026-10-29)
+- [x] Emotes step 3: accessories (sunglasses, party hat, nightcap, mug, gift, magnifier) and cool, party, idea, coffee, gift, inspect emotes; cast moved under the stage (2026-10-29)
 - [x] Emotes step 2: floating hands (gloves or mittens by seed) with wave, facepalm, peekaboo, thumbs up, shrug, clap, think and a wagging no (2026-10-29)
 - [x] Emotes step 1: 12 emotes with emote-only mouths, symbols and head motions; boop plays Love (2026-10-29)
 
