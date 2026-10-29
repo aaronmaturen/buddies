@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Seeded characters made of eyes, brows and a cel-shaded head, with moods and cursor tracking.">
-<title>Glance Lab</title>
+<title>Build a Buddy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -156,7 +156,7 @@
 
 <div class="wrap">
   <header>
-    <h1>Glance Lab</h1>
+    <h1>Build a Buddy</h1>
     <p>Seeded characters made of eyes, brows and a head you mostly can't see. Move your cursor around the page, and click the big one.</p>
   </header>
 
@@ -269,6 +269,7 @@
   const HEADS = {
     round: { sx: 1, sy: 1, n: 2 },
     egg: { sx: .9, sy: 1.08, n: 2, taper: .12 },
+    flipEgg: { label: "Upside-down egg", sx: .9, sy: 1.08, n: 2, taper: -.14, faceY: -.05 },
     squircle: { sx: 1, sy: .92, n: 4 },
     bean: { sx: 1.18, sy: .84, n: 2.6 },
     tall: { sx: .84, sy: 1.12, n: 3.2 },
@@ -284,6 +285,7 @@
     dome: { sx: 1, sy: .9, verts: domeVerts, bottom: .75, faceY: -.02, fit: 1.05, shadow: 1.05 },
   };
   for (const k in HEADS) HEADS[k] = { n: 2, taper: 0, ...HEADS[k] };
+  const shapeLabel = k => HEADS[k].label || k[0].toUpperCase() + k.slice(1);
   // Saturation/lightness ranges per tone, and how often each comes up; earthy also narrows the hue.
   const TONES = {
     candy: { s: [70, 85], l: [60, 68], weight: 32 },
@@ -776,7 +778,7 @@
     document.getElementById("stage-name").textContent = sp.name;
     const shapeName = { round: "round", pill: "wide pill", tall: "tall oval", soft: "soft square" }[sp.shape];
     const rows = [
-      ["head", `${sp.headShape}, ${d.colorName}`],
+      ["head", `${shapeLabel(sp.headShape).toLowerCase()}, ${d.colorName}`],
       ["eyes", shapeName],
       ["temper", `${d.temper} · spring ×${sp.stiffness.toFixed(2)}`],
       ["attention", `${d.attn} · ${Math.round(sp.attention * 100)}% follows you`],
@@ -791,7 +793,7 @@
     for (const c of cast) {
       const cd = describe(c.spec);
       c.card.querySelector("strong").textContent = c.spec.name;
-      c.card.querySelector("small").textContent = `${c.spec.headShape}, ${cd.temper}, ${cd.attn}`;
+      c.card.querySelector("small").textContent = `${shapeLabel(c.spec.headShape).toLowerCase()}, ${cd.temper}, ${cd.attn}`;
       c.card.setAttribute("aria-label", `Bring ${c.spec.name} forward`);
     }
     for (const b of swatchesEl.children) b.setAttribute("aria-pressed", String(b.dataset.color === sp.colorKey));
@@ -801,7 +803,7 @@
   const shapesEl = document.getElementById("shapes");
   for (const key of Object.keys(HEADS)) {
     const b = document.createElement("button");
-    b.className = "chip"; b.dataset.shape = key; b.textContent = key[0].toUpperCase() + key.slice(1);
+    b.className = "chip"; b.dataset.shape = key; b.textContent = shapeLabel(key);
     shapesEl.append(b);
   }
   shapesEl.addEventListener("click", e => {
