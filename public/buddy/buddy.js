@@ -4,6 +4,9 @@ import { rotation, surfaceFrame } from "./sphere.js";
 import { BASE, MOODS } from "./moods.js";
 import { INK, drawHead, drawShadow } from "./heads.js";
 import { drawEye, drawBrow, browOffset } from "./face.js";
+import { MOUTHS, MOUTH_REST, drawMouth } from "./mouth.js";
+import { EmotePlayer } from "./emote-player.js";
+import { drawSymbols } from "./symbols.js";
 import { headColors } from "./colors.js";
 import { theme } from "./theme.js";
 import { pointer } from "./pointer.js";
@@ -25,6 +28,9 @@ export class Buddy {
     this.nextBlink = 0; this.nextGlance = 0; this.attending = true;
     this.glance = [0, 0]; this.thinkSide = 1; this.bobY = 0; this.now = 0;
     this.phase = [0, 1, 2, 3, 4, 5].map(() => Math.random() * TAU);
+    this.emotes = new EmotePlayer();
+    this.mouth = {}; for (const k in MOUTH_REST) this.mouth[k] = new Spring(MOUTH_REST[k]);
+    this.mouthShow = new Spring(0);
     this.spec = spec;
     new ResizeObserver(() => this.resize()).observe(canvas);
     new IntersectionObserver(es => { this.visible = es[0].isIntersecting; }).observe(canvas);
@@ -48,10 +54,13 @@ export class Buddy {
     if (m === "surprised") { this.jump.v += 3.2; this.squash.v += 4; }
   }
 
-  boop(now = performance.now() / 1000) {
-    this.squash.v -= 7; this.jump.v += 2.4;
-    this.override = { mood: "happy", until: now + 1.3 };
+  // Play a one-off reaction from EMOTES on top of the current mood.
+  emote(name) { this.emotes.play(name, this.now, this); }
+
+  boop() {
+    this.squash.v -= 7;
     this.blinkT = 0; this.blinkDur = .15;
+    this.emote("love");
   }
 
   blinkNow() {
@@ -97,6 +106,12 @@ export class Buddy {
     this.hPitch.t = tp * S.follow.x + S.pitch.x + n(2, .5) * .04 + nod;
     this.hRoll.t = sp.restTilt + S.roll.x + n(3, .45) * .03 - this.hYaw.x * .08;
     this.lean.t = S.lean.x;
+
+    const em = this.emotes.update(now, dt, this);
+    this.hYaw.t += em.motion.yaw; this.hPitch.t += em.motion.pitch; this.hRoll.t += em.motion.roll;
+    // Keep the last mouth shape while it shrinks away.
+    this.mouthShow.t = em.mouth ? 1 : 0;
+    if (em.mouth) for (const k in this.mouth) this.mouth[k].t = MOUTHS[em.mouth][k];
     this.bobY = reducedMotion ? 0 : S.bob.x * .018 * Math.sin(now * (1.4 + E * 1.2) + this.phase[4]);
 
     // Blinks: fast close, slower open, sometimes a double.
@@ -124,6 +139,8 @@ export class Buddy {
     const headK = 45 * st * (.5 + .5 * E);
     this.hYaw.step(dt, headK, .7); this.hPitch.step(dt, headK, .7); this.hRoll.step(dt, headK * .8, .7);
     this.lean.step(dt, 180, .6); this.jump.step(dt, 90, .45); this.squash.step(dt, 300, .3);
+    for (const k in this.mouth) this.mouth[k].step(dt, 260, .7);
+    this.mouthShow.step(dt, 200, .6);
   }
 
   draw() {
@@ -162,14 +179,25 @@ export class Buddy {
       ctx.globalAlpha = clamp((f.p[2] - .05) / .25, 0, 1);
     };
 
+    const faceLat = spec.eyeLat + (head.faceY || 0) - dp * slide;
+    const symbols = this.emotes.symbols, fx = { base, cx, cy, R, place };
+    drawSymbols(ctx, symbols, { ...fx, layer: "under" });
+
     for (const s of [-1, 1]) {
       const lon = s * spec.spacing + dy * slide;
-      const lat = spec.eyeLat + (head.faceY || 0) - dp * slide;
-      place(lon, lat);
+      place(lon, faceLat);
       drawEye(ctx, { s, spec, P, open: this.open, dy, dp, ink: eyeInk, lidFill });
-      place(lon, lat + browOffset(s, spec, P));
+      place(lon, faceLat + browOffset(s, spec, P));
       drawBrow(ctx, { s, spec, P, ink: browInk });
     }
+
+    if (this.mouthShow.x > .02) {
+      const mouth = {}; for (const k in this.mouth) mouth[k] = this.mouth[k].x;
+      place(dy * slide, faceLat + spec.eyeH * .5 + .17);
+      drawMouth(ctx, { m: mouth, show: this.mouthShow.x, ink: eyeInk });
+    }
+
+    drawSymbols(ctx, symbols, { ...fx, layer: "over" });
     ctx.globalAlpha = 1;
   }
 }

@@ -7,8 +7,8 @@
 
 ### Upcoming
 - [ ] Move off Node 20 actions (`actions/checkout@v4`, `cloudflare/wrangler-action@v3`) once Node 24 versions are available
-- [ ] Emotes, step 1: emote timeline format, emote-only mouths, symbols (hearts, !, ?, sweat drop), Emotes buttons
 - [ ] Emotes, step 2: floating hands with poses
+- [ ] Idle emotes picked by personality (twitchy → nervous, aloof → snooze)
 - [ ] Emotes, step 3: accessories (sunglasses, party hat, props)
 - [ ] Optional WebGL renderer with the same spec and mood system
 
@@ -22,6 +22,7 @@
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Upside-down egg head; renamed to Build a Buddy (2026-10-29)
 - [x] Split the single page into a `buddy/` ES-module library, `app.js` and `styles.css`; verified identical specs for 2,000 seeds (2026-10-29)
+- [x] Emotes step 1: 12 emotes with emote-only mouths, symbols and head motions; boop plays Love (2026-10-29)
 
 ## Notes
 
@@ -35,5 +36,6 @@
 - No automated tests; `makeSpec` deserves a snapshot test now that it's importable on its own.
 
 ### Recurring Issues & Solutions
+- Browser-pane screenshots: the first capture in a batch can be stale; check canvas pixels or capture twice before assuming a draw failed.
 - Cast looked all green/gray → tones were equally weighted and earthy only picked orange/green; fixed with tone weights and `spreadColors()`.
 - A Claude Code auto-update rewrote `~/.claude.json` and dropped a just-added MCP server → re-add it with `claude mcp add`.

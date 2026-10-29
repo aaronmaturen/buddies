@@ -4,8 +4,10 @@
 //   const b = new Buddy(canvas, makeSpec("glance"));
 //   animate(b);
 //   b.setMood("happy");
+//   b.emote("love");
 
 export { Buddy } from "./buddy.js";
+export { EMOTE_NAMES } from "./emotes.js";
 export { animate, stopAnimating } from "./loop.js";
 export { makeSpec, describe, setHeadShape, setColor } from "./spec.js";
 export { MOOD_NAMES } from "./moods.js";
