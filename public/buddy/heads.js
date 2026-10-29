@@ -3,7 +3,7 @@ import { TAU, reducedMotion } from "./util.js";
 export const INK = "#16181e";
 
 // Head silhouettes. Curved ones are superellipses: sx/sy stretch, n squareness, taper widens the bottom
-// (negative widens the top), wobble makes a blob, bumps/lobes make a cloud. Angular ones are rounded polygons:
+// (negative widens the top, like the obovoid, an upside-down egg), wobble makes a blob, bumps/lobes make a cloud. Angular ones are rounded polygons:
 // verts are [x, y, cornerRadius]. sx/sy also shape the invisible surface the features sit on; faceY moves the
 // face down, fit shrinks big shapes, bottom/shadow size the floor shadow, glow places the highlight.
 const regular = (k, rad, rot, r) => Array.from({ length: k }, (_, i) => {
@@ -18,7 +18,7 @@ const domeVerts = [
 const SHAPES = {
   round: { sx: 1, sy: 1, n: 2 },
   egg: { sx: .9, sy: 1.08, n: 2, taper: .12 },
-  flipEgg: { label: "Upside-down egg", sx: .9, sy: 1.08, n: 2, taper: -.14, faceY: -.05 },
+  obovoid: { sx: .9, sy: 1.08, n: 2, taper: -.14, faceY: -.05 },
   squircle: { sx: 1, sy: .92, n: 4 },
   bean: { sx: 1.18, sy: .84, n: 2.6 },
   tall: { sx: .84, sy: 1.12, n: 3.2 },
