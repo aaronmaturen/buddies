@@ -36,6 +36,10 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 - Accessories during emotes: worn (sunglasses, party hat, nightcap) and held (coffee mug, gift, magnifying glass that enlarges the eye behind it).
 - Booping the featured buddy plays Love; the cast follows an emote a beat later.
 
+### Morphs
+- The buddy can morph into an object that acts on its own, then morph back: first a paper airplane that loops around the stage.
+- The morph keeps the buddy's head style and colors, and its eyes ride along on the object.
+
 ### Page
 - One featured character with the cast of 12 beneath it, each with a unique head shape and well-spread colors.
 - Tunable traits for the stage buddy: eye shape, eye size, eye spacing, temper, attention, gaze and blink rate, with a reset to the seed.

@@ -15,6 +15,8 @@ import { Buddy, makeSpec, animate } from "./buddy/index.js";
 const buddy = new Buddy(canvas, makeSpec("glance"));
 animate(buddy);
 buddy.setMood("happy");
+buddy.emote("wave");
+buddy.morphInto("airplane");
 ```
 
 The **Copy config** button on the stage copies the featured buddy as JSON (seed, name, head shape, color, head style, mood, and any traits you tuned in the Buddy tab). Rebuild it with:

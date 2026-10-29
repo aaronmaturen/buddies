@@ -41,7 +41,20 @@ export const shapeLabel = k => HEADS[k].label || k[0].toUpperCase() + k.slice(1)
 export const headFor = (key, phase) => ({ ...HEADS[key], phase });
 
 // begin: false adds the outline to the current path (for compound clips) instead of starting a new one.
+// H.points (a ring of [x, y] in head units) overrides the shape; morphs use it so every style can draw them.
 export function headPath(ctx, cx, cy, R, H, now, begin = true) {
+  if (H.points) {
+    const p = H.points, n = p.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    if (begin) ctx.beginPath();
+    const m0 = mid(p[n - 1], p[0]);
+    ctx.moveTo(cx + m0[0] * R, cy + m0[1] * R);
+    for (let i = 0; i < n; i++) {
+      const m1 = mid(p[i], p[(i + 1) % n]);
+      ctx.quadraticCurveTo(cx + p[i][0] * R, cy + p[i][1] * R, cx + m1[0] * R, cy + m1[1] * R);
+    }
+    ctx.closePath();
+    return;
+  }
   if (H.verts) {
     const v = H.verts, n = v.length, P = i => v[(i + n) % n];
     const a = P(-1), b = P(0);
@@ -83,7 +96,9 @@ function curvePoint(H, th, now) {
 // Polygon corners are left sharp here; it's close enough for decorating the edge (fur, chalk).
 export function outlinePoints(H, n, now = 0) {
   let pts;
-  if (H.verts) {
+  if (H.points) {
+    pts = Array.from({ length: n }, (_, k) => H.points[Math.floor(k * H.points.length / n)]);
+  } else if (H.verts) {
     const v = H.verts, lens = v.map((p, i) => Math.hypot(v[(i + 1) % v.length][0] - p[0], v[(i + 1) % v.length][1] - p[1]));
     const total = lens.reduce((a, b) => a + b, 0);
     pts = Array.from({ length: n }, (_, k) => {

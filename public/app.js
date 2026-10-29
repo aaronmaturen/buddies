@@ -1,7 +1,7 @@
 import {
   Buddy, animate, makeSpec, describe, setHeadShape, setHeadStyle, setColor, toConfig,
   TRAITS, setTrait, setEyeShape, resetTraits, EYE_SHAPES,
-  MOOD_NAMES, EMOTE_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
+  MOOD_NAMES, EMOTE_NAMES, MORPHS, MORPH_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
   castShapes, spreadColors, spreadStyles, mulberry32, reducedMotion,
 } from "./buddy/index.js";
 
@@ -181,6 +181,16 @@ for (const name of EMOTE_NAMES) {
     for (const c of cast) setTimeout(() => c.emote(name), 120 + Math.random() * 350);
   });
   $("emotes").append(b);
+}
+
+// ---------- morphs ----------
+for (const name of MORPH_NAMES) {
+  const b = chip("chip", MORPHS[name].label);
+  b.addEventListener("click", () => {
+    featured.morphInto(name);
+    for (const c of cast) setTimeout(() => c.morphInto(name), 150 + Math.random() * 500);
+  });
+  $("morphs").append(b);
 }
 
 // ---------- head mode, seed, reroll, boop ----------
