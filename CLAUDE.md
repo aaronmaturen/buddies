@@ -4,7 +4,7 @@ Source of truth for this project. README.md summarizes it for humans.
 
 ## Project Overview
 
-Buddies (page title "Glance Lab") is a browser-only toy: seeded characters made of eyes, brows and a cel-shaded head that look around, follow the cursor and show moods. No build step, no dependencies.
+Buddies (page title "Build a Buddy") is a browser-only toy: seeded characters made of eyes, brows and a cel-shaded head that look around, follow the cursor and show moods. No build step, no dependencies.
 
 - Each seed deterministically sets looks (head shape, color, eye shape, brows) and personality (spring stiffness, blink rate, curiosity, attention).
 - Faces sit on an invisible sphere stretched to the head silhouette; turning the sphere slides and foreshortens features to imply a 3D head.

@@ -13,7 +13,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 
 ### Characters
 - Generated from a text seed; the same seed always produces the same character.
-- Looks: 15 head shapes, 4 eye shapes, brows, color from weighted tones.
+- Looks: 16 head shapes, 4 eye shapes, brows, color from weighted tones.
 - Personality from motion: spring stiffness, blink rate, curiosity, attention to the cursor, resting tilt.
 - Eyes always have whites and pupils.
 
