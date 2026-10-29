@@ -15,7 +15,7 @@ Buddies (page title "Build a Buddy") is a browser-only toy: seeded characters ma
 
 Native ES modules, no bundler. Every file stays small and does one thing.
 
-- `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: stage and cast on the left, controls on the right; on phones stage, controls, cast.
+- `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: stage and cast on the left, controls on the right in four tabs (Emotes, Mood, Look, Buddy) so the panel stays about stage height; on phones the stage pins to the top while the controls scroll under it.
 - `public/styles.css` — page styles and theme tokens.
 - `public/app.js` — page wiring: the featured buddy, the cast, and every control.
 - `public/buddy/` — the buddy library; import from `buddy/index.js` only.

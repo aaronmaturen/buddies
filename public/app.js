@@ -12,6 +12,32 @@ const seedInput = $("seed"), traitsEl = $("traits"), moodsEl = $("moods"), cycle
 const shapesEl = $("shapes"), swatchesEl = $("swatches"), castEl = $("cast");
 let mood = "neutral";
 
+// ---------- tabs ----------
+// One group of controls at a time so the panel stays about as tall as the stage. Arrow keys move between
+// tabs; the last tab used is remembered in this browser.
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function selectTab(tab, focus = false) {
+  for (const t of tabs) {
+    const on = t === tab;
+    t.setAttribute("aria-selected", String(on));
+    t.tabIndex = on ? 0 : -1;
+    $(t.getAttribute("aria-controls")).hidden = !on;
+  }
+  if (focus) tab.focus();
+  try { localStorage.setItem("buddies:tab", tab.id); } catch {}
+}
+for (const t of tabs) {
+  t.addEventListener("click", () => selectTab(t));
+  t.addEventListener("keydown", e => {
+    const i = tabs.indexOf(t);
+    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+    if (next === undefined) return;
+    e.preventDefault();
+    selectTab(tabs[(next + tabs.length) % tabs.length], true);
+  });
+}
+try { const saved = $(localStorage.getItem("buddies:tab")); if (tabs.includes(saved)) selectTab(saved); } catch {}
+
 // ---------- buddies ----------
 const featured = new Buddy($("featured"), makeSpec(SEEDS[0]), { scale: .27 });
 const startShapes = castShapes(featured.spec.headShape, mulberry32(7));
