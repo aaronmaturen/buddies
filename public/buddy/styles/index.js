@@ -16,6 +16,9 @@ import { neon, neonColors } from "./neon.js";
 const onHead = c => ({ eye: INK, brow: c.deep ? LIGHT_INK : INK, lid: c.lit });
 const onPage = () => ({ eye: theme.fg, brow: theme.fg, lid: theme.surface });
 
+// Styles a buddy can be seeded with: every one that draws a head. Invisible and ghost would read as missing in a grid.
+export const SEEDED_STYLES = ["solid", "sticker", "sketch", "jelly", "pixel", "neon"];
+
 export const HEAD_STYLES = {
   none: { label: "Invisible", head: null, face: onPage },
   ghost: { label: "Ghost", head: ghost, face: onPage },

@@ -36,7 +36,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `symbols.js` — cartoon marks (hearts, !, ?, Z, sweat, anger, sparkles, blush): spawn, motion, drawing.
   - `colors.js` — tones, palette, color names, cel-shading tones.
   - `sphere.js` — rotation and surface frames for the invisible head.
-  - `variety.js` — `castShapes`, `spreadColors` for showing many buddies together.
+  - `variety.js` — `castShapes`, `spreadColors`, `spreadStyles` for showing many buddies together.
   - `spring.js`, `random.js`, `pointer.js`, `theme.js`, `util.js` — small shared pieces.
 - `wrangler.jsonc` — Cloudflare Worker config: serves `public/`, binds the custom domain.
 - `.github/workflows/deploy.yml` — deploys on every push to `main`.
@@ -58,7 +58,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Accessories are emote-only. Worn items go in `WEARABLES` (wear.js) with a drawing in props.js; held items go in `HELD` (props.js) and are given to a hand with `holds` in an emote's hand event.
 - Seeded traits added later are drawn at the end of `makeSpec` (e.g. `handStyle`) so older seeds don't change.
 - `makeSpec(seed, forcedShape)` uses FNV hash → mulberry32. The order of `r()` calls is part of the format: reordering or removing one changes every existing seed (there is a retired draw kept on purpose).
-- `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()` → `render(ctx, px, style)`. Options: `scale`, `headMode` (a `HEAD_STYLES` key).
+- `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()` → `render(ctx, px, style)`. Options: `scale`, `headMode` — `"mixed"` (default: each buddy draws its own `spec.headStyle`) or a `HEAD_STYLES` key to force one style; `styleKey` is the style actually drawn.
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).

@@ -22,6 +22,7 @@
 - [x] Repo, docs and Cloudflare deploy workflow (2026-10-29)
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Obovoid (upside-down egg) head; renamed to Build a Buddy (2026-10-29)
+- [x] Seeded head style per buddy; cast styles spread so neighbours differ; Mixed is the default Head option (2026-10-29)
 - [x] Copy config button on the stage; `toConfig`/`fromConfig` round-trip a buddy (2026-10-29)
 - [x] Cast grows to 12 so the grid fills evenly (2026-10-29)
 - [x] Split the single page into a `buddy/` ES-module library, `app.js` and `styles.css`; verified identical specs for 2,000 seeds (2026-10-29)

@@ -13,7 +13,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 
 ### Characters
 - Generated from a text seed; the same seed always produces the same character.
-- Looks: 16 head shapes, 4 eye shapes, brows, color from weighted tones.
+- Looks: 16 head shapes, 4 eye shapes, brows, color from weighted tones, and a head style (cel-shaded, sticker, sketch, jelly, pixel or neon).
 - Personality from motion: spring stiffness, blink rate, curiosity, attention to the cursor, resting tilt.
 - Eyes always have whites and pupils.
 
@@ -38,7 +38,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 
 ### Page
 - One featured character with the cast of 12 beneath it, each with a unique head shape and well-spread colors.
-- Controls: mood, emotes, head style (invisible, ghost, cel-shaded, sticker, sketch, jelly, pixel, neon), shape, color, seed, reroll.
+- Controls: mood, emotes, head style (mixed by default, or everyone in invisible, ghost, cel-shaded, sticker, sketch, jelly, pixel or neon), shape, color, seed, reroll.
 - Light and dark themes, phone width, reduced motion.
 
 ### Hosting

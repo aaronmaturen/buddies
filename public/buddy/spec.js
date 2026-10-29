@@ -3,6 +3,7 @@ import { hashStr, mulberry32 } from "./random.js";
 import { HEADS, headFor } from "./heads.js";
 import { EYE_SHAPES } from "./face.js";
 import { pickColor, colorName } from "./colors.js";
+import { SEEDED_STYLES, HEAD_STYLES } from "./styles/index.js";
 
 const SYL = ["bo", "pi", "zu", "ka", "mo", "ri", "ne", "lu", "ta", "vi", "do", "sa", "fen", "ko", "mi", "ru", "jo", "wa"];
 
@@ -40,6 +41,7 @@ export function makeSpec(seed, forcedShape) {
     restTilt: lerp(-.1, .1),
     // New draws go last so older seeds keep everything above.
     handStyle: r() < .5 ? "glove" : "mitt",
+    headStyle: pick(SEEDED_STYLES),
   };
 }
 
@@ -67,11 +69,12 @@ export function setColor(spec, key, palette) {
 // A small, shareable description of a buddy. The seed rebuilds everything else; head shape and color are
 // stored too because pickers and the cast's color spreading can change them away from the seed's own.
 export function toConfig(spec) {
-  return { seed: spec.seed, name: spec.name, headShape: spec.headShape, color: { ...spec.color } };
+  return { seed: spec.seed, name: spec.name, headShape: spec.headShape, color: { ...spec.color }, headStyle: spec.headStyle };
 }
 
 export function fromConfig(config) {
   const spec = makeSpec(config.seed, config.headShape);
   if (config.color) spec.color = spec.seedColor = { ...config.color };
+  if (HEAD_STYLES[config.headStyle]) spec.headStyle = config.headStyle;
   return spec;
 }

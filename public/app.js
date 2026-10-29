@@ -1,7 +1,7 @@
 import {
   Buddy, animate, makeSpec, describe, setHeadShape, setColor, toConfig,
   MOOD_NAMES, EMOTE_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
-  castShapes, spreadColors, mulberry32, reducedMotion,
+  castShapes, spreadColors, spreadStyles, mulberry32, reducedMotion,
 } from "./buddy/index.js";
 
 const SEEDS = ["glance", "pip", "moss", "orbit", "juniper", "tock", "ember", "biscuit", "nova", "pebble", "widget", "sprocket", "waffle"];
@@ -31,6 +31,7 @@ const cast = SEEDS.slice(1).map((seed, i) => {
 });
 const all = [featured, ...cast];
 spreadColors(all.map(b => b.spec), mulberry32(11));
+spreadStyles(all.map(b => b.spec), mulberry32(13));
 
 // ---------- panel ----------
 function render() {
@@ -38,6 +39,7 @@ function render() {
   $("stage-name").textContent = sp.name;
   const rows = [
     ["head", `${shapeLabel(sp.headShape).toLowerCase()}, ${d.colorName}`],
+    ["style", HEAD_STYLES[featured.styleKey].label.toLowerCase()],
     ["eyes", EYE_LABELS[sp.shape]],
     ["temper", `${d.temper} · spring ×${sp.stiffness.toFixed(2)}`],
     ["attention", `${d.attn} · ${Math.round(sp.attention * 100)}% follows you`],
@@ -124,14 +126,16 @@ for (const name of EMOTE_NAMES) {
 }
 
 // ---------- head mode, seed, reroll, boop ----------
+// "Mixed" lets each buddy keep its own style; any other button puts everyone in that style.
 const modesEl = $("head-modes");
-for (const [key, s] of Object.entries(HEAD_STYLES)) {
-  const b = chip("chip", s.label);
+for (const [key, label] of [["mixed", "Mixed"], ...Object.entries(HEAD_STYLES).map(([k, s]) => [k, s.label])]) {
+  const b = chip("chip", label);
   b.dataset.head = key;
-  b.setAttribute("aria-pressed", String(key === "solid"));
+  b.setAttribute("aria-pressed", String(key === "mixed"));
   b.addEventListener("click", () => {
     for (const buddy of all) buddy.headMode = key;
     for (const o of modesEl.children) o.setAttribute("aria-pressed", String(o === b));
+    render();
   });
   modesEl.append(b);
 }
@@ -144,6 +148,7 @@ $("reroll").addEventListener("click", () => {
   const shapes = castShapes(featured.spec.headShape, Math.random);
   cast.forEach((b, i) => b.setSpec(makeSpec(fresh(), shapes[i])));
   spreadColors(all.map(b => b.spec), Math.random);
+  spreadStyles(all.map(b => b.spec), Math.random);
   seedInput.value = featured.spec.seed;
   render();
 });
@@ -164,7 +169,7 @@ async function copyText(text) {
   }
 }
 copyBtn.addEventListener("click", async () => {
-  const config = { ...toConfig(featured.spec), headStyle: featured.headMode, mood };
+  const config = { ...toConfig(featured.spec), headStyle: featured.styleKey, mood };
   const ok = await copyText(JSON.stringify(config, null, 2));
   copyBtn.textContent = ok ? "Copied" : "Copy failed";
   copyBtn.dataset.state = ok ? "done" : "";

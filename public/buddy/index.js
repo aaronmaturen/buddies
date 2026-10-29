@@ -15,6 +15,6 @@ export { MOOD_NAMES } from "./moods.js";
 export { HEADS, shapeLabel } from "./heads.js";
 export { EYE_LABELS } from "./face.js";
 export { PALETTE } from "./colors.js";
-export { castShapes, spreadColors } from "./variety.js";
+export { castShapes, spreadColors, spreadStyles } from "./variety.js";
 export { mulberry32 } from "./random.js";
 export { reducedMotion } from "./util.js";

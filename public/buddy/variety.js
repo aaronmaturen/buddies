@@ -1,5 +1,6 @@
 import { HEADS } from "./heads.js";
 import { TONES } from "./colors.js";
+import { SEEDED_STYLES } from "./styles/index.js";
 
 // Helpers for showing several buddies together without repeats.
 
@@ -26,5 +27,19 @@ export function spreadColors(specs, rand) {
     }
     if (c.tone !== "gray") c.h = Math.round((start + i * 137.5) % 360);
     sp.color = sp.seedColor = c;
+  });
+}
+
+// Deal head styles out of shuffled rounds of every seeded style, so each appears about equally and
+// neighbours rarely match.
+export function spreadStyles(specs, rand) {
+  let deck = [];
+  specs.forEach((sp, i) => {
+    if (!deck.length) {
+      deck = [...SEEDED_STYLES];
+      for (let j = deck.length - 1; j > 0; j--) { const k = Math.floor(rand() * (j + 1)); [deck[j], deck[k]] = [deck[k], deck[j]]; }
+      if (i && deck[0] === specs[i - 1].headStyle) deck.push(deck.shift());
+    }
+    sp.headStyle = deck.shift();
   });
 }
