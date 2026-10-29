@@ -17,10 +17,11 @@ import { pointer } from "./pointer.js";
 const GLOVE = "#fbfbfd";
 
 // One animated buddy drawn into one canvas.
-// headMode: any key of HEAD_STYLES (styles/index.js), e.g. "solid", "ghost", "none", "sketch", "pixel".
+// headMode: "mixed" (each buddy uses its own spec.headStyle) or any key of HEAD_STYLES (styles/index.js)
+// to force one style, e.g. "solid", "ghost", "none", "sketch", "pixel".
 // scale: head radius as a fraction of the canvas's shorter side.
 export class Buddy {
-  constructor(canvas, spec, { scale = .3, headMode = "solid" } = {}) {
+  constructor(canvas, spec, { scale = .3, headMode = "mixed" } = {}) {
     this.canvas = canvas; this.ctx = canvas.getContext("2d");
     this.scale = scale; this.headMode = headMode;
     this.visible = true; this.w = 0; this.h = 0;
@@ -45,6 +46,12 @@ export class Buddy {
   }
 
   setSpec(spec) { this.spec = spec; }
+
+  // The head style actually drawn right now.
+  get styleKey() {
+    const key = this.headMode === "mixed" ? this.spec.headStyle : this.headMode;
+    return HEAD_STYLES[key] ? key : "solid";
+  }
 
   resize() {
     const r = this.canvas.getBoundingClientRect();
@@ -162,7 +169,7 @@ export class Buddy {
   draw() {
     const { ctx, w: W, h: H, dpr } = this;
     if (!W) return;
-    const style = HEAD_STYLES[this.headMode] || HEAD_STYLES.solid;
+    const style = HEAD_STYLES[this.styleKey];
     if (!style.pixel) { this.render(ctx, dpr, style); return; }
     const k = Math.max(3, Math.min(W, H) / 70);
     const off = this.pixelCanvas ||= document.createElement("canvas");

@@ -21,7 +21,7 @@ The **Copy config** button on the stage copies the featured buddy as JSON (seed,
 
 ```js
 import { Buddy, fromConfig, animate } from "./buddy/index.js";
-const buddy = new Buddy(canvas, fromConfig(config), { headMode: config.headStyle });
+const buddy = new Buddy(canvas, fromConfig(config));
 buddy.setMood(config.mood);
 animate(buddy);
 ```
