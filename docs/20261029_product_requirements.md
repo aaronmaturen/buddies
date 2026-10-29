@@ -28,6 +28,12 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 - Mood changes blend smoothly; eyes never disappear.
 - Optional automatic cycling through moods.
 
+### Emotes
+- One-off reactions layered on the current mood: love, laugh, surprise, huh, mad, nervous, snooze, blush, proud, silly, yes, no.
+- Mouths appear only during emotes.
+- Cartoon symbols (hearts, !, ?, Z, sweat drop, anger mark, sparkles, blush) either turn with the head or float around it.
+- Booping the featured buddy plays Love; the cast follows an emote a beat later.
+
 ### Page
 - One featured character plus a cast of 11, each with a unique head shape and well-spread colors.
 - Controls: mood, head mode (invisible / ghost / cel-shaded), shape, color, seed, reroll.
@@ -38,6 +44,6 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 - Deploys automatically on push to `main`.
 
 ## Out of scope (for now)
-- Mouths and lip sync.
+- Permanent mouths and lip sync.
 - WebGL rendering.
 - Saving or sharing characters beyond the seed text.

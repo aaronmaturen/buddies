@@ -26,6 +26,10 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `moods.js` — mood presets over `BASE`.
   - `heads.js` — head silhouettes, head and shadow drawing.
   - `face.js` — eye shapes, eye and brow drawing.
+  - `emotes.js` — emote table (data only): duration, borrowed mood, mouth, head motion, timed events.
+  - `emote-player.js` — runs one emote per buddy: head motions, events, symbol lifetimes.
+  - `mouth.js` — emote-only mouth presets and drawing.
+  - `symbols.js` — cartoon marks (hearts, !, ?, Z, sweat, anger, sparkles, blush): spawn, motion, drawing.
   - `colors.js` — tones, palette, color names, cel-shading tones.
   - `sphere.js` — rotation and surface frames for the invisible head.
   - `variety.js` — `castShapes`, `spreadColors` for showing many buddies together.
@@ -44,6 +48,8 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 
 - Data tables drive looks: `EYE_SHAPES` (face.js), `HEADS` (heads.js), `TONES` and `PALETTE` (colors.js), `MOODS` (moods.js). Add an entry to extend; pickers and the cast pick it up automatically.
 - Every mood value is a spring target over `BASE`, so moods blend.
+- Emotes are one-off reactions on top of the mood: `buddy.emote(name)`. To add one, add an entry to `EMOTES`; new head motions go in `MOTIONS` (emote-player.js), new marks in `KINDS`/`DRAW` (symbols.js), new mouths in `MOUTHS`.
+- Symbols anchor either to the head surface (turn with it) or float in screen space around it.
 - `makeSpec(seed, forcedShape)` uses FNV hash → mulberry32. The order of `r()` calls is part of the format: reordering or removing one changes every existing seed (there is a retired draw kept on purpose).
 - `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()`. Options: `scale`, `headMode`.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.

@@ -1,6 +1,6 @@
 import {
   Buddy, animate, makeSpec, describe, setHeadShape, setColor,
-  MOOD_NAMES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
+  MOOD_NAMES, EMOTE_NAMES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
   castShapes, spreadColors, mulberry32, reducedMotion,
 } from "./buddy/index.js";
 
@@ -110,6 +110,17 @@ cycleEl.checked = !reducedMotion;
 setInterval(() => {
   if (cycleEl.checked) setMood(MOOD_NAMES[(MOOD_NAMES.indexOf(mood) + 1) % MOOD_NAMES.length], true);
 }, 3400);
+
+// ---------- emotes ----------
+// The featured buddy reacts right away; the cast follows a beat later, each on its own timing.
+for (const name of EMOTE_NAMES) {
+  const b = chip("chip", name[0].toUpperCase() + name.slice(1));
+  b.addEventListener("click", () => {
+    featured.emote(name);
+    for (const c of cast) setTimeout(() => c.emote(name), 120 + Math.random() * 350);
+  });
+  $("emotes").append(b);
+}
 
 // ---------- head mode, seed, reroll, boop ----------
 const modeButtons = document.querySelectorAll("#head-modes .chip");
