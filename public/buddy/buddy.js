@@ -84,9 +84,10 @@ export class Buddy {
     for (const _ of mo.puff) spawnSymbol(this.emotes.symbols, "puff", sp, { offset: at });
     for (const ev of mo.spawn) {
       if (ev.from === "nose" && mo.def.nose) {
-        const [nx, ny] = mo.def.nose, c = Math.cos(f.rot), s = Math.sin(f.rot), dir = f.flip ? -1 : 1;
-        const x = nx * dir * f.scale, y = ny * f.scale;
-        spawnSymbol(this.emotes.symbols, ev.symbol, sp, { mouth: [at[0] + x * c - y * s * dir, at[1] + x * s * dir + y * c] });
+        // Same order the object is drawn in: flip, turn, size, then squash (which also handles turning around).
+        const [nx, ny] = mo.def.nose, c = Math.cos(f.rot), s = Math.sin(f.rot), x0 = nx * (f.flip ? -1 : 1);
+        const x = (x0 * c - ny * s) * f.scale * f.sx, y = (x0 * s + ny * c) * f.scale * f.sy;
+        spawnSymbol(this.emotes.symbols, ev.symbol, sp, { mouth: [at[0] + x * fit, at[1] + y * fit] });
       } else {
         spawnSymbol(this.emotes.symbols, ev.symbol, sp, { offset: at });
       }
