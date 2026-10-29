@@ -131,7 +131,7 @@ const KINDS = {
     tick: p => { p.rot = .1 * Math.sin(p.age * 8) * Math.max(0, 1 - p.age); } },
   // Blown from the mouth, drifting up and away; each pops on its own timing.
   bubble: { anchor: "float", noFade: true, life: 1.6, size: .2,
-    spawn: spec => [{ x: rand(.05, .2), y: faceLat(spec) + spec.eyeH * .5 + .2, vx: rand(.6, 1.05), vy: rand(-.6, -.25),
+    spawn: (spec, { mouth }) => [{ ...fromMouth(spec, mouth), vx: rand(.6, 1.05), vy: rand(-.6, -.25),
       sway: rand(.1, .2), size: rand(.2, .36), life: rand(1.2, 2.2) }],
     tick: p => { p.grow = Math.min(1, .25 + p.age * 2.5); } },
   confetti: { anchor: "float", life: 1.6, size: .09,
@@ -147,9 +147,16 @@ const KINDS = {
 // Eye height on this head, so marks near the face follow shapes that sit their face lower or higher.
 function faceLat(spec) { return spec.eyeLat + (spec.head.faceY || 0); }
 
-export function spawnSymbol(list, kind, spec, { life } = {}) {
+// Start at the mouth, nudged just past its edge; estimate it before the buddy's first frame.
+function fromMouth(spec, mouth) {
+  const [x, y] = mouth || [0, Math.sin(faceLat(spec) + spec.eyeH * .5 + .17) * spec.head.sy];
+  return { x: x + .04, y };
+}
+
+// mouth is the mouth's current screen position in head units, when the buddy has drawn one.
+export function spawnSymbol(list, kind, spec, { life, mouth } = {}) {
   const K = KINDS[kind];
-  for (const init of K.spawn(spec)) {
+  for (const init of K.spawn(spec, { mouth })) {
     list.push({ kind, anchor: K.anchor, layer: K.layer || "over", life: life ?? K.life, size: K.size,
       age: 0, x: 0, y: 0, vx: 0, vy: 0, sway: 0, lon: 0, lat: 0, vlat: 0, rot: 0, grow: 1, ...init });
   }
