@@ -5,9 +5,11 @@
 //   animate(b);
 //   b.setMood("happy");
 //   b.emote("love");
+//   b.morphInto("airplane");
 
 export { Buddy } from "./buddy.js";
 export { EMOTE_NAMES } from "./emotes.js";
+export { MORPHS, MORPH_NAMES } from "./morph.js";
 export { HEAD_STYLES } from "./styles/index.js";
 export { animate, stopAnimating } from "./loop.js";
 export { makeSpec, describe, setHeadShape, setHeadStyle, setColor, toConfig, fromConfig, TRAITS, setTrait, setEyeShape, resetTraits } from "./spec.js";
