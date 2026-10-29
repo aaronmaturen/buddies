@@ -212,9 +212,14 @@ export class Buddy {
     }
     if (this.wear.visible) this.wear.drawFace(ctx, { place, eyes, faceLat });
 
+    // Where the mouth is on screen (head units from the head's center), so things like bubbles can come out of it.
+    const mouthLon = dy * slide, mouthLat = faceLat + spec.eyeH * .5 + .17;
+    const mf = surfaceFrame(M, mouthLon, mouthLat, head);
+    this.mouthPoint = [mf.p[0], mf.p[1]];
+
     if (this.mouthShow.x > .02) {
       const mouth = {}; for (const k in this.mouth) mouth[k] = this.mouth[k].x;
-      place(dy * slide, faceLat + spec.eyeH * .5 + .17);
+      place(mouthLon, mouthLat);
       drawMouth(ctx, { m: mouth, show: this.mouthShow.x, ink: eyeInk });
     }
 

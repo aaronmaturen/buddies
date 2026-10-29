@@ -50,7 +50,7 @@ export class EmotePlayer {
       const ev = events[a.fired++];
       if (ev.jump) buddy.jump.v += ev.jump;
       if (ev.squash) buddy.squash.v += ev.squash;
-      if (ev.symbol) spawnSymbol(this.symbols, ev.symbol, buddy.spec, { life: ev.life });
+      if (ev.symbol) spawnSymbol(this.symbols, ev.symbol, buddy.spec, { life: ev.life, mouth: buddy.mouthPoint });
       if (ev.mood) buddy.override = { mood: ev.mood, until: a.start + d };
       if (ev.wear) buddy.wear.wear(ev.wear);
       if (ev.magnify) a.magnify = { side: ev.magnify, k: ev.zoom || 1.6 };
