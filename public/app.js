@@ -4,7 +4,7 @@ import {
   castShapes, spreadColors, mulberry32, reducedMotion,
 } from "./buddy/index.js";
 
-const SEEDS = ["glance", "pip", "moss", "orbit", "juniper", "tock", "ember", "biscuit", "nova", "pebble", "widget", "sprocket"];
+const SEEDS = ["glance", "pip", "moss", "orbit", "juniper", "tock", "ember", "biscuit", "nova", "pebble", "widget", "sprocket", "waffle"];
 const WORDS = ["fern", "pixel", "dune", "otter", "kite", "nimbus", "pebble", "sprout", "quill", "comet", "maple", "zinc"];
 const $ = id => document.getElementById(id);
 
