@@ -31,7 +31,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `emote-player.js` — runs one emote per buddy: head motions, events, symbol lifetimes.
   - `mouth.js` — emote-only mouth presets and drawing.
   - `morph.js` — `MorphPlayer`: outline matching and the melt-in, act, melt-out timeline.
-  - `morphs/` — one file per morph object (airplane, balloon, rocket, ball, ghost, fish, star); `morphs/index.js` is the `MORPHS` table and documents the fields; `morphs/shared.js` has path and easing helpers.
+  - `morphs/` — one file per morph object (balloon, rocket, ball, ghost, fish, star); `morphs/index.js` is the `MORPHS` table and documents the fields; `morphs/shared.js` has path and easing helpers.
   - `hands.js` — floating hands: poses, drawing, `HandRig` springs; hands can hold a prop.
   - `wear.js` — worn accessories (`WearRig`): face slot (sunglasses) and top slot (hats).
   - `props.js` — prop drawings: lenses, hats, and held props (mug, gift, magnifier).

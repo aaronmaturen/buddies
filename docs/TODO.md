@@ -24,7 +24,8 @@
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Obovoid (upside-down egg) head; renamed to Build a Buddy (2026-10-29)
 - [x] Six more morphs: balloon, rocket, bouncy ball, ghost, fish, star; morphs can have their own motion, moving outlines and timed symbols (2026-10-29)
-- [x] Morphs: the head melts into a paper airplane that loops around the stage, then melts back; works in every head style (2026-10-29)
+- [x] Morphs: the head melts into an object that acts, then melts back; works in every head style (2026-10-29)
+- [x] Removed the paper airplane morph (2026-10-29)
 - [x] Seven more head styles: Inked, Comic, Clay, Fuzzy, Hologram, Paper, Chalk; all 13 drawn styles are seeded, so every buddy on the page differs (2026-10-29)
 - [x] Tunable traits in the Buddy tab: eye shape, eye size, spacing, temper, attention, gaze, blinks, with From seed reset; Copy config saves only changed traits (2026-10-29)
 - [x] Controls split into Emotes / Mood / Look / Buddy tabs so the stage stays in view; stage pins to the top on phones (2026-10-29)
@@ -43,6 +44,7 @@
 ## Notes
 
 ### Development Decisions
+- No paper airplane morph: a plane needs to bank and loop in three dimensions, and spinning flat on screen read as a cutout. Morphs that naturally move flat (balloon, ball, ghost, fish) work in 2D (2026-10-29).
 - 2D canvas over WebGL: with only eyes, brows and a head, the invisible-sphere projection gives the 3D turn without WebGL's context limits (2026-10-29).
 - Expressions reshape the eye outline; only blink (squash) and sleepy/bored/smug (head-colored lid) cover the eye. Clipping lids erased short eyes (2026-10-29).
 - Native ES modules with no bundler: Cloudflare serves them as static files and each module stays small (2026-10-29).

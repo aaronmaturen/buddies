@@ -5,7 +5,7 @@
 //   animate(b);
 //   b.setMood("happy");
 //   b.emote("love");
-//   b.morphInto("airplane");
+//   b.morphInto("ghost");
 
 export { Buddy } from "./buddy.js";
 export { EMOTE_NAMES } from "./emotes.js";
