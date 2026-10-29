@@ -24,7 +24,8 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `loop.js` — one shared animation loop (`animate`, `stopAnimating`).
   - `spec.js` — seeded generation (`makeSpec`), `describe`, shape/color overrides.
   - `moods.js` — mood presets over `BASE`.
-  - `heads.js` — head silhouettes, head and shadow drawing.
+  - `heads.js` — head silhouettes (`HEADS`), `headPath`, floor shadow.
+  - `styles/` — head styles, one file each (cel/ghost, sticker, sketch, jelly, neon); `styles/index.js` is the `HEAD_STYLES` table with labels and face colors. Pixel reuses cel with a whole-buddy pixel pass in `Buddy.draw`.
   - `face.js` — eye shapes, eye and brow drawing.
   - `emotes.js` — emote table (data only): duration, borrowed mood, mouth, head motion, timed events.
   - `emote-player.js` — runs one emote per buddy: head motions, events, symbol lifetimes.
@@ -57,7 +58,8 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Accessories are emote-only. Worn items go in `WEARABLES` (wear.js) with a drawing in props.js; held items go in `HELD` (props.js) and are given to a hand with `holds` in an emote's hand event.
 - Seeded traits added later are drawn at the end of `makeSpec` (e.g. `handStyle`) so older seeds don't change.
 - `makeSpec(seed, forcedShape)` uses FNV hash → mulberry32. The order of `r()` calls is part of the format: reordering or removing one changes every existing seed (there is a retired draw kept on purpose).
-- `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()`. Options: `scale`, `headMode`.
+- `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()` → `render(ctx, px, style)`. Options: `scale`, `headMode` (a `HEAD_STYLES` key).
+- To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).
 - `app.js` never touches springs or drawing; it only creates buddies, sets specs, moods and head modes.

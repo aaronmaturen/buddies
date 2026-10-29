@@ -8,6 +8,7 @@
 
 export { Buddy } from "./buddy.js";
 export { EMOTE_NAMES } from "./emotes.js";
+export { HEAD_STYLES } from "./styles/index.js";
 export { animate, stopAnimating } from "./loop.js";
 export { makeSpec, describe, setHeadShape, setColor } from "./spec.js";
 export { MOOD_NAMES } from "./moods.js";

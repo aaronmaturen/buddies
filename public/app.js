@@ -1,6 +1,6 @@
 import {
   Buddy, animate, makeSpec, describe, setHeadShape, setColor,
-  MOOD_NAMES, EMOTE_NAMES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
+  MOOD_NAMES, EMOTE_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
   castShapes, spreadColors, mulberry32, reducedMotion,
 } from "./buddy/index.js";
 
@@ -124,12 +124,16 @@ for (const name of EMOTE_NAMES) {
 }
 
 // ---------- head mode, seed, reroll, boop ----------
-const modeButtons = document.querySelectorAll("#head-modes .chip");
-for (const b of modeButtons) {
+const modesEl = $("head-modes");
+for (const [key, s] of Object.entries(HEAD_STYLES)) {
+  const b = chip("chip", s.label);
+  b.dataset.head = key;
+  b.setAttribute("aria-pressed", String(key === "solid"));
   b.addEventListener("click", () => {
-    for (const buddy of all) buddy.headMode = b.dataset.head;
-    for (const o of modeButtons) o.setAttribute("aria-pressed", String(o === b));
+    for (const buddy of all) buddy.headMode = key;
+    for (const o of modesEl.children) o.setAttribute("aria-pressed", String(o === b));
   });
+  modesEl.append(b);
 }
 
 seedInput.addEventListener("input", () => { featured.setSpec(makeSpec(seedInput.value.trim() || "blank")); render(); });

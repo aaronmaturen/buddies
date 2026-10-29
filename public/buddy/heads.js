@@ -40,11 +40,12 @@ export const shapeLabel = k => HEADS[k].label || k[0].toUpperCase() + k.slice(1)
 // A head instance carries its own phase so blobs don't all wobble in sync.
 export const headFor = (key, phase) => ({ ...HEADS[key], phase });
 
-export function headPath(ctx, cx, cy, R, H, now) {
+// begin: false adds the outline to the current path (for compound clips) instead of starting a new one.
+export function headPath(ctx, cx, cy, R, H, now, begin = true) {
   if (H.verts) {
     const v = H.verts, n = v.length, P = i => v[(i + n) % n];
     const a = P(-1), b = P(0);
-    ctx.beginPath();
+    if (begin) ctx.beginPath();
     ctx.moveTo(cx + (a[0] + b[0]) / 2 * R, cy + (a[1] + b[1]) / 2 * R);
     for (let i = 0; i < n; i++) {
       const p = P(i), q = P(i + 1);
@@ -54,7 +55,7 @@ export function headPath(ctx, cx, cy, R, H, now) {
     return;
   }
   const N = H.bumps ? 140 : 72, e = 2 / H.n;
-  ctx.beginPath();
+  if (begin) ctx.beginPath();
   for (let i = 0; i < N; i++) {
     const th = i / N * TAU, c = Math.cos(th), s = Math.sin(th);
     let x = Math.sign(c) * Math.abs(c) ** e * H.sx, y = Math.sign(s) * Math.abs(s) ** e * H.sy;
@@ -70,32 +71,6 @@ export function headPath(ctx, cx, cy, R, H, now) {
     if (i) ctx.lineTo(cx + x * R, cy + y * R); else ctx.moveTo(cx + x * R, cy + y * R);
   }
   ctx.closePath();
-}
-
-// Cel-shaded head: shade tone, a lit layer offset toward the light, a highlight, and (solid mode) an outline.
-// The silhouette rolls with the head; the light stays put, so the lit layer is offset in screen space.
-export function drawHead(ctx, m, { cx, cy, R, head, colors, mode, roll, now }) {
-  const shapeM = m.translate(cx, cy).rotate(roll).translate(-cx, -cy);
-  const litM = m.translate(cx - R * .14, cy - R * .18).rotate(roll).scale(.98).translate(-cx, -cy);
-  ctx.globalAlpha = mode === "ghost" ? .2 : 1;
-  ctx.setTransform(shapeM);
-  headPath(ctx, cx, cy, R, head, now);
-  ctx.fillStyle = colors.shade; ctx.fill();
-  ctx.save(); ctx.clip();
-  ctx.setTransform(litM);
-  headPath(ctx, cx, cy, R, head, now);
-  ctx.fillStyle = colors.lit; ctx.fill();
-  ctx.setTransform(m);
-  const [gx, gy] = head.glow || [-.4 * head.sx, -.48 * head.sy];
-  ctx.beginPath(); ctx.ellipse(cx + R * gx, cy + R * gy, R * .2, R * .1, -.6, 0, TAU);
-  ctx.fillStyle = colors.glow; ctx.fill();
-  ctx.restore();
-  if (mode === "solid") {
-    ctx.setTransform(shapeM);
-    headPath(ctx, cx, cy, R, head, now);
-    ctx.lineWidth = R * .035; ctx.lineJoin = "round"; ctx.strokeStyle = INK; ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
 }
 
 // Soft ellipse under the head; shrinks and fades as the head lifts.
