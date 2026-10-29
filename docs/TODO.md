@@ -22,6 +22,7 @@
 - [x] Repo, docs and Cloudflare deploy workflow (2026-10-29)
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Obovoid (upside-down egg) head; renamed to Build a Buddy (2026-10-29)
+- [x] Whistle emote: puckered lips, colored music notes float out (2026-10-29)
 - [x] Seeded head style per buddy; cast styles spread so neighbours differ; Mixed is the default Head option (2026-10-29)
 - [x] Copy config button on the stage; `toConfig`/`fromConfig` round-trip a buddy (2026-10-29)
 - [x] Cast grows to 12 so the grid fills evenly (2026-10-29)
@@ -45,6 +46,6 @@
 
 ### Recurring Issues & Solutions
 - Local preview served old ES modules from cache after edits (a new file loaded fresh while a changed one didn't) → refetch modules with `fetch(url, { cache: 'reload' })` or hard-reload before judging a change.
-- Browser-pane screenshots: when the pane is hidden the browser throttles requestAnimationFrame, so captures freeze; simulate emotes in Node with EmotePlayer instead. The first capture in a batch can also be stale; check canvas pixels or capture twice before assuming a draw failed.
+- Browser-pane screenshots: when the pane is hidden or the Claude window is out of focus (as low as 1 fps) the browser throttles requestAnimationFrame, so captures freeze; simulate emotes in Node with EmotePlayer instead. The first capture in a batch can also be stale; check canvas pixels or capture twice before assuming a draw failed.
 - Cast looked all green/gray → tones were equally weighted and earthy only picked orange/green; fixed with tone weights and `spreadColors()`.
 - A Claude Code auto-update rewrote `~/.claude.json` and dropped a just-added MCP server → re-add it with `claude mcp add`.

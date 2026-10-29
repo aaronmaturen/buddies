@@ -89,6 +89,20 @@ const DRAW = {
     ctx.lineWidth = .07; ctx.lineCap = "round"; ctx.strokeStyle = "rgba(255, 255, 255, .95)"; ctx.stroke();
     ctx.beginPath(); ctx.arc(.18, .2, .05, 0, TAU); ctx.fillStyle = "rgba(255, 190, 240, .7)"; ctx.fill();
   },
+  // An eighth note, or two beamed together.
+  note(ctx, p) {
+    const heads = p.beamed ? [[-.2, .28], [.22, .18]] : [[0, .26]];
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (const [width, color] of [[.2, INK], [.09, p.color]]) {
+      ctx.lineWidth = width; ctx.strokeStyle = color;
+      ctx.beginPath();
+      for (const [x, y] of heads) { ctx.moveTo(x + .13, y); ctx.lineTo(x + .13, y - .62); }
+      if (p.beamed) { ctx.moveTo(heads[0][0] + .13, heads[0][1] - .62); ctx.lineTo(heads[1][0] + .13, heads[1][1] - .62); }
+      else { ctx.moveTo(.13, -.36); ctx.quadraticCurveTo(.38, -.22, .3, -.02); }
+      ctx.stroke();
+    }
+    for (const [x, y] of heads) { ctx.beginPath(); ctx.ellipse(x, y, .17, .12, -.4, 0, TAU); outlined(ctx, p.color, .06); }
+  },
   confetti(ctx, p) {
     ctx.beginPath(); ctx.rect(-.5, -.25, 1, .5); ctx.fillStyle = p.color; ctx.fill();
   },
@@ -134,6 +148,12 @@ const KINDS = {
     spawn: (spec, { mouth }) => [{ ...fromMouth(spec, mouth), vx: rand(.6, 1.05), vy: rand(-.6, -.25),
       sway: rand(.1, .2), size: rand(.2, .36), life: rand(1.2, 2.2) }],
     tick: p => { p.grow = Math.min(1, .25 + p.age * 2.5); } },
+  // Whistled out of the mouth, bobbing as they float up and away.
+  note: { anchor: "float", life: 2, size: .32,
+    spawn: (spec, { mouth }) => { const m = fromMouth(spec, mouth); return [{ x: m.x + .12, y: m.y + .02, vx: rand(.8, 1.15), vy: rand(-.45, -.25), sway: rand(.15, .25),
+      size: rand(.26, .36), life: rand(1.6, 2.3), beamed: Math.random() < .35, phase: rand(0, TAU),
+      color: ["#7cc7ff", "#ff6b8b", "#ffd23f", "#8be08b", "#c9b8ff"][Math.floor(Math.random() * 5)] }]; },
+    tick: p => { p.rot = .3 * Math.sin(p.age * 4 + p.phase); p.grow = Math.min(1, .3 + p.age * 3); } },
   confetti: { anchor: "float", life: 1.6, size: .09,
     spawn: () => Array.from({ length: 16 }, () => ({
       x: rand(-.3, .3), y: -1.05, vx: rand(-1.4, 1.4), vy: rand(-1.6, -.6), g: 2.2, spin: rand(-12, 12),

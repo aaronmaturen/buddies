@@ -84,6 +84,8 @@ export const EMOTES = {
     ] },
   bubbles: { duration: 3, mood: "happy", mouth: "small", motion: "sway",
     events: [.15, .4, .62, .9, 1.15, 1.45, 1.7, 2.0].map(at => ({ at, symbol: "bubble" })) },
+  whistle: { duration: 3.2, mood: "happy", mouth: "pucker", motion: "sway",
+    events: [.25, .6, .95, 1.3, 1.7, 2.05, 2.4].map(at => ({ at, symbol: "note" })) },
   inspect: { duration: 2.6, mood: "curious", mouth: "o",
     events: [{ at: 0, hand: "right", pose: "fist", holds: "magnifier", x: .3, y: .52, rot: 0, face: true }, { at: .25, magnify: 1, zoom: 1.7 }] },
 };
