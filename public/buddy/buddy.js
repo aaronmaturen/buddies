@@ -74,6 +74,25 @@ export class Buddy {
   // Play a one-off reaction from EMOTES on top of the current mood. Ignored while morphed.
   emote(name) { if (!this.morph.busy) this.emotes.play(name, this.now, this); }
 
+  // Puffs at the start and end of a morph, and each morph's own event symbols at the object (or its nose).
+  // Positions are in head units from the resting spot, scaled the way the flight is scaled to fit this canvas.
+  spawnMorphSymbols(sp) {
+    const mo = this.morphState;
+    if (!mo) return;
+    const f = mo.flight, fit = this.flightFit || 1;
+    const at = [f.x * fit, f.y * fit];
+    for (const _ of mo.puff) spawnSymbol(this.emotes.symbols, "puff", sp, { offset: at });
+    for (const ev of mo.spawn) {
+      if (ev.from === "nose" && mo.def.nose) {
+        const [nx, ny] = mo.def.nose, c = Math.cos(f.rot), s = Math.sin(f.rot), dir = f.flip ? -1 : 1;
+        const x = nx * dir * f.scale, y = ny * f.scale;
+        spawnSymbol(this.emotes.symbols, ev.symbol, sp, { mouth: [at[0] + x * c - y * s * dir, at[1] + x * s * dir + y * c] });
+      } else {
+        spawnSymbol(this.emotes.symbols, ev.symbol, sp, { offset: at });
+      }
+    }
+  }
+
   // Turn into an object from MORPHS for a while, then back. Cancels any emote.
   morphInto(name) {
     if (!this.morph.start(name, this.now)) return;
@@ -132,7 +151,7 @@ export class Buddy {
 
     const em = this.emotes.update(now, dt, this);
     this.morphState = this.morph.update(now, sp.head);
-    for (const _ of this.morphState?.puff || []) spawnSymbol(this.emotes.symbols, "puff", sp);
+    this.spawnMorphSymbols(sp);
     this.hYaw.t += em.motion.yaw; this.hPitch.t += em.motion.pitch; this.hRoll.t += em.motion.roll;
     // Keep the last mouth shape while it shrinks away.
     this.mouthShow.t = em.mouth ? 1 : 0;
@@ -205,7 +224,7 @@ export class Buddy {
 
     // While morphed, the object flies around its resting spot, scaled down to fit small canvases.
     const mo = this.morphState;
-    const fit = clamp(Math.min((W / 2 - R * 1.2) / (R * 2.2), (H * .48 - R * 1.1) / (R * 1.05)), 0, 1);
+    const fit = this.flightFit = clamp(Math.min((W / 2 - R * 1.2) / (R * 2.2), (H * .48 - R * 1.1) / (R * 1.05)), 0, 1);
     const mx = mo ? cx + mo.flight.x * R * fit : cx, my = mo ? cy + mo.flight.y * R * fit : cy;
 
     drawShadow(ctx, base, { cx: mx, groundY: H * .48, R, head, lift: lift + (mo ? Math.max(0, -mo.flight.y * fit) * .35 : 0), color: theme.fg });
@@ -217,11 +236,13 @@ export class Buddy {
     let objectSpace = null;
     if (mo) {
       const f = mo.flight;
-      objectSpace = m.translate(mx, my).rotate(f.rot * 180 / Math.PI).scale(f.flip ? -1 : 1, 1).scale(f.scale).translate(-mx, -my);
+      // Squash and stretch about the bottom of the object, then its turn, facing and size.
+      objectSpace = m.translate(mx, my + R * .8).scale(f.sx, f.sy).translate(0, -R * .8)
+        .rotate(f.rot * 180 / Math.PI).scale(f.flip ? -1 : 1, 1).scale(f.scale).translate(-mx, -my);
       style.head?.(ctx, objectSpace, { cx: mx, cy: my, R, head: { ...head, points: mo.points }, colors, color: spec.color, roll: 0, now: this.now, px });
       ctx.setTransform(objectSpace.translate(mx, my).scale(R));
       ctx.globalAlpha = clamp((mo.k - .6) / .4, 0, 1);
-      mo.def.detail?.(ctx, { speed: f.speed });
+      mo.def.detail?.(ctx, { ...f, now: this.now, k: mo.k });
       ctx.globalAlpha = 1;
     } else {
       style.head?.(ctx, m, { cx, cy, R, head, colors, color: spec.color, roll: this.hRoll.x * 180 / Math.PI, now: this.now, px });

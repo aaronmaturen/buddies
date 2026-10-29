@@ -30,7 +30,8 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `emotes.js` — emote table (data only): duration, borrowed mood, mouth, head motion, timed events.
   - `emote-player.js` — runs one emote per buddy: head motions, events, symbol lifetimes.
   - `mouth.js` — emote-only mouth presets and drawing.
-  - `morph.js` — morphs (`MORPHS`): object outlines, eye placement, flight paths and details; `MorphPlayer` runs the melt-in, act, melt-out timeline.
+  - `morph.js` — `MorphPlayer`: outline matching and the melt-in, act, melt-out timeline.
+  - `morphs/` — one file per morph object (airplane, balloon, rocket, ball, ghost, fish, star); `morphs/index.js` is the `MORPHS` table and documents the fields; `morphs/shared.js` has path and easing helpers.
   - `hands.js` — floating hands: poses, drawing, `HandRig` springs; hands can hold a prop.
   - `wear.js` — worn accessories (`WearRig`): face slot (sunglasses) and top slot (hats).
   - `props.js` — prop drawings: lenses, hats, and held props (mug, gift, magnifier).
@@ -54,7 +55,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Data tables drive looks: `EYE_SHAPES` (face.js), `HEADS` (heads.js), `TONES` and `PALETTE` (colors.js), `MOODS` (moods.js). Add an entry to extend; pickers and the cast pick it up automatically.
 - Every mood value is a spring target over `BASE`, so moods blend.
 - Emotes are one-off reactions on top of the mood: `buddy.emote(name)`. To add one, add an entry to `EMOTES`; new head motions go in `MOTIONS` (emote-player.js), new marks in `KINDS`/`DRAW` (symbols.js), new mouths in `MOUTHS`.
-- Morphs: `buddy.morphInto(name)`. The head and object outlines are rings of 96 points aligned to start at the rightmost point with the same winding, blended on a spring; the ring is passed to styles as `head.points`, so every head style draws the object. To add a morph, add an entry to `MORPHS` with an outline (front toward +x), eyes, duration, a flight path of waypoints and optional `detail`.
+- Morphs: `buddy.morphInto(name)`. The head and object outlines are rings of 96 points aligned to start at the rightmost point with the same winding, blended on a spring; the ring is passed to styles as `head.points`, so every head style draws the object. To add a morph, add a file under `morphs/` and list it in `morphs/index.js`: an outline (static, or a function of time), eyes, duration, and either a `path` to follow nose-first or a `motion(u, now)` function, plus optional `events` and `detail`.
 - Symbols anchor either to the head surface (turn with it) or float in screen space around it.
 - Hands are emote-only and float in screen space; `face: true` pins a hand to the eye line and follows the head's turn. New poses go in `POSES` (hands.js) as a palm plus round-capped finger strokes.
 - Accessories are emote-only. Worn items go in `WEARABLES` (wear.js) with a drawing in props.js; held items go in `HELD` (props.js) and are given to a hand with `holds` in an emote's hand event.

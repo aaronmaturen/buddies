@@ -6,7 +6,6 @@
 - [ ] Tune the polygon head shapes in a real browser (corner rounding, face height, eye size on small heads)
 
 ### Upcoming
-- [ ] More morphs: balloon, rocket, bouncy ball, ghost sheet, fish, star
 - [ ] Optional page-wide overlay so morphs can fly beyond their own canvas
 - [ ] Advanced traits: brow length/thickness, eye height on the face, resting tilt
 - [ ] Paste or load a copied config back into the stage
@@ -24,6 +23,7 @@
 - [x] Repo, docs and Cloudflare deploy workflow (2026-10-29)
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 - [x] Obovoid (upside-down egg) head; renamed to Build a Buddy (2026-10-29)
+- [x] Six more morphs: balloon, rocket, bouncy ball, ghost, fish, star; morphs can have their own motion, moving outlines and timed symbols (2026-10-29)
 - [x] Morphs: the head melts into a paper airplane that loops around the stage, then melts back; works in every head style (2026-10-29)
 - [x] Seven more head styles: Inked, Comic, Clay, Fuzzy, Hologram, Paper, Chalk; all 13 drawn styles are seeded, so every buddy on the page differs (2026-10-29)
 - [x] Tunable traits in the Buddy tab: eye shape, eye size, spacing, temper, attention, gaze, blinks, with From seed reset; Copy config saves only changed traits (2026-10-29)
