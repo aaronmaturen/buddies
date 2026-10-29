@@ -3,12 +3,10 @@
 ## Tasks
 
 ### Current
-- [ ] First deploy to buddies.aaronmaturen.com
-  - [ ] Add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repo secrets
-  - [ ] Run the Deploy workflow and confirm the custom domain resolves
+- [ ] Tune the polygon head shapes in a real browser (corner rounding, face height, eye size on small heads)
 
 ### Upcoming
-- [ ] Watch it run in a real browser and tune the new polygon head shapes (corner rounding, face height)
+- [ ] Move off Node 20 actions (`actions/checkout@v4`, `cloudflare/wrangler-action@v3`) once Node 24 versions are available
 - [ ] Consider splitting `public/index.html` (~900 lines) into `style.css` and `app.js`
 - [ ] Optional WebGL renderer with the same spec and mood system
 
@@ -19,6 +17,7 @@
 - [x] 15 moods (2026-10-29)
 - [x] Cast colors spread around the hue wheel, gray capped at one (2026-10-29)
 - [x] Repo, docs and Cloudflare deploy workflow (2026-10-29)
+- [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
 
 ## Notes
 
