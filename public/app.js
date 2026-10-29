@@ -1,5 +1,5 @@
 import {
-  Buddy, animate, makeSpec, describe, setHeadShape, setColor, toConfig,
+  Buddy, animate, makeSpec, describe, setHeadShape, setHeadStyle, setColor, toConfig,
   MOOD_NAMES, EMOTE_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
   castShapes, spreadColors, spreadStyles, mulberry32, reducedMotion,
 } from "./buddy/index.js";
@@ -59,6 +59,7 @@ function render() {
   }
   for (const el of swatchesEl.children) el.setAttribute("aria-pressed", String(el.dataset.color === sp.colorKey));
   for (const el of shapesEl.children) el.setAttribute("aria-pressed", String(el.dataset.shape === sp.headKey));
+  for (const el of $("head-modes").children) el.setAttribute("aria-pressed", String(el.dataset.head === sp.headStyleKey));
 }
 
 function chip(className, text) {
@@ -126,17 +127,12 @@ for (const name of EMOTE_NAMES) {
 }
 
 // ---------- head mode, seed, reroll, boop ----------
-// "Mixed" lets each buddy keep its own style; any other button puts everyone in that style.
+// Like shape and color, the head style only changes the buddy on the stage; "From seed" restores its own.
 const modesEl = $("head-modes");
-for (const [key, label] of [["mixed", "Mixed"], ...Object.entries(HEAD_STYLES).map(([k, s]) => [k, s.label])]) {
+for (const [key, label] of [["seed", "From seed"], ...Object.entries(HEAD_STYLES).map(([k, s]) => [k, s.label])]) {
   const b = chip("chip", label);
   b.dataset.head = key;
-  b.setAttribute("aria-pressed", String(key === "mixed"));
-  b.addEventListener("click", () => {
-    for (const buddy of all) buddy.headMode = key;
-    for (const o of modesEl.children) o.setAttribute("aria-pressed", String(o === b));
-    render();
-  });
+  b.addEventListener("click", () => { setHeadStyle(featured.spec, key); render(); });
   modesEl.append(b);
 }
 

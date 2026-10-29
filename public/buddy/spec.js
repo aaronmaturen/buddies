@@ -24,7 +24,7 @@ export function makeSpec(seed, forcedShape) {
   const phase = r() * TAU;
   r(); // retired hue draw, kept so existing seeds keep their looks
 
-  return {
+  const spec = {
     seed, name: raw[0].toUpperCase() + raw.slice(1),
     headShape, seedHeadShape: headShape, headKey: "seed", head: headFor(headShape, phase),
     color, seedColor: color, colorKey: "seed",
@@ -43,6 +43,8 @@ export function makeSpec(seed, forcedShape) {
     handStyle: r() < .5 ? "glove" : "mitt",
     headStyle: pick(SEEDED_STYLES),
   };
+  spec.seedHeadStyle = spec.headStyle; spec.headStyleKey = "seed";
+  return spec;
 }
 
 // Plain-language reading of a spec's personality.
@@ -61,6 +63,11 @@ export function setHeadShape(spec, key) {
   spec.head = headFor(spec.headShape, spec.head.phase);
 }
 
+export function setHeadStyle(spec, key) {
+  spec.headStyleKey = key;
+  spec.headStyle = key === "seed" ? spec.seedHeadStyle : key;
+}
+
 export function setColor(spec, key, palette) {
   spec.colorKey = key;
   spec.color = key === "seed" ? spec.seedColor : { ...palette[key], name: key };
@@ -75,6 +82,6 @@ export function toConfig(spec) {
 export function fromConfig(config) {
   const spec = makeSpec(config.seed, config.headShape);
   if (config.color) spec.color = spec.seedColor = { ...config.color };
-  if (HEAD_STYLES[config.headStyle]) spec.headStyle = config.headStyle;
+  if (HEAD_STYLES[config.headStyle]) spec.headStyle = spec.seedHeadStyle = config.headStyle;
   return spec;
 }
