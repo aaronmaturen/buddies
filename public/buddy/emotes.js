@@ -9,7 +9,8 @@
 //             { hand: "right" | "left" | "both", pose, x, y, rot } brings in hands (see hands.js);
 //               face: true pins y to the eye line and follows the head's turn,
 //               wiggle { rot, freq }, bob { x, y, freq } and clap { x, freq } add rhythm,
-//             { hand, hide: true } sends those hands away
+//             { hand, hide: true } sends those hands away; a hand event's holds puts a prop in it (HELD in props.js),
+//             { wear } puts on an accessory (WEARABLES in wear.js), { magnify: 1 | -1, zoom } enlarges one eye
 export const EMOTES = {
   love: { duration: 1.8, mood: "happy", mouth: "smile", motion: "sway",
     events: [{ at: 0, jump: 2.2 }, { at: 0, symbol: "heart" }, { at: .25, symbol: "heart" }, { at: .5, symbol: "heart" }] },
@@ -24,7 +25,7 @@ export const EMOTES = {
   nervous: { duration: 1.8, mood: "worried", mouth: "wavy", motion: "tremble",
     events: [{ at: .1, symbol: "sweat" }] },
   snooze: { duration: 2.6, mood: "sleepy", mouth: "small", motion: "doze",
-    events: [{ at: .2, symbol: "z" }, { at: .9, symbol: "z" }, { at: 1.6, symbol: "z" }] },
+    events: [{ at: 0, wear: "nightcap" }, { at: .2, symbol: "z" }, { at: .9, symbol: "z" }, { at: 1.6, symbol: "z" }] },
   blush: { duration: 2, mood: "shy", mouth: "smile", motion: "lookAway",
     events: [{ at: 0, symbol: "blush", life: 2 }] },
   proud: { duration: 1.8, mood: "smug", mouth: "smile", motion: "chinUp",
@@ -55,6 +56,34 @@ export const EMOTES = {
     ] },
   think: { duration: 2.4, mood: "thinking", mouth: "flat",
     events: [{ at: 0, hand: "right", pose: "point", x: .14, y: .55, rot: -.2, face: true }] },
+
+  // Accessories
+  cool: { duration: 2.2, mood: "smug", mouth: "smile", motion: "chinUp",
+    events: [{ at: 0, wear: "sunglasses" }, { at: .5, symbol: "sparkle" }] },
+  party: { duration: 2.4, mood: "excited", mouth: "grin",
+    events: [
+      { at: 0, wear: "partyHat", jump: 2.4, symbol: "confetti" },
+      { at: .05, hand: "both", pose: "open", x: 1.15, y: -.55, rot: .35, wiggle: { rot: .2, freq: 3 } },
+      { at: .8, symbol: "confetti", jump: 1.6 },
+    ] },
+  idea: { duration: 2.6, mood: "thinking", mouth: "flat",
+    events: [
+      { at: 0, symbol: "thought" },
+      { at: 1.3, symbol: "bulb", mood: "excited", jump: 2.2 },
+      { at: 1.35, hand: "right", pose: "point", x: 1.1, y: -.45, rot: .15 },
+    ] },
+  coffee: { duration: 3, mood: "sleepy", mouth: "small",
+    events: [
+      { at: 0, hand: "right", pose: "fist", holds: "mug", x: .4, y: .38, rot: -.1, face: true },
+      { at: 1.6, mood: "excited", jump: 1.6, symbol: "sparkle" },
+    ] },
+  gift: { duration: 2.4, mood: "happy", mouth: "smile",
+    events: [
+      { at: 0, hand: "right", pose: "open", holds: "gift", x: .75, y: .65, rot: -.15, bob: { y: .04, freq: 1.5 } },
+      { at: .3, symbol: "blush", life: 2 },
+    ] },
+  inspect: { duration: 2.6, mood: "curious", mouth: "o",
+    events: [{ at: 0, hand: "right", pose: "fist", holds: "magnifier", x: .3, y: .52, rot: 0, face: true }, { at: .25, magnify: 1, zoom: 1.7 }] },
 };
 
 export const EMOTE_NAMES = Object.keys(EMOTES);

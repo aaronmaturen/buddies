@@ -31,18 +31,19 @@ export class EmotePlayer {
   play(name, now, buddy) {
     const def = EMOTES[name];
     if (!def) return;
-    this.active = { def, start: now, fired: 0, handsOut: false };
+    this.active = { def, start: now, fired: 0, handsOut: false, magnify: null };
     buddy.hands.hide();
+    buddy.wear.removeAll();
     if (def.mood) buddy.override = { mood: def.mood, until: now + def.duration };
   }
 
-  // Returns the head offsets and mouth shape for this frame.
+  // Returns the head offsets, mouth shape and any magnified eye for this frame.
   update(now, dt, buddy) {
     updateSymbols(this.symbols, dt);
     const a = this.active;
-    if (!a) return { motion: STILL, mouth: null };
+    if (!a) return { motion: STILL, mouth: null, magnify: null };
     const t = now - a.start, d = a.def.duration;
-    if (t >= d) { this.active = null; buddy.hands.hide(); return { motion: STILL, mouth: null }; }
+    if (t >= d) { this.active = null; buddy.hands.hide(); buddy.wear.removeAll(); return { motion: STILL, mouth: null, magnify: null }; }
 
     const events = a.def.events || [];
     while (a.fired < events.length && events[a.fired].at <= t) {
@@ -51,15 +52,17 @@ export class EmotePlayer {
       if (ev.squash) buddy.squash.v += ev.squash;
       if (ev.symbol) spawnSymbol(this.symbols, ev.symbol, buddy.spec, { life: ev.life });
       if (ev.mood) buddy.override = { mood: ev.mood, until: a.start + d };
+      if (ev.wear) buddy.wear.wear(ev.wear);
+      if (ev.magnify) a.magnify = { side: ev.magnify, k: ev.zoom || 1.6 };
       const sides = SIDES[ev.hand];
       if (sides && ev.hide) buddy.hands.hide(sides);
       else if (sides) buddy.hands.set(sides, ev);
     }
     // Hands start leaving a beat before the emote ends so they're gone as the face settles.
-    if (!a.handsOut && t >= d - .35) { a.handsOut = true; buddy.hands.hide(); }
+    if (!a.handsOut && t >= d - .35) { a.handsOut = true; a.magnify = null; buddy.hands.hide(); buddy.wear.removeAll(); }
 
     const ease = clamp(Math.min(t / .15, (d - t) / .3), 0, 1) * (reducedMotion ? .4 : 1);
     const motion = { ...STILL, ...MOTIONS[a.def.motion]?.(t, ease) };
-    return { motion, mouth: t < d - .25 ? a.def.mouth : null };
+    return { motion, mouth: t < d - .25 ? a.def.mouth : null, magnify: a.magnify };
   }
 }

@@ -1,5 +1,6 @@
 import { Spring } from "./spring.js";
 import { INK } from "./heads.js";
+import { HELD } from "./props.js";
 
 // Floating hands with no arms. Each hand lives in screen space around the head (units of head radius from its
 // center) and only shows during emotes. Side 1 is the hand on the right of the screen, -1 the left; poses are
@@ -41,12 +42,12 @@ export function drawHand(ctx, { pose, style, fill }) {
   for (const l of P.lines || []) stroke(ctx, l, OUT / 2.4, INK);
 }
 
-// Two hands on springs. A target is { pose, x, y, rot, size, face, wiggle, bob, clap } for the right hand;
+// Two hands on springs. A target is { pose, x, y, rot, size, holds, face, wiggle, bob, clap } for the right hand;
 // the left hand mirrors x. face: y is relative to the eye line and the hand follows the head's turn.
 export class HandRig {
   constructor() {
     this.hands = [1, -1].map(side => ({
-      side, pose: "open", target: null, size: 1,
+      side, pose: "open", target: null, size: 1, holds: null,
       x: new Spring(side * OFFSTAGE[0]), y: new Spring(OFFSTAGE[1]), rot: new Spring(0), show: new Spring(0),
     }));
   }
@@ -58,7 +59,7 @@ export class HandRig {
       if (!sides.includes(h.side)) continue;
       if (!h.target && h.show.x < .1) { h.x.x = h.side * OFFSTAGE[0]; h.y.x = OFFSTAGE[1]; }
       if (h.target && h.pose !== target.pose) h.show.v -= 3;
-      h.target = target; h.pose = target.pose; h.size = target.size || 1; h.show.t = 1;
+      h.target = target; h.pose = target.pose; h.size = target.size || 1; h.holds = target.holds || null; h.show.t = 1;
     }
   }
 
@@ -87,13 +88,16 @@ export class HandRig {
     }
   }
 
-  draw(ctx, base, { cx, cy, R, style, fill }) {
+  draw(ctx, base, { cx, cy, R, style, fill, now }) {
     for (const h of this.hands) {
       const s = Math.max(0, h.show.x);
       if (s < .02) continue;
       ctx.setTransform(base.translate(cx + h.x.x * R, cy + h.y.x * R).scale(h.side, 1).rotate(h.rot.x * 180 / Math.PI).scale(R * SIZE * h.size * s));
       ctx.globalAlpha = Math.min(1, s * 2);
+      const prop = h.holds && HELD[h.holds];
+      if (prop?.behind) prop.draw(ctx, now);
       drawHand(ctx, { pose: h.pose, style, fill });
+      if (prop && !prop.behind) prop.draw(ctx, now);
     }
     ctx.globalAlpha = 1;
   }

@@ -29,14 +29,15 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 - Optional automatic cycling through moods.
 
 ### Emotes
-- 19 one-off reactions layered on the current mood.
+- 25 one-off reactions layered on the current mood.
 - Mouths appear only during emotes.
 - Cartoon symbols (hearts, !, ?, Z, sweat drop, anger mark, sparkles, blush) either turn with the head or float around it.
 - Floating hands with no arms (white gloves or head-colored mittens, by seed) for wave, facepalm, peekaboo, thumbs up, shrug, clap, think and no.
+- Accessories during emotes: worn (sunglasses, party hat, nightcap) and held (coffee mug, gift, magnifying glass that enlarges the eye behind it).
 - Booping the featured buddy plays Love; the cast follows an emote a beat later.
 
 ### Page
-- One featured character plus a cast of 11, each with a unique head shape and well-spread colors.
+- One featured character with the cast of 11 beneath it, each with a unique head shape and well-spread colors.
 - Controls: mood, head mode (invisible / ghost / cel-shaded), shape, color, seed, reroll.
 - Light and dark themes, phone width, reduced motion.
 

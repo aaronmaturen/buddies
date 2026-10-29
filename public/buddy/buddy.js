@@ -8,6 +8,7 @@ import { MOUTHS, MOUTH_REST, drawMouth } from "./mouth.js";
 import { EmotePlayer } from "./emote-player.js";
 import { drawSymbols } from "./symbols.js";
 import { HandRig } from "./hands.js";
+import { WearRig } from "./wear.js";
 
 const GLOVE = "#fbfbfd";
 import { headColors } from "./colors.js";
@@ -33,6 +34,8 @@ export class Buddy {
     this.phase = [0, 1, 2, 3, 4, 5].map(() => Math.random() * TAU);
     this.emotes = new EmotePlayer();
     this.hands = new HandRig();
+    this.wear = new WearRig();
+    this.boost = new Spring(1); this.boostSide = 1;
     this.mouth = {}; for (const k in MOUTH_REST) this.mouth[k] = new Spring(MOUTH_REST[k]);
     this.mouthShow = new Spring(0);
     this.spec = spec;
@@ -116,6 +119,8 @@ export class Buddy {
     // Keep the last mouth shape while it shrinks away.
     this.mouthShow.t = em.mouth ? 1 : 0;
     if (em.mouth) for (const k in this.mouth) this.mouth[k].t = MOUTHS[em.mouth][k];
+    this.boost.t = em.magnify ? em.magnify.k : 1;
+    if (em.magnify) this.boostSide = em.magnify.side;
     const head = sp.head;
     this.hands.update(now, { yaw: this.hYaw.x, pitch: this.hPitch.x, faceY: Math.sin(sp.eyeLat + (head.faceY || 0)) * head.sy, sx: head.sx });
     this.bobY = reducedMotion ? 0 : S.bob.x * .018 * Math.sin(now * (1.4 + E * 1.2) + this.phase[4]);
@@ -148,6 +153,8 @@ export class Buddy {
     for (const k in this.mouth) this.mouth[k].step(dt, 260, .7);
     this.mouthShow.step(dt, 200, .6);
     this.hands.integrate(dt);
+    this.wear.integrate(dt);
+    this.boost.step(dt, 160, .55);
   }
 
   draw() {
@@ -188,15 +195,22 @@ export class Buddy {
 
     const faceLat = spec.eyeLat + (head.faceY || 0) - dp * slide;
     const symbols = this.emotes.symbols, fx = { base, cx, cy, R, place };
+    if (this.wear.visible) this.wear.drawTop(ctx, base, { cx, cy, R, head, yaw: this.hYaw.x, pitch: this.hPitch.x, roll: this.hRoll.x });
     drawSymbols(ctx, symbols, { ...fx, layer: "under" });
 
+    const eyes = [];
     for (const s of [-1, 1]) {
       const lon = s * spec.spacing + dy * slide;
+      // The eye behind the magnifying glass grows; brows stay where they are.
+      const boost = s === this.boostSide ? this.boost.x : 1;
+      const Pe = boost === 1 ? P : { ...P, eyeScale: P.eyeScale * boost };
       place(lon, faceLat);
-      drawEye(ctx, { s, spec, P, open: this.open, dy, dp, ink: eyeInk, lidFill });
+      drawEye(ctx, { s, spec, P: Pe, open: this.open, dy, dp, ink: eyeInk, lidFill });
       place(lon, faceLat + browOffset(s, spec, P));
       drawBrow(ctx, { s, spec, P, ink: browInk });
+      eyes.push({ lon, lat: faceLat, w: spec.eyeW * P.eyeScale, h: spec.eyeH * P.eyeScale });
     }
+    if (this.wear.visible) this.wear.drawFace(ctx, { place, eyes, faceLat });
 
     if (this.mouthShow.x > .02) {
       const mouth = {}; for (const k in this.mouth) mouth[k] = this.mouth[k].x;
@@ -206,7 +220,7 @@ export class Buddy {
 
     if (this.hands.visible) {
       const style = spec.handStyle || "glove";
-      this.hands.draw(ctx, base, { cx, cy, R, style, fill: style === "glove" ? GLOVE : colors.lit });
+      this.hands.draw(ctx, base, { cx, cy, R, style, fill: style === "glove" ? GLOVE : colors.lit, now: this.now });
     }
 
     drawSymbols(ctx, symbols, { ...fx, layer: "over" });
