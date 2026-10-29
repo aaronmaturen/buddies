@@ -1,0 +1,11 @@
+{
+  // Static site served by Cloudflare Workers; the custom domain is created on deploy.
+  "name": "buddies",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public"
+  },
+  "routes": [
+    { "pattern": "buddies.aaronmaturen.com", "custom_domain": true }
+  ]
+}

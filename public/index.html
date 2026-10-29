@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Seeded characters made of eyes, brows and a cel-shaded head, with moods and cursor tracking.">
+<title>Glance Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: a lab bench — one large specimen on the left, its controls on the right, the rest of the cast in a tray below. */
+  :root {
+    --bg: #e8ebf1;
+    --surface: #f7f8fb;
+    --fg: #171a21;
+    --muted: #586071;
+    --line: #cfd4de;
+    --accent: #3451d1;
+    --accent-fg: #ffffff;
+    --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+    --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1116; --surface: #181b23; --fg: #e6e9f0; --muted: #959cad; --line: #2b303c; --accent: #8fa3ff; --accent-fg: #0f1116;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1116; --surface: #181b23; --fg: #e6e9f0; --muted: #959cad; --line: #2b303c; --accent: #8fa3ff; --accent-fg: #0f1116;
+    color-scheme: dark;
+  }
+
+  html { background: var(--bg); padding-block: env(safe-area-inset-top, 0px) env(safe-area-inset-bottom, 0px); }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 15px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 48px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px; }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3rem);
+    letter-spacing: -0.03em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  header p { margin: 0; color: var(--muted); max-width: 60ch; line-height: 1.5; }
+
+  .studio { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 860px) { .studio { grid-template-columns: minmax(0, 1fr); } }
+
+  .stage {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .stage canvas { display: block; width: 100%; aspect-ratio: 4 / 3; max-width: 100%; cursor: pointer; touch-action: manipulation; }
+  .stage-meta {
+    position: absolute; left: 18px; right: 18px; bottom: 14px;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    pointer-events: none;
+  }
+  .stage-name { font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; letter-spacing: -0.02em; }
+  .stage-mood { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .panel { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+  .group { display: flex; flex-direction: column; gap: 10px; }
+  .label {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+  }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+  button, input[type="text"] { font: inherit; color: inherit; }
+  .moods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color .15s, border-color .15s, color .15s;
+  }
+  .chip:hover { border-color: var(--muted); }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .segmented { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .segmented .chip { border: 0; border-radius: 0; text-align: center; padding-inline: 14px; }
+  .segmented .chip + .chip { border-left: 1px solid var(--line); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+
+  .swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .swatches .chip { padding-block: 6px; }
+  .swatch {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--line);
+    cursor: pointer;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .swatch:hover { transform: scale(1.08); }
+  .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--fg); }
+  .toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  .seed-row input {
+    flex: 1 1 140px; min-width: 0;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 12px; font-family: var(--font-mono); font-size: 14px;
+  }
+  .btn {
+    background: var(--fg); color: var(--bg); border: 0; border-radius: 10px;
+    padding: 10px 14px; cursor: pointer; font-weight: 700;
+  }
+
+  dl.traits { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; }
+  dl.traits dt { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  dl.traits dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+  .cast-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .cast-head h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; letter-spacing: -0.02em; }
+  .cast-head span { color: var(--muted); font-size: 14px; }
+  .cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .member {
+    display: flex; flex-direction: column; gap: 2px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 0 0 12px; cursor: pointer; text-align: left; overflow: hidden;
+  }
+  .member:hover { border-color: var(--muted); }
+  .member canvas { display: block; width: 100%; aspect-ratio: 1 / 1; max-width: 100%; }
+  .member strong { padding-inline: 12px; font-family: var(--font-display); font-size: 1.05rem; }
+  .member small { padding-inline: 12px; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; border-top: 1px solid var(--line); padding-top: 22px; }
+  .notes h3 { margin: 0 0 6px; font-family: var(--font-display); font-size: 1rem; }
+  .notes p { margin: 0; color: var(--muted); line-height: 1.55; max-width: 60ch; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Glance Lab</h1>
+    <p>Seeded characters made of eyes, brows and a head you mostly can't see. Move your cursor around the page, and click the big one.</p>
+  </header>
+
+  <section class="studio">
+    <div class="stage">
+      <canvas id="featured" aria-label="Featured character. Click to boop."></canvas>
+      <div class="stage-meta">
+        <span class="stage-name" id="stage-name"></span>
+        <span class="stage-mood" id="stage-mood"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="group">
+        <span class="label">Mood</span>
+        <div class="moods" id="moods"></div>
+        <label class="toggle"><input type="checkbox" id="cycle"> Cycle through moods</label>
+      </div>
+
+      <div class="group">
+        <span class="label">Head</span>
+        <div class="segmented" id="head-modes">
+          <button class="chip" data-head="none" aria-pressed="false">Invisible</button>
+          <button class="chip" data-head="ghost" aria-pressed="false">Ghost</button>
+          <button class="chip" data-head="solid" aria-pressed="true">Cel-shaded</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="label">Shape</span>
+        <div class="swatches" id="shapes">
+          <button class="chip" data-shape="seed" aria-pressed="true">From seed</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="label">Color</span>
+        <div class="swatches" id="swatches">
+          <button class="chip" data-color="seed" aria-pressed="true">From seed</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="label" for="seed">Seed</label>
+        <div class="row seed-row">
+          <input type="text" id="seed" value="glance" autocomplete="off" spellcheck="false">
+          <button class="btn" id="reroll">Reroll everyone</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="label">Traits</span>
+        <dl class="traits" id="traits"></dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="cast-head">
+      <h2>The cast</h2>
+      <span>Same mood, different temperaments. Click one to bring it forward.</span>
+    </div>
+    <div class="cast" id="cast"></div>
+  </section>
+
+  <section class="notes">
+    <div>
+      <h3>Eyes lead, the head follows</h3>
+      <p>The eyes reach a new target on a stiff spring. The head follows on a softer one a beat later, and the gap between them is what reads as attention.</p>
+    </div>
+    <div>
+      <h3>Features on an invisible sphere</h3>
+      <p>Each eye and brow sits on the surface of a sphere and is drawn flat against it. Turning the sphere slides and foreshortens them, so you see a head that isn't drawn.</p>
+    </div>
+    <div>
+      <h3>Personality is motion</h3>
+      <p>The seed sets looks and also spring stiffness, blink rate, how often it glances around and how much it cares about your cursor.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const INK = "#16181e";
+  const WHITE = "#fbfbfd";
+  const MIN_OPEN = .42;
+  const EYE_LINE = .03;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- seeded generation ----------
+  function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+  const SYL = ["bo", "pi", "zu", "ka", "mo", "ri", "ne", "lu", "ta", "vi", "do", "sa", "fen", "ko", "mi", "ru", "jo", "wa"];
+  const SHAPES = { round: [1, 1, .5], pill: [1.4, .72, .5], tall: [.74, 1.32, .5], soft: [1, .92, .26] };
+  // Head silhouettes. Curved ones are superellipses: sx/sy stretch, n squareness, taper widens the bottom,
+  // wobble makes a blob, bumps/lobes make a cloud. Angular ones are rounded polygons: verts are [x, y, cornerRadius].
+  // sx/sy also shape the invisible surface the features sit on; faceY moves the face down, fit shrinks big shapes,
+  // bottom/shadow size the floor shadow, glow places the highlight.
+  const regular = (k, rad, rot, r) => Array.from({ length: k }, (_, i) => {
+    const a = rot + i / k * TAU;
+    return [Math.cos(a) * rad, Math.sin(a) * rad, r];
+  });
+  const domeVerts = [
+    ...Array.from({ length: 13 }, (_, i) => { const a = Math.PI + i / 12 * Math.PI; return [Math.cos(a) * 1.05, Math.sin(a) + .15, 0]; }),
+    [1.05, .75, .3], [-1.05, .75, .3],
+  ];
+  const HEADS = {
+    round: { sx: 1, sy: 1, n: 2 },
+    egg: { sx: .9, sy: 1.08, n: 2, taper: .12 },
+    squircle: { sx: 1, sy: .92, n: 4 },
+    bean: { sx: 1.18, sy: .84, n: 2.6 },
+    tall: { sx: .84, sy: 1.12, n: 3.2 },
+    gumdrop: { sx: 1, sy: .98, n: 2.6, taper: .22 },
+    blob: { sx: 1, sy: .96, n: 2, wobble: .06 },
+    cloud: { sx: 1.1, sy: .88, n: 2, bumps: .09, lobes: 7, fit: 1.12 },
+    screen: { sx: 1.15, sy: .88, n: 6, fit: 1.08 },
+    hexagon: { sx: .95, sy: .95, verts: regular(6, 1.08, 0, .22), bottom: .94, fit: 1.05 },
+    pentagon: { sx: .92, sy: 1, verts: regular(5, 1.1, -Math.PI / 2, .28), bottom: .89, faceY: .04, fit: 1.05, shadow: .9 },
+    pyramid: { sx: .8, sy: 1, verts: [[0, -1.12, .42], [1.18, .86, .3], [-1.18, .86, .3]], bottom: .86, faceY: .24, fit: 1.1, shadow: 1.25, glow: [-.18, -.35] },
+    diamond: { sx: .78, sy: 1, verts: [[0, -1.15, .3], [1.04, 0, .3], [0, 1.15, .3], [-1.04, 0, .3]], bottom: 1.15, faceY: .04, fit: 1.12, shadow: .55, glow: [-.25, -.42] },
+    shield: { sx: .95, sy: 1, verts: [[-1, -.85, .3], [1, -.85, .3], [1, .3, .4], [0, 1.12, .3], [-1, .3, .4]], bottom: 1.12, faceY: -.08, fit: 1.05, shadow: .6 },
+    dome: { sx: 1, sy: .9, verts: domeVerts, bottom: .75, faceY: -.02, fit: 1.05, shadow: 1.05 },
+  };
+  for (const k in HEADS) HEADS[k] = { n: 2, taper: 0, ...HEADS[k] };
+  // Saturation/lightness ranges per tone, and how often each comes up; earthy also narrows the hue.
+  const TONES = {
+    candy: { s: [70, 85], l: [60, 68], weight: 32 },
+    pastel: { s: [58, 72], l: [72, 80], weight: 26 },
+    deep: { s: [50, 65], l: [38, 50], weight: 20 },
+    earthy: { s: [32, 48], l: [54, 66], weight: 14 },
+    gray: { s: [4, 10], l: [68, 80], weight: 8 },
+  };
+  const TONE_TOTAL = Object.values(TONES).reduce((a, t) => a + t.weight, 0);
+  // Hand-picked head colors for the chooser.
+  const PALETTE = {
+    red: { h: 4, s: 72, l: 64 },
+    orange: { h: 24, s: 85, l: 64 },
+    yellow: { h: 46, s: 90, l: 66 },
+    green: { h: 135, s: 45, l: 58 },
+    teal: { h: 176, s: 50, l: 52 },
+    blue: { h: 215, s: 70, l: 62 },
+    violet: { h: 265, s: 55, l: 66 },
+    pink: { h: 330, s: 70, l: 72 },
+    gray: { h: 220, s: 6, l: 74 },
+    charcoal: { h: 220, s: 8, l: 40 },
+  };
+  const HUE_NAMES = [[12, "red"], [30, "coral"], [45, "orange"], [65, "yellow"], [90, "lime"], [150, "green"], [185, "teal"],
+                     [210, "sky"], [245, "blue"], [275, "violet"], [300, "purple"], [335, "pink"], [361, "red"]];
+
+  function makeSpec(seed, forcedShape) {
+    const r = mulberry32(hashStr(seed));
+    const pick = a => a[Math.floor(r() * a.length)];
+    const lerp = (a, b) => a + (b - a) * r();
+    const shape = pick(Object.keys(SHAPES));
+    const [sw, sh, corner] = SHAPES[shape];
+    const size = lerp(.2, .3);
+    const raw = pick(SYL) + pick(SYL) + (r() < .4 ? pick(["x", "n", "p", "o", "i"]) : "");
+    const pickedShape = pick(Object.keys(HEADS));
+    const headShape = forcedShape || pickedShape;
+    let roll = r() * TONE_TOTAL;
+    const tone = Object.keys(TONES).find(k => (roll -= TONES[k].weight) < 0) || "candy";
+    const T = TONES[tone];
+    const color = {
+      tone,
+      h: Math.floor(tone === "earthy" ? (r() < .5 ? lerp(18, 50) : lerp(80, 150)) : r() * 360),
+      s: Math.round(lerp(...T.s)),
+      l: Math.round(lerp(...T.l)),
+    };
+    return {
+      headShape, seedHeadShape: headShape, headKey: "seed", head: { ...HEADS[headShape], phase: r() * TAU },
+      color, seedColor: color, colorKey: "seed",
+      seed, shape, corner,
+      name: raw[0].toUpperCase() + raw.slice(1),
+      hue: Math.floor(r() * 360),
+      eyeW: size * sw, eyeH: size * sh,
+      spacing: lerp(.27, .4),
+      eyeLat: lerp(-.02, .12),
+      browLen: lerp(.15, .3),
+      browThick: lerp(.035, .075),
+      browGap: lerp(.06, .13),
+      stiffness: lerp(.6, 1.6),
+      blinkRate: lerp(.6, 1.6),
+      curiosity: lerp(.4, 1.5),
+      attention: lerp(.3, .95),
+      restTilt: lerp(-.1, .1),
+    };
+  }
+
+  function describe(sp) {
+    const temper = sp.stiffness > 1.25 ? "twitchy" : sp.stiffness < .85 ? "calm" : "steady";
+    const attn = sp.attention > .75 ? "attentive" : sp.attention < .5 ? "aloof" : "easygoing";
+    const blink = sp.blinkRate > 1.25 ? "blinks a lot" : sp.blinkRate < .8 ? "rarely blinks" : "normal blinker";
+    const look = sp.curiosity > 1.15 ? "glances around constantly" : sp.curiosity < .7 ? "holds its gaze" : "looks around now and then";
+    const c = sp.color;
+    const hueName = c.tone === "gray" ? "gray" : HUE_NAMES.find(([max]) => c.h < max)[1];
+    const colorName = c.name || (c.tone === "gray" ? "soft gray" : `${c.tone} ${hueName}`);
+    return { temper, attn, blink, look, colorName };
+  }
+
+  function headColors(c) {
+    const l = c.l - (C.dark ? 5 : 0);
+    return {
+      lit: `hsl(${c.h} ${c.s}% ${l}%)`,
+      shade: `hsl(${c.h} ${Math.max(0, c.s - 8)}% ${l - 14}%)`,
+      glow: `hsl(${c.h} ${Math.min(100, c.s + 10)}% ${Math.min(94, l + 12)}%)`,
+      deep: l < 56,
+    };
+  }
+
+  // ---------- moods ----------
+  const BASE = { lid: 0, topCut: 0, tilt: 0, botCut: 0, botCurve: 0, eyeScale: 1, pupil: 1, browRaise: 0, browTilt: 0, browCurve: .25, browAsym: 0, lidAsym: 0,
+                 eyeAsym: 0, pitch: 0, roll: 0, yawBias: 0, gazeYaw: 0, gazePitch: 0, follow: .65, lean: 1, bob: 1, energy: 1 };
+  const MOODS = {
+    neutral: {},
+    happy: { botCut: .3, botCurve: .55, browRaise: .05, browTilt: .15, browCurve: .5, pitch: .08, roll: .08, bob: 1.8, energy: 1.3 },
+    sad: { topCut: .3, tilt: -.9, eyeScale: .95, pupil: 1.1, browTilt: .9, browCurve: -.05, pitch: -.22, gazePitch: -.25, roll: -.05, bob: .4, energy: .5, follow: .4 },
+    angry: { topCut: .34, tilt: .95, botCut: .06, eyeScale: .94, pupil: .8, browRaise: -.07, browTilt: -1, browCurve: -.15, pitch: -.1, lean: 1.05, bob: .5, energy: 1.6, follow: .85 },
+    surprised: { eyeScale: 1.25, pupil: .6, browRaise: .15, browTilt: .15, browCurve: .6, pitch: .12, lean: .95, energy: 1.8 },
+    curious: { eyeScale: 1.08, pupil: 1.15, browAsym: .09, browRaise: .03, roll: .22, lean: 1.06, follow: .8, energy: 1.2 },
+    thinking: { topCut: .12, browTilt: -.25, browAsym: .06, browCurve: .1, roll: .12, energy: .7, follow: .5 },
+    sleepy: { lid: .55, tilt: -.25, botCut: .05, browRaise: -.05, browCurve: .1, pitch: -.15, gazePitch: -.15, bob: .6, energy: .3, follow: .3 },
+    skeptical: { lidAsym: .38, browAsym: .13, browTilt: -.2, yawBias: -.3, roll: -.06, follow: .35, energy: .9 },
+    excited: { eyeScale: 1.18, pupil: 1.25, botCut: .12, botCurve: .25, browRaise: .1, browCurve: .5, pitch: .1, lean: 1.04, bob: 2.4, energy: 2 },
+    shy: { botCut: .1, botCurve: .3, browTilt: .5, pupil: 1.1, yawBias: .25, gazePitch: -.3, roll: .18, lean: .96, follow: .3, bob: .5, energy: .6 },
+    bored: { lid: .38, browRaise: -.02, browCurve: 0, gazeYaw: .35, pitch: -.08, roll: -.15, pupil: .9, follow: .2, bob: .3, energy: .4 },
+    confused: { eyeAsym: .15, browAsym: .14, browTilt: .3, eyeScale: 1.05, pupil: .85, roll: -.28, energy: .9 },
+    worried: { topCut: .12, tilt: -.5, eyeScale: 1.05, pupil: .75, browTilt: 1, browRaise: .06, pitch: -.06, lean: .96, energy: 1.2 },
+    smug: { lid: .3, botCut: .15, botCurve: .3, browAsym: .1, browTilt: -.1, pitch: .15, roll: .1, yawBias: .12, follow: .5, energy: .6 },
+  };
+  for (const k in MOODS) MOODS[k] = { ...BASE, ...MOODS[k] };
+  const MOOD_NAMES = Object.keys(MOODS);
+
+  // ---------- theme colors ----------
+  const C = {};
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    C.fg = cs.getPropertyValue("--fg").trim();
+    C.surface = cs.getPropertyValue("--surface").trim();
+    const t = document.documentElement.getAttribute("data-theme");
+    C.dark = t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  readColors();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors);
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  // ---------- math ----------
+  class Spring {
+    constructor(v = 0) { this.x = v; this.v = 0; this.t = v; }
+    step(dt, k, z = 1) { const a = k * (this.t - this.x) - 2 * Math.sqrt(k) * z * this.v; this.v += a * dt; this.x += this.v * dt; }
+  }
+
+  function rotation(yaw, pitch, roll) {
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch), cr = Math.cos(roll), sr = Math.sin(roll);
+    const Ry = [[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]];
+    const Rx = [[1, 0, 0], [0, cp, -sp], [0, sp, cp]];
+    const Rz = [[cr, -sr, 0], [sr, cr, 0], [0, 0, 1]];
+    const mm = (A, B) => A.map(row => [0, 1, 2].map(j => row[0] * B[0][j] + row[1] * B[1][j] + row[2] * B[2][j]));
+    return mm(Rz, mm(Rx, Ry));
+  }
+  const apply = (M, v) => [M[0][0] * v[0] + M[0][1] * v[1] + M[0][2] * v[2], M[1][0] * v[0] + M[1][1] * v[1] + M[1][2] * v[2], M[2][0] * v[0] + M[2][1] * v[1] + M[2][2] * v[2]];
+
+  // Point on the head (a sphere stretched to the silhouette) plus east/south tangents, so a flat feature can be laid onto the surface.
+  function surfaceFrame(M, lon, lat, H) {
+    const cl = Math.cos(lat), sl = Math.sin(lat), co = Math.cos(lon), so = Math.sin(lon);
+    const y = sl * H.sy;
+    const p = [so * cl * H.sx * (1 + H.taper * y), y, co * cl];
+    return { p: apply(M, p), e: apply(M, [co, 0, -so]), s: apply(M, [-so * sl, cl, -co * sl]) };
+  }
+
+  function headPath(ctx, cx, cy, R, H, now) {
+    if (H.verts) {
+      const v = H.verts, n = v.length, P = i => v[(i + n) % n];
+      const a = P(-1), b = P(0);
+      ctx.beginPath();
+      ctx.moveTo(cx + (a[0] + b[0]) / 2 * R, cy + (a[1] + b[1]) / 2 * R);
+      for (let i = 0; i < n; i++) {
+        const p = P(i), q = P(i + 1);
+        ctx.arcTo(cx + p[0] * R, cy + p[1] * R, cx + q[0] * R, cy + q[1] * R, p[2] * R);
+      }
+      ctx.closePath();
+      return;
+    }
+    const N = H.bumps ? 140 : 72, e = 2 / H.n;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const th = i / N * TAU, c = Math.cos(th), s = Math.sin(th);
+      let x = Math.sign(c) * Math.abs(c) ** e * H.sx, y = Math.sign(s) * Math.abs(s) ** e * H.sy;
+      x *= 1 + H.taper * y;
+      if (H.wobble) {
+        const w = 1 + H.wobble * (Math.sin(3 * th + H.phase) * .7 + Math.sin(5 * th + H.phase * 2 + (reduced ? 0 : now * .6)) * .3);
+        x *= w; y *= w;
+      }
+      if (H.bumps) {
+        const w = 1 + H.bumps * (Math.abs(Math.sin(H.lobes * th / 2)) - .5);
+        x *= w; y *= w;
+      }
+      if (i) ctx.lineTo(cx + x * R, cy + y * R); else ctx.moveTo(cx + x * R, cy + y * R);
+    }
+    ctx.closePath();
+  }
+
+  // ---------- pointer ----------
+  const pointer = { x: 0, y: 0, t: -99 };
+  const onPointer = e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.t = performance.now() / 1000; };
+  addEventListener("pointermove", onPointer, { passive: true });
+  addEventListener("pointerdown", onPointer, { passive: true });
+
+  const state = { head: "solid", mood: "neutral" };
+
+  // ---------- character ----------
+  class Character {
+    constructor(canvas, spec, featured = false) {
+      this.canvas = canvas; this.ctx = canvas.getContext("2d"); this.featured = featured;
+      this.visible = true; this.w = 0; this.h = 0;
+      this.p = {}; for (const k in BASE) this.p[k] = new Spring(BASE[k]);
+      this.gYaw = new Spring(); this.gPitch = new Spring();
+      this.hYaw = new Spring(); this.hPitch = new Spring(); this.hRoll = new Spring();
+      this.lean = new Spring(1); this.jump = new Spring(0); this.squash = new Spring(1);
+      this.mood = "neutral"; this.override = null;
+      this.open = 1; this.blinkT = -1; this.queued = false;
+      this.nextBlink = 0; this.nextGlance = 0; this.attending = true;
+      this.glance = [0, 0]; this.thinkSide = 1; this.bobY = 0;
+      this.phase = [0, 1, 2, 3, 4, 5].map(() => Math.random() * TAU);
+      this.setSpec(spec);
+      new ResizeObserver(() => this.resize()).observe(canvas);
+      new IntersectionObserver(es => { this.visible = es[0].isIntersecting; }).observe(canvas);
+    }
+    setSpec(spec) { this.spec = spec; }
+    resize() {
+      const r = this.canvas.getBoundingClientRect();
+      this.dpr = Math.min(2, devicePixelRatio || 1);
+      this.w = r.width; this.h = r.height;
+      this.canvas.width = Math.round(r.width * this.dpr); this.canvas.height = Math.round(r.height * this.dpr);
+    }
+    currentMood(now) { return this.override && this.override.until > now ? this.override.mood : this.mood; }
+    setMood(m) {
+      if (m === this.mood) return;
+      this.mood = m;
+      if (m === "thinking") this.thinkSide = Math.random() < .5 ? -1 : 1;
+      if (m === "surprised") { this.jump.v += 3.2; this.squash.v += 4; }
+    }
+    boop(now) {
+      this.squash.v -= 7; this.jump.v += 2.4;
+      this.override = { mood: "happy", until: now + 1.3 };
+      this.blinkT = 0; this.blinkDur = .15;
+    }
+    blinkNow() { if (this.blinkT < 0) { this.blinkT = 0; this.blinkDur = this.currentMood(performance.now() / 1000) === "sleepy" ? .34 : .15; } }
+
+    // Once per frame: pick where to look and what the head should do.
+    think(now, dt) {
+      const sp = this.spec, mood = this.currentMood(now), S = this.p;
+      this.now = now;
+      for (const k in BASE) S[k].t = MOODS[mood][k];
+      const E = S.energy.x;
+
+      let ty = this.gYaw.t, tp = this.gPitch.t;
+      if (now >= this.nextGlance) {
+        this.attending = Math.random() < sp.attention;
+        const big = Math.random() < .4;
+        this.glance = Math.random() < .35 ? [0, 0] : [(Math.random() * 2 - 1) * (big ? .75 : .3), (Math.random() * 2 - 1) * (big ? .45 : .18)];
+        this.nextGlance = now + (.8 + Math.random() * 2.6) / (sp.curiosity * Math.max(.4, E));
+      }
+      const r = this.canvas.getBoundingClientRect();
+      const recent = now - pointer.t < 2.2;
+      if (mood === "thinking") {
+        ty = .45 * this.thinkSide + Math.sin(now * .5 + this.phase[0]) * .08;
+        tp = .38 + Math.sin(now * .37 + this.phase[1]) * .05;
+      } else if (recent && this.attending) {
+        const D = 420;
+        ty = clamp(Math.atan2(pointer.x - (r.left + r.width / 2), D), -1, 1);
+        tp = clamp(-Math.atan2(pointer.y - (r.top + r.height * .48), D), -.7, .7);
+      } else {
+        [ty, tp] = this.glance;
+      }
+      ty += S.gazeYaw.x; tp += S.gazePitch.x;
+      if (Math.hypot(ty - this.gYaw.t, tp - this.gPitch.t) > .5 && Math.random() < .4) this.blinkNow();
+      this.gYaw.t = ty; this.gPitch.t = tp;
+
+      const amp = reduced ? .3 : 1;
+      const n = (i, f) => (Math.sin(now * f + this.phase[i]) * .6 + Math.sin(now * f * 2.3 + this.phase[i + 1]) * .4) * amp;
+      const nod = mood === "sleepy" ? -.1 * (.5 + .5 * Math.sin(now * .8)) : 0;
+      this.hYaw.t = ty * S.follow.x + S.yawBias.x + n(0, .6) * .05;
+      this.hPitch.t = tp * S.follow.x + S.pitch.x + n(2, .5) * .04 + nod;
+      this.hRoll.t = sp.restTilt + S.roll.x + n(3, .45) * .03 - this.hYaw.x * .08;
+      this.lean.t = S.lean.x;
+      this.bobY = reduced ? 0 : S.bob.x * .018 * Math.sin(now * (1.4 + E * 1.2) + this.phase[4]);
+
+      // Blinks: fast close, slower open, sometimes a double.
+      if (this.blinkT < 0 && now >= this.nextBlink) { this.blinkNow(); this.queued = Math.random() < .18; }
+      if (this.blinkT >= 0) {
+        this.blinkT += dt;
+        const ph = this.blinkT / this.blinkDur;
+        if (ph >= 1) {
+          this.blinkT = -1; this.open = 1;
+          if (this.queued) { this.queued = false; this.nextBlink = now + .09; }
+          else this.nextBlink = now + (1.6 + Math.random() * 4.2) / sp.blinkRate * (mood === "sleepy" ? 1.6 : 1);
+        } else {
+          this.open = ph < .4 ? 1 - ph / .4 : (ph - .4) / .6;
+        }
+      }
+    }
+
+    integrate(dt) {
+      const sp = this.spec, S = this.p, st = sp.stiffness;
+      const faceK = this.mood === "surprised" ? 380 : 140;
+      for (const k in S) S[k].step(dt, faceK, .85);
+      const E = S.energy.x;
+      this.gYaw.step(dt, 700 * st, .8); this.gPitch.step(dt, 700 * st, .8);
+      const headK = 45 * st * (.5 + .5 * E);
+      this.hYaw.step(dt, headK, .7); this.hPitch.step(dt, headK, .7); this.hRoll.step(dt, headK * .8, .7);
+      this.lean.step(dt, 180, .6); this.jump.step(dt, 90, .45); this.squash.step(dt, 300, .3);
+    }
+
+    draw() {
+      const { ctx, w: W, h: H, dpr } = this;
+      if (!W) return;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      const base = new DOMMatrix([dpr, 0, 0, dpr, 0, 0]);
+      const R = Math.min(W, H) * (this.featured ? .27 : .3) * this.lean.x / (this.spec.head.fit || Math.max(1, this.spec.head.sy, this.spec.head.sx * .9));
+      const lift = this.bobY + this.jump.x;
+      const cx = W / 2, cy = H * .48 - lift * R;
+      const mode = state.head;
+
+      // floor shadow sells the bob
+      ctx.setTransform(base);
+      ctx.globalAlpha = .08 * (1 - clamp(lift * 3, 0, .6));
+      ctx.fillStyle = C.fg;
+      const sp = this.spec, S = this.p, HD = sp.head;
+      const footY = H * .48 + R * (HD.bottom ?? HD.sy * (1 + Math.abs(HD.taper) * .3));
+      const shadowW = R * .8 * (HD.shadow ?? HD.sx * (1 + HD.taper)) * (1 - clamp(lift, 0, .5) * .6);
+      ctx.beginPath(); ctx.ellipse(cx, footY + R * .32, shadowW, R * .1, 0, 0, TAU); ctx.fill();
+      ctx.globalAlpha = 1;
+
+      const sq = this.squash.x;
+      const m = base.translate(cx, cy + R).scale(2 - sq, sq).translate(-cx, -(cy + R));
+      const roll = this.hRoll.x * 180 / Math.PI;
+      const hc = headColors(sp.color);
+
+      if (mode !== "none") {
+        // Silhouette rolls with the head; the light stays put, so the lit layer is offset in screen space.
+        const shapeM = m.translate(cx, cy).rotate(roll).translate(-cx, -cy);
+        const litM = m.translate(cx - R * .14, cy - R * .18).rotate(roll).scale(.98).translate(-cx, -cy);
+        ctx.globalAlpha = mode === "ghost" ? .2 : 1;
+        ctx.setTransform(shapeM);
+        headPath(ctx, cx, cy, R, HD, this.now);
+        ctx.fillStyle = hc.shade; ctx.fill();
+        ctx.save(); ctx.clip();
+        ctx.setTransform(litM);
+        headPath(ctx, cx, cy, R, HD, this.now);
+        ctx.fillStyle = hc.lit; ctx.fill();
+        ctx.setTransform(m);
+        const [gx, gy] = HD.glow || [-.4 * HD.sx, -.48 * HD.sy];
+        ctx.beginPath(); ctx.ellipse(cx + R * gx, cy + R * gy, R * .2, R * .1, -.6, 0, TAU);
+        ctx.fillStyle = hc.glow; ctx.fill();
+        ctx.restore();
+        if (mode === "solid") {
+          ctx.setTransform(shapeM);
+          headPath(ctx, cx, cy, R, HD, this.now);
+          ctx.lineWidth = R * .035; ctx.lineJoin = "round"; ctx.strokeStyle = INK; ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      // Dark heads get light brows so the face still reads; eye whites stay white everywhere.
+      const ink = mode === "solid" ? (hc.deep ? "#f4f5f8" : INK) : C.fg;
+      const M = rotation(this.hYaw.x, this.hPitch.x, this.hRoll.x);
+      const dy = clamp(this.gYaw.x - this.hYaw.x, -.4, .4);
+      const dp = clamp(this.gPitch.x - this.hPitch.x, -.35, .35);
+      const slide = .2;
+
+      const place = (lon, lat) => {
+        const f = surfaceFrame(M, lon, lat, HD);
+        ctx.setTransform(m.multiply(new DOMMatrix([R * f.e[0], R * f.e[1], R * f.s[0], R * f.s[1], cx + R * f.p[0], cy + R * f.p[1]])));
+        ctx.globalAlpha = clamp((f.p[2] - .05) / .25, 0, 1);
+      };
+
+      for (const s of [-1, 1]) {
+        const lon = s * sp.spacing + dy * slide;
+        const lat = sp.eyeLat + (HD.faceY || 0) - dp * slide;
+        place(lon, lat);
+        this.drawEye(s, mode === "solid" ? INK : C.fg, mode === "solid" ? hc.lit : C.surface, dy, dp);
+        const browLat = lat - (sp.eyeH * S.eyeScale.x * .5 + sp.browGap) - S.browRaise.x
+          - S.browAsym.x * (s > 0 ? 1 : -.4) + (S.topCut.x + S.lid.x) * .05;
+        place(lon, browLat);
+        this.drawBrow(s, ink);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // The eye is one closed outline whose points are pushed around by the mood, so it always keeps its edge.
+    // Blinks squash the shape; only sleepy draws a real lid in the head's color.
+    drawEye(s, ink, lidFill, dy, dp) {
+      const ctx = this.ctx, sp = this.spec, S = this.p;
+      const k = S.eyeScale.x * (1 + S.eyeAsym.x * s), w = sp.eyeW * k;
+      let tc = S.topCut.x + (s < 0 ? S.lidAsym.x : 0), bcut = S.botCut.x, bc = S.botCurve.x, tilt = S.tilt.x;
+      // The top and bottom edges may close at most (1 - MIN_OPEN) of the height at the center.
+      const cover0 = Math.max(0, tc) + bcut + bc * .8;
+      const f = Math.min(1, (1 - MIN_OPEN) / Math.max(1e-6, cover0));
+      tc *= f; bcut *= f; bc *= f; tilt *= f;
+      // Deformed eyes grow taller so arches and slants stay chunky instead of thin.
+      const h = sp.eyeH * k * (1 + .5 * (Math.max(0, tc) + bcut + bc * .8));
+
+      const xi = -s * w / 2, xo = s * w / 2;
+      const yi = -h / 2 + h * clamp(tc + tilt * .3, 0, .9);
+      const yo = -h / 2 + h * clamp(tc - tilt * .3, 0, .9);
+      const slope = (yi - yo) / (xi - xo), top = x => yo + slope * (x - xo);
+      const yb = h / 2 - h * bcut, arch = h * bc * .8;
+      const bottom = x => yb - arch * (1 - (x / w) ** 2);
+
+      const open = Math.max(.06, this.open), pivot = h * .12;
+      const squash = y => pivot + (y - pivot) * open;
+      const n = 2 + (.5 - sp.corner) * 8, e = 2 / n, N = 64;
+      const pts = [];
+      for (let i = 0; i < N; i++) {
+        const th = i / N * TAU, c = Math.cos(th), sn = Math.sin(th);
+        const x = Math.sign(c) * Math.abs(c) ** e * w / 2;
+        let y = Math.sign(sn) * Math.abs(sn) ** e * h / 2;
+        y = Math.min(Math.max(y, top(x)), bottom(x));
+        pts.push([x, squash(y)]);
+      }
+      const outline = () => {
+        ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+        for (let i = 1; i < N; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+        ctx.closePath();
+      };
+
+      outline(); ctx.fillStyle = WHITE; ctx.fill();
+      ctx.save();
+      outline(); ctx.clip();
+      const pr = Math.min(w, sp.eyeH * k);
+      const openCenter = squash((Math.max(-h / 2, top(0)) + bottom(0)) / 2);
+      const px = clamp(dy * 1.1, -.45, .45) * w * .5;
+      const py = openCenter + clamp(-dp * 1.1, -.4, .4) * h * .25 * open;
+      ctx.beginPath(); ctx.arc(px, py, pr * .3 * S.pupil.x, 0, TAU); ctx.fillStyle = INK; ctx.fill();
+      ctx.beginPath(); ctx.arc(px - pr * .1, py - pr * .11, pr * .08, 0, TAU); ctx.fillStyle = WHITE; ctx.fill();
+
+      const L = S.lid.x;
+      if (L > .01) {
+        const lidY = x => squash(-h / 2 + h * L * .9 + h * .12 * L * (1 - (2 * x / w) ** 2));
+        ctx.beginPath(); ctx.moveTo(-w, -h * 2); ctx.lineTo(-w, lidY(-w / 2));
+        for (let i = 0; i <= 16; i++) { const x = -w / 2 + w * i / 16; ctx.lineTo(x, lidY(x)); }
+        ctx.lineTo(w, lidY(w / 2)); ctx.lineTo(w, -h * 2); ctx.closePath();
+        ctx.fillStyle = lidFill; ctx.fill();
+        ctx.beginPath();
+        for (let i = 0; i <= 16; i++) { const x = -w / 2 + w * i / 16; i ? ctx.lineTo(x, lidY(x)) : ctx.moveTo(x, lidY(x)); }
+        ctx.lineWidth = EYE_LINE; ctx.lineCap = "round"; ctx.strokeStyle = ink; ctx.stroke();
+      }
+      ctx.restore();
+
+      outline(); ctx.lineWidth = EYE_LINE; ctx.lineJoin = "round"; ctx.strokeStyle = ink; ctx.stroke();
+    }
+
+    drawBrow(s, ink) {
+      const ctx = this.ctx, sp = this.spec, t = this.p.browTilt.x;
+      const L = sp.browLen, xi = -s * L / 2, xo = s * L / 2, yi = -t * .07, yo = t * .03;
+      ctx.beginPath(); ctx.moveTo(xi, yi);
+      ctx.quadraticCurveTo(0, (yi + yo) / 2 - this.p.browCurve.x * .05, xo, yo);
+      ctx.lineWidth = sp.browThick; ctx.lineCap = "round"; ctx.strokeStyle = ink; ctx.stroke();
+    }
+  }
+
+  // ---------- page wiring ----------
+  const SEEDS = ["glance", "pip", "moss", "orbit", "juniper", "tock", "ember", "biscuit", "nova", "pebble", "widget", "sprocket"];
+  const WORDS = ["fern", "pixel", "dune", "otter", "kite", "nimbus", "pebble", "sprout", "quill", "comet", "maple", "zinc"];
+  // Shuffled head shapes minus the featured one, so no two characters on the page share a shape.
+  function castShapes(exclude, rand) {
+    const pool = Object.keys(HEADS).filter(k => k !== exclude);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    return pool;
+  }
+  // Spread hues around the color wheel by the golden angle so neighbours never look alike.
+  // At most one gray per page, and never the featured character.
+  function spreadColors(specs, rand) {
+    const start = rand() * 360;
+    let grays = 0;
+    specs.forEach((sp, i) => {
+      const c = { ...sp.color };
+      if (c.tone === "gray" && (i === 0 || grays++ >= 1)) {
+        const T = TONES.candy;
+        c.tone = "candy"; c.s = Math.round((T.s[0] + T.s[1]) / 2); c.l = Math.round((T.l[0] + T.l[1]) / 2);
+      }
+      if (c.tone !== "gray") c.h = Math.round((start + i * 137.5) % 360);
+      sp.color = sp.seedColor = c;
+    });
+  }
+  const featured = new Character(document.getElementById("featured"), makeSpec(SEEDS[0]), true);
+  const castEl = document.getElementById("cast");
+  const startShapes = castShapes(featured.spec.headShape, mulberry32(7));
+  const cast = SEEDS.slice(1).map((seed, i) => {
+    const btn = document.createElement("button");
+    btn.className = "member";
+    btn.innerHTML = `<canvas></canvas><strong></strong><small></small>`;
+    castEl.append(btn);
+    const c = new Character(btn.querySelector("canvas"), makeSpec(seed, startShapes[i]));
+    c.card = btn;
+    btn.addEventListener("click", () => {
+      const a = featured.spec; featured.setSpec(c.spec); c.setSpec(a);
+      seedInput.value = featured.spec.seed;
+      render();
+    });
+    return c;
+  });
+  const all = [featured, ...cast];
+  spreadColors(all.map(c => c.spec), mulberry32(11));
+
+  const seedInput = document.getElementById("seed");
+  const traitsEl = document.getElementById("traits");
+  const moodsEl = document.getElementById("moods");
+  const cycleEl = document.getElementById("cycle");
+
+  function render() {
+    const sp = featured.spec, d = describe(sp);
+    document.getElementById("stage-name").textContent = sp.name;
+    const shapeName = { round: "round", pill: "wide pill", tall: "tall oval", soft: "soft square" }[sp.shape];
+    const rows = [
+      ["head", `${sp.headShape}, ${d.colorName}`],
+      ["eyes", shapeName],
+      ["temper", `${d.temper} · spring ×${sp.stiffness.toFixed(2)}`],
+      ["attention", `${d.attn} · ${Math.round(sp.attention * 100)}% follows you`],
+      ["gaze", d.look],
+      ["blinks", `${d.blink} · ×${sp.blinkRate.toFixed(2)}`],
+    ];
+    traitsEl.replaceChildren(...rows.flatMap(([k, v]) => {
+      const dt = document.createElement("dt"); dt.textContent = k;
+      const dd = document.createElement("dd"); dd.textContent = v;
+      return [dt, dd];
+    }));
+    for (const c of cast) {
+      const cd = describe(c.spec);
+      c.card.querySelector("strong").textContent = c.spec.name;
+      c.card.querySelector("small").textContent = `${c.spec.headShape}, ${cd.temper}, ${cd.attn}`;
+      c.card.setAttribute("aria-label", `Bring ${c.spec.name} forward`);
+    }
+    for (const b of swatchesEl.children) b.setAttribute("aria-pressed", String(b.dataset.color === sp.colorKey));
+    for (const b of shapesEl.children) b.setAttribute("aria-pressed", String(b.dataset.shape === sp.headKey));
+  }
+
+  const shapesEl = document.getElementById("shapes");
+  for (const key of Object.keys(HEADS)) {
+    const b = document.createElement("button");
+    b.className = "chip"; b.dataset.shape = key; b.textContent = key[0].toUpperCase() + key.slice(1);
+    shapesEl.append(b);
+  }
+  shapesEl.addEventListener("click", e => {
+    const b = e.target.closest("[data-shape]");
+    if (!b) return;
+    const sp = featured.spec, key = b.dataset.shape;
+    sp.headKey = key;
+    sp.headShape = key === "seed" ? sp.seedHeadShape : key;
+    sp.head = { ...HEADS[sp.headShape], phase: sp.head.phase };
+    render();
+  });
+
+  const swatchesEl = document.getElementById("swatches");
+  for (const [key, c] of Object.entries(PALETTE)) {
+    const b = document.createElement("button");
+    b.className = "swatch"; b.dataset.color = key;
+    b.style.background = `hsl(${c.h} ${c.s}% ${c.l}%)`;
+    b.setAttribute("aria-label", key); b.title = key[0].toUpperCase() + key.slice(1);
+    swatchesEl.append(b);
+  }
+  swatchesEl.addEventListener("click", e => {
+    const b = e.target.closest("[data-color]");
+    if (!b) return;
+    const sp = featured.spec, key = b.dataset.color;
+    sp.colorKey = key;
+    sp.color = key === "seed" ? sp.seedColor : { ...PALETTE[key], name: key };
+    render();
+  });
+
+  function setMood(m, fromCycle = false) {
+    state.mood = m;
+    for (const c of all) setTimeout(() => c.setMood(m), fromCycle ? Math.random() * 350 : Math.random() * 120);
+    for (const b of moodsEl.children) b.setAttribute("aria-pressed", String(b.dataset.mood === m));
+    document.getElementById("stage-mood").textContent = m;
+  }
+
+  for (const m of MOOD_NAMES) {
+    const b = document.createElement("button");
+    b.className = "chip"; b.dataset.mood = m; b.textContent = m[0].toUpperCase() + m.slice(1);
+    b.addEventListener("click", () => { cycleEl.checked = false; setMood(m); });
+    moodsEl.append(b);
+  }
+
+  let cycleIdx = 0;
+  cycleEl.checked = !reduced;
+  setInterval(() => {
+    if (!cycleEl.checked) return;
+    cycleIdx = (MOOD_NAMES.indexOf(state.mood) + 1) % MOOD_NAMES.length;
+    setMood(MOOD_NAMES[cycleIdx], true);
+  }, 3400);
+
+  for (const b of document.querySelectorAll("#head-modes .chip")) {
+    b.addEventListener("click", () => {
+      state.head = b.dataset.head;
+      for (const o of document.querySelectorAll("#head-modes .chip")) o.setAttribute("aria-pressed", String(o === b));
+    });
+  }
+
+  seedInput.addEventListener("input", () => { featured.setSpec(makeSpec(seedInput.value.trim() || "blank")); render(); });
+  document.getElementById("reroll").addEventListener("click", () => {
+    const fresh = () => `${WORDS[Math.floor(Math.random() * WORDS.length)]}-${Math.floor(Math.random() * 900 + 100)}`;
+    featured.setSpec(makeSpec(fresh()));
+    const shapes = castShapes(featured.spec.headShape, Math.random);
+    cast.forEach((c, i) => c.setSpec(makeSpec(fresh(), shapes[i])));
+    spreadColors(all.map(c => c.spec), Math.random);
+    seedInput.value = featured.spec.seed;
+    render();
+  });
+  featured.canvas.addEventListener("click", () => featured.boop(performance.now() / 1000));
+
+  render();
+  setMood("neutral");
+
+  let last = performance.now() / 1000;
+  function loop(ms) {
+    const now = ms / 1000, dt = Math.min(.1, now - last);
+    last = now;
+    for (const c of all) {
+      if (!c.visible) continue;
+      c.think(now, dt);
+      for (let rem = dt; rem > 0; rem -= 1 / 120) c.integrate(Math.min(rem, 1 / 120));
+      c.draw();
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
