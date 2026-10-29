@@ -37,7 +37,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 - Booping the featured buddy plays Love; the cast follows an emote a beat later.
 
 ### Morphs
-- The buddy can morph into an object that acts on its own, then morph back: first a paper airplane that loops around the stage.
+- The buddy can morph into an object that acts on its own, then morph back: a paper airplane, balloon, rocket, bouncy ball, ghost, fish and star.
 - The morph keeps the buddy's head style and colors, and its eyes ride along on the object.
 
 ### Page

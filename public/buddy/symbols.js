@@ -31,6 +31,7 @@ const DRAW = {
   bang: ctx => glyph(ctx, "!", "#ffd23f"),
   question: ctx => glyph(ctx, "?", "#7cc7ff"),
   z: ctx => glyph(ctx, "Z", "#c9b8ff"),
+  boo: ctx => glyph(ctx, "Boo!", "#ffffff"),
   sweat(ctx) {
     ctx.beginPath(); ctx.moveTo(0, -.5);
     ctx.quadraticCurveTo(.32, -.05, .3, .17);
@@ -132,6 +133,9 @@ const KINDS = {
   question: { anchor: "float", life: 1.5, size: .55,
     spawn: () => [{ x: .62, y: -1.1 }],
     tick: p => { p.rot = .25 * Math.sin(p.age * 5); } },
+  boo: { anchor: "float", life: 1.4, size: .42,
+    spawn: () => [{ x: .7, y: -1.05, vy: -.15 }],
+    tick: p => { p.rot = .12 * Math.sin(p.age * 9) * Math.max(0, 1 - p.age); } },
   z: { anchor: "float", life: 2.2, size: .28,
     spawn: () => [{ x: .45, y: -.9, vx: .25, vy: -.35, sway: .08 }],
     tick: p => { p.grow = 1 + p.age * .35; p.rot = -.2; } },
@@ -186,11 +190,14 @@ function fromMouth(spec, mouth) {
 }
 
 // mouth is the mouth's current screen position in head units, when the buddy has drawn one.
-export function spawnSymbol(list, kind, spec, { life, mouth } = {}) {
+// offset [x, y] shifts floating symbols, for spawning around something that has moved (a morphed object).
+export function spawnSymbol(list, kind, spec, { life, mouth, offset } = {}) {
   const K = KINDS[kind];
   for (const init of K.spawn(spec, { mouth })) {
-    list.push({ kind, anchor: K.anchor, layer: K.layer || "over", life: life ?? K.life, size: K.size,
-      age: 0, x: 0, y: 0, vx: 0, vy: 0, sway: 0, lon: 0, lat: 0, vlat: 0, rot: 0, grow: 1, ...init });
+    const p = { kind, anchor: K.anchor, layer: K.layer || "over", life: life ?? K.life, size: K.size,
+      age: 0, x: 0, y: 0, vx: 0, vy: 0, sway: 0, lon: 0, lat: 0, vlat: 0, rot: 0, grow: 1, ...init };
+    if (offset && p.anchor === "float") { p.x += offset[0]; p.y += offset[1]; }
+    list.push(p);
   }
 }
 
