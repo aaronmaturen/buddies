@@ -242,11 +242,18 @@ export class Buddy {
       // Squash and stretch about the bottom of the object, then its turn, facing and size.
       objectSpace = m.translate(mx, my + R * .8).scale(f.sx, f.sy).translate(0, -R * .8)
         .rotate(f.rot * 180 / Math.PI).scale(f.flip ? -1 : 1, 1).scale(f.scale).translate(-mx, -my);
+      // Parts like tails go behind the shape, the rest of the details over it; both fade in as the shape forms.
+      const extras = { ...f, now: this.now, k: mo.k, colors };
+      const layer = draw => {
+        if (!draw) return;
+        ctx.setTransform(objectSpace.translate(mx, my).scale(R));
+        ctx.globalAlpha = clamp((mo.k - .6) / .4, 0, 1);
+        draw(ctx, extras);
+        ctx.globalAlpha = 1;
+      };
+      layer(mo.def.behind);
       style.head?.(ctx, objectSpace, { cx: mx, cy: my, R, head: { ...head, points: mo.points }, colors, color: spec.color, roll: 0, now: this.now, px });
-      ctx.setTransform(objectSpace.translate(mx, my).scale(R));
-      ctx.globalAlpha = clamp((mo.k - .6) / .4, 0, 1);
-      mo.def.detail?.(ctx, { ...f, now: this.now, k: mo.k, colors });
-      ctx.globalAlpha = 1;
+      layer(mo.def.detail);
     } else {
       style.head?.(ctx, m, { cx, cy, R, head, colors, color: spec.color, roll: this.hRoll.x * 180 / Math.PI, now: this.now, px });
     }

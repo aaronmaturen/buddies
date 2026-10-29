@@ -22,12 +22,15 @@ export const dog = {
     return { x: .02 * wag, y: -.03 * Math.abs(Math.sin(now * 8)), rot: .05 * wag, wag };
   },
   events: [{ at: 0, mood: "excited", for: 4.6 }],
-  detail(ctx, { wag = 0, now, colors }) {
+  behind(ctx, { wag = 0, colors }) {
     ctx.lineCap = "round"; ctx.lineJoin = "round";
-    // Tail wagging up off the right side.
-    ctx.beginPath(); ctx.moveTo(.58, .85);
+    // Tail wagging up off the right side, from behind the body.
+    ctx.beginPath(); ctx.moveTo(.3, .85);
     ctx.quadraticCurveTo(1.05, .8, 1 + .2 * wag, .3 + .1 * Math.abs(wag));
     for (const [w, c] of [[.2, LINE], [.13, colors.lit]]) { ctx.lineWidth = w; ctx.strokeStyle = c; ctx.stroke(); }
+  },
+  detail(ctx, { now, colors }) {
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
     // Floppy ears in the darker tone.
     for (const s of [-1, 1]) {
       ctx.beginPath(); ctx.moveTo(s * .45, -.66); ctx.quadraticCurveTo(s * .95, -.45, s * .8, .02);

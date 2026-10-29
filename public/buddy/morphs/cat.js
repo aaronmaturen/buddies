@@ -26,13 +26,16 @@ export const cat = {
     return { x: 0, y: .02 * Math.sin(now * 1.6), rot: -.09 * lick + .03 * Math.sin(now * 1.3), lick };
   },
   events: [{ at: .27, mood: "happy", for: 1 }, { at: .62, mood: "happy", for: .9 }],
-  detail(ctx, { lick = 0, now, colors }) {
+  behind(ctx, { now, colors }) {
     ctx.lineCap = "round"; ctx.lineJoin = "round";
-    // Tail curling up the left side.
+    // Tail curling up the left side, tucked behind the body.
     const sway = .08 * Math.sin(now * 2.2);
-    ctx.beginPath(); ctx.moveTo(-.55, .9);
+    ctx.beginPath(); ctx.moveTo(-.3, .9);
     ctx.bezierCurveTo(-1.05, .95, -1.1 + sway, .35, -.82 + sway, .12);
     for (const [w, c] of [[.2, LINE], [.13, colors.lit]]) { ctx.lineWidth = w; ctx.strokeStyle = c; ctx.stroke(); }
+  },
+  detail(ctx, { lick = 0, now, colors }) {
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
     // Inner ears and a pink nose.
     ctx.fillStyle = "rgba(255, 150, 170, .55)";
     for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(s * .33, -.86); ctx.lineTo(s * .52, -1.06); ctx.lineTo(s * .5, -.76); ctx.closePath(); ctx.fill(); }
