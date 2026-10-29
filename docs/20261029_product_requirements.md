@@ -29,7 +29,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 - Optional automatic cycling through moods.
 
 ### Emotes
-- 25 one-off reactions layered on the current mood.
+- 26 one-off reactions layered on the current mood, including blowing bubbles that drift off and pop.
 - Mouths appear only during emotes.
 - Cartoon symbols (hearts, !, ?, Z, sweat drop, anger mark, sparkles, blush) either turn with the head or float around it.
 - Floating hands with no arms (white gloves or head-colored mittens, by seed) for wave, facepalm, peekaboo, thumbs up, shrug, clap, think and no.
