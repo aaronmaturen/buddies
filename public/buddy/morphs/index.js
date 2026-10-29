@@ -18,6 +18,7 @@ import { dog } from "./dog.js";
 //   events    [{ at: 0..1, symbol, from: "nose" }] symbols spawned during the act, at the object or its nose;
 //             [{ at, mood, for }] borrows a mood for `for` seconds (the object's eyes show it)
 //   nose      [x, y] where "nose" events come out
+//   behind    (ctx, same args as detail) draws parts behind the shape, like tails
 //   detail    (ctx, { ...flight, now, k, colors }) draws extras over the shape in the object's frame;
 //             colors are the head's cel tones (lit, shade, glow) so parts like paws and tails match
 export const MORPHS = { balloon, rocket, ball, ghost, fish, star, cat, dog };
