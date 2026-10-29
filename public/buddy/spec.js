@@ -38,6 +38,8 @@ export function makeSpec(seed, forcedShape) {
     curiosity: lerp(.4, 1.5),
     attention: lerp(.3, .95),
     restTilt: lerp(-.1, .1),
+    // New draws go last so older seeds keep everything above.
+    handStyle: r() < .5 ? "glove" : "mitt",
   };
 }
 

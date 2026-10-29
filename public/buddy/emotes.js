@@ -4,7 +4,12 @@
 //   mouth     shape shown during the emote (any key of MOUTHS)
 //   motion    head movement (any key of MOTIONS in emote-player.js)
 //   events    things that happen at a time `at`, sorted by `at`:
-//             { symbol } spawns a mark, { jump, squash } kicks the bounce springs
+//             { symbol } spawns a mark, { jump, squash } kicks the bounce springs,
+//             { mood } switches the borrowed mood for the rest of the emote,
+//             { hand: "right" | "left" | "both", pose, x, y, rot } brings in hands (see hands.js);
+//               face: true pins y to the eye line and follows the head's turn,
+//               wiggle { rot, freq }, bob { x, y, freq } and clap { x, freq } add rhythm,
+//             { hand, hide: true } sends those hands away
 export const EMOTES = {
   love: { duration: 1.8, mood: "happy", mouth: "smile", motion: "sway",
     events: [{ at: 0, jump: 2.2 }, { at: 0, symbol: "heart" }, { at: .25, symbol: "heart" }, { at: .5, symbol: "heart" }] },
@@ -26,7 +31,30 @@ export const EMOTES = {
     events: [{ at: .1, symbol: "sparkle" }, { at: .3, symbol: "sparkle" }, { at: .5, symbol: "sparkle" }, { at: .7, symbol: "sparkle" }] },
   silly: { duration: 1.6, mood: "happy", mouth: "tongue", motion: "wiggle" },
   yes: { duration: 1.1, mouth: "smile", motion: "nod" },
-  no: { duration: 1.1, mouth: "flat", motion: "shake" },
+  no: { duration: 1.4, mouth: "flat", motion: "shake",
+    events: [{ at: 0, hand: "right", pose: "point", x: 1.05, y: .05, rot: .1, wiggle: { rot: .35, freq: 3 } }] },
+
+  // Hands
+  wave: { duration: 2, mood: "happy", mouth: "smile", motion: "sway",
+    events: [{ at: 0, hand: "right", pose: "open", x: 1.25, y: -.3, rot: .25, wiggle: { rot: .45, freq: 2.6 } }] },
+  facepalm: { duration: 2.2, mood: "bored", mouth: "flat", motion: "sigh",
+    events: [{ at: .1, hand: "right", pose: "open", x: .2, y: -.08, rot: -.3, size: 1.45, face: true }] },
+  peekaboo: { duration: 2.6, mood: "shy", mouth: "smile",
+    events: [
+      { at: 0, hand: "both", pose: "open", x: .3, y: -.04, rot: .15, size: 1.15, face: true },
+      { at: 1.3, hand: "both", pose: "open", x: .98, y: .05, rot: .55, mood: "excited", jump: 1.8 },
+    ] },
+  thumbsUp: { duration: 1.9, mood: "happy", mouth: "grin", motion: "chinUp",
+    events: [{ at: 0, hand: "right", pose: "thumb", x: 1.15, y: .25, rot: -.1, bob: { y: .06, freq: 2.5 } }, { at: .2, symbol: "sparkle" }] },
+  shrug: { duration: 1.9, mood: "confused", mouth: "flat", motion: "tilt",
+    events: [{ at: 0, hand: "both", pose: "open", x: 1.3, y: .3, rot: 1.25, bob: { y: -.05, freq: 1.2 } }] },
+  clap: { duration: 2, mood: "excited", mouth: "grin",
+    events: [
+      { at: 0, hand: "both", pose: "open", x: .12, y: .92, rot: -.5, clap: { x: .4, freq: 3.2 } },
+      { at: .3, symbol: "sparkle" }, { at: .7, symbol: "sparkle" }, { at: 1.1, symbol: "sparkle" },
+    ] },
+  think: { duration: 2.4, mood: "thinking", mouth: "flat",
+    events: [{ at: 0, hand: "right", pose: "point", x: .14, y: .55, rot: -.2, face: true }] },
 };
 
 export const EMOTE_NAMES = Object.keys(EMOTES);

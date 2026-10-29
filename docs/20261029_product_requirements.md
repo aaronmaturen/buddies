@@ -29,9 +29,10 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 - Optional automatic cycling through moods.
 
 ### Emotes
-- One-off reactions layered on the current mood: love, laugh, surprise, huh, mad, nervous, snooze, blush, proud, silly, yes, no.
+- 19 one-off reactions layered on the current mood.
 - Mouths appear only during emotes.
 - Cartoon symbols (hearts, !, ?, Z, sweat drop, anger mark, sparkles, blush) either turn with the head or float around it.
+- Floating hands with no arms (white gloves or head-colored mittens, by seed) for wave, facepalm, peekaboo, thumbs up, shrug, clap, think and no.
 - Booping the featured buddy plays Love; the cast follows an emote a beat later.
 
 ### Page

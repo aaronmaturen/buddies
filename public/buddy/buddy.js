@@ -7,6 +7,9 @@ import { drawEye, drawBrow, browOffset } from "./face.js";
 import { MOUTHS, MOUTH_REST, drawMouth } from "./mouth.js";
 import { EmotePlayer } from "./emote-player.js";
 import { drawSymbols } from "./symbols.js";
+import { HandRig } from "./hands.js";
+
+const GLOVE = "#fbfbfd";
 import { headColors } from "./colors.js";
 import { theme } from "./theme.js";
 import { pointer } from "./pointer.js";
@@ -29,6 +32,7 @@ export class Buddy {
     this.glance = [0, 0]; this.thinkSide = 1; this.bobY = 0; this.now = 0;
     this.phase = [0, 1, 2, 3, 4, 5].map(() => Math.random() * TAU);
     this.emotes = new EmotePlayer();
+    this.hands = new HandRig();
     this.mouth = {}; for (const k in MOUTH_REST) this.mouth[k] = new Spring(MOUTH_REST[k]);
     this.mouthShow = new Spring(0);
     this.spec = spec;
@@ -112,6 +116,8 @@ export class Buddy {
     // Keep the last mouth shape while it shrinks away.
     this.mouthShow.t = em.mouth ? 1 : 0;
     if (em.mouth) for (const k in this.mouth) this.mouth[k].t = MOUTHS[em.mouth][k];
+    const head = sp.head;
+    this.hands.update(now, { yaw: this.hYaw.x, pitch: this.hPitch.x, faceY: Math.sin(sp.eyeLat + (head.faceY || 0)) * head.sy, sx: head.sx });
     this.bobY = reducedMotion ? 0 : S.bob.x * .018 * Math.sin(now * (1.4 + E * 1.2) + this.phase[4]);
 
     // Blinks: fast close, slower open, sometimes a double.
@@ -141,6 +147,7 @@ export class Buddy {
     this.lean.step(dt, 180, .6); this.jump.step(dt, 90, .45); this.squash.step(dt, 300, .3);
     for (const k in this.mouth) this.mouth[k].step(dt, 260, .7);
     this.mouthShow.step(dt, 200, .6);
+    this.hands.integrate(dt);
   }
 
   draw() {
@@ -195,6 +202,11 @@ export class Buddy {
       const mouth = {}; for (const k in this.mouth) mouth[k] = this.mouth[k].x;
       place(dy * slide, faceLat + spec.eyeH * .5 + .17);
       drawMouth(ctx, { m: mouth, show: this.mouthShow.x, ink: eyeInk });
+    }
+
+    if (this.hands.visible) {
+      const style = spec.handStyle || "glove";
+      this.hands.draw(ctx, base, { cx, cy, R, style, fill: style === "glove" ? GLOVE : colors.lit });
     }
 
     drawSymbols(ctx, symbols, { ...fx, layer: "over" });
