@@ -6,7 +6,16 @@ For detailed specifications, see CLAUDE.md.
 
 ## Run it
 
-Open `public/index.html` in a browser, or run `npx wrangler dev`.
+Serve `public/` from any static server, for example `python3 -m http.server 8790 --directory public`, then open http://localhost:8790. Opening the file directly won't work because the page uses ES modules.
+
+The characters live in a small library under `public/buddy/`:
+
+```js
+import { Buddy, makeSpec, animate } from "./buddy/index.js";
+const buddy = new Buddy(canvas, makeSpec("glance"));
+animate(buddy);
+buddy.setMood("happy");
+```
 
 ## Deploy
 

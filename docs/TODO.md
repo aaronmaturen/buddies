@@ -7,7 +7,9 @@
 
 ### Upcoming
 - [ ] Move off Node 20 actions (`actions/checkout@v4`, `cloudflare/wrangler-action@v3`) once Node 24 versions are available
-- [ ] Consider splitting `public/index.html` (~900 lines) into `style.css` and `app.js`
+- [ ] Emotes, step 1: emote timeline format, emote-only mouths, symbols (hearts, !, ?, sweat drop), Emotes buttons
+- [ ] Emotes, step 2: floating hands with poses
+- [ ] Emotes, step 3: accessories (sunglasses, party hat, props)
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
@@ -18,17 +20,19 @@
 - [x] Cast colors spread around the hue wheel, gray capped at one (2026-10-29)
 - [x] Repo, docs and Cloudflare deploy workflow (2026-10-29)
 - [x] First deploy to https://buddies.aaronmaturen.com (2026-10-29)
+- [x] Upside-down egg head; renamed to Build a Buddy (2026-10-29)
+- [x] Split the single page into a `buddy/` ES-module library, `app.js` and `styles.css`; verified identical specs for 2,000 seeds (2026-10-29)
 
 ## Notes
 
 ### Development Decisions
 - 2D canvas over WebGL: with only eyes, brows and a head, the invisible-sphere projection gives the 3D turn without WebGL's context limits (2026-10-29).
 - Expressions reshape the eye outline; only blink (squash) and sleepy/bored/smug (head-colored lid) cover the eye. Clipping lids erased short eyes (2026-10-29).
+- Native ES modules with no bundler: Cloudflare serves them as static files and each module stays small (2026-10-29).
 - Hosting on Cloudflare Workers static assets with `custom_domain: true`, so the domain is declared in `wrangler.jsonc` instead of set up by hand (2026-10-29).
 
 ### Technical Debt
-- `public/index.html` is one ~900-line file; over the 300-line guideline.
-- No automated tests; seeded generation could get a snapshot test.
+- No automated tests; `makeSpec` deserves a snapshot test now that it's importable on its own.
 
 ### Recurring Issues & Solutions
 - Cast looked all green/gray → tones were equally weighted and earthy only picked orange/green; fixed with tone weights and `spreadColors()`.
