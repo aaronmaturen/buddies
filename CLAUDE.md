@@ -29,6 +29,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `emotes.js` — emote table (data only): duration, borrowed mood, mouth, head motion, timed events.
   - `emote-player.js` — runs one emote per buddy: head motions, events, symbol lifetimes.
   - `mouth.js` — emote-only mouth presets and drawing.
+  - `hands.js` — floating hands: poses, drawing, `HandRig` springs.
   - `symbols.js` — cartoon marks (hearts, !, ?, Z, sweat, anger, sparkles, blush): spawn, motion, drawing.
   - `colors.js` — tones, palette, color names, cel-shading tones.
   - `sphere.js` — rotation and surface frames for the invisible head.
@@ -50,6 +51,8 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Every mood value is a spring target over `BASE`, so moods blend.
 - Emotes are one-off reactions on top of the mood: `buddy.emote(name)`. To add one, add an entry to `EMOTES`; new head motions go in `MOTIONS` (emote-player.js), new marks in `KINDS`/`DRAW` (symbols.js), new mouths in `MOUTHS`.
 - Symbols anchor either to the head surface (turn with it) or float in screen space around it.
+- Hands are emote-only and float in screen space; `face: true` pins a hand to the eye line and follows the head's turn. New poses go in `POSES` (hands.js) as a palm plus round-capped finger strokes.
+- Seeded traits added later are drawn at the end of `makeSpec` (e.g. `handStyle`) so older seeds don't change.
 - `makeSpec(seed, forcedShape)` uses FNV hash → mulberry32. The order of `r()` calls is part of the format: reordering or removing one changes every existing seed (there is a retired draw kept on purpose).
 - `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()`. Options: `scale`, `headMode`.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.

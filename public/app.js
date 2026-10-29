@@ -113,8 +113,9 @@ setInterval(() => {
 
 // ---------- emotes ----------
 // The featured buddy reacts right away; the cast follows a beat later, each on its own timing.
+const label = name => { const words = name.replace(/([A-Z])/g, " $1").toLowerCase(); return words[0].toUpperCase() + words.slice(1); };
 for (const name of EMOTE_NAMES) {
-  const b = chip("chip", name[0].toUpperCase() + name.slice(1));
+  const b = chip("chip", label(name));
   b.addEventListener("click", () => {
     featured.emote(name);
     for (const c of cast) setTimeout(() => c.emote(name), 120 + Math.random() * 350);

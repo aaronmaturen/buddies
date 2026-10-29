@@ -18,7 +18,11 @@ const MOTIONS = {
   chinUp: (t, e) => ({ pitch: .22 * e, roll: .08 * e }),
   wiggle: (t, e) => ({ roll: .22 * Math.sin(t * W * 2.2) * e }),
   nod: (t, e) => ({ pitch: -.22 * Math.sin(t * W * 2.2) * e }),
+  sigh: (t, e) => ({ pitch: -.18 * e, roll: .05 * e }),
 };
+
+// Which hands an event's `hand` names: 1 is the hand on the right of the screen.
+const SIDES = { right: [1], left: [-1], both: [1, -1] };
 
 // Runs one emote at a time for one buddy and owns that buddy's symbols.
 export class EmotePlayer {
@@ -27,7 +31,8 @@ export class EmotePlayer {
   play(name, now, buddy) {
     const def = EMOTES[name];
     if (!def) return;
-    this.active = { def, start: now, fired: 0 };
+    this.active = { def, start: now, fired: 0, handsOut: false };
+    buddy.hands.hide();
     if (def.mood) buddy.override = { mood: def.mood, until: now + def.duration };
   }
 
@@ -37,7 +42,7 @@ export class EmotePlayer {
     const a = this.active;
     if (!a) return { motion: STILL, mouth: null };
     const t = now - a.start, d = a.def.duration;
-    if (t >= d) { this.active = null; return { motion: STILL, mouth: null }; }
+    if (t >= d) { this.active = null; buddy.hands.hide(); return { motion: STILL, mouth: null }; }
 
     const events = a.def.events || [];
     while (a.fired < events.length && events[a.fired].at <= t) {
@@ -45,7 +50,13 @@ export class EmotePlayer {
       if (ev.jump) buddy.jump.v += ev.jump;
       if (ev.squash) buddy.squash.v += ev.squash;
       if (ev.symbol) spawnSymbol(this.symbols, ev.symbol, buddy.spec, { life: ev.life });
+      if (ev.mood) buddy.override = { mood: ev.mood, until: a.start + d };
+      const sides = SIDES[ev.hand];
+      if (sides && ev.hide) buddy.hands.hide(sides);
+      else if (sides) buddy.hands.set(sides, ev);
     }
+    // Hands start leaving a beat before the emote ends so they're gone as the face settles.
+    if (!a.handsOut && t >= d - .35) { a.handsOut = true; buddy.hands.hide(); }
 
     const ease = clamp(Math.min(t / .15, (d - t) / .3), 0, 1) * (reducedMotion ? .4 : 1);
     const motion = { ...STILL, ...MOTIONS[a.def.motion]?.(t, ease) };
