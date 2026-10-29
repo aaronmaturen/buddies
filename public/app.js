@@ -1,5 +1,5 @@
 import {
-  Buddy, animate, makeSpec, describe, setHeadShape, setColor,
+  Buddy, animate, makeSpec, describe, setHeadShape, setColor, toConfig,
   MOOD_NAMES, EMOTE_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
   castShapes, spreadColors, mulberry32, reducedMotion,
 } from "./buddy/index.js";
@@ -149,6 +149,28 @@ $("reroll").addEventListener("click", () => {
 });
 
 featured.canvas.addEventListener("click", () => featured.boop());
+
+// ---------- copy config ----------
+// The featured buddy as JSON: enough for fromConfig() to rebuild it, plus how it's shown right now.
+const copyBtn = $("copy-config");
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch {
+    const area = Object.assign(document.createElement("textarea"), { value: text });
+    area.style.position = "fixed"; area.style.opacity = "0";
+    document.body.append(area); area.select();
+    const ok = document.execCommand("copy");
+    area.remove();
+    return ok;
+  }
+}
+copyBtn.addEventListener("click", async () => {
+  const config = { ...toConfig(featured.spec), headStyle: featured.headMode, mood };
+  const ok = await copyText(JSON.stringify(config, null, 2));
+  copyBtn.textContent = ok ? "Copied" : "Copy failed";
+  copyBtn.dataset.state = ok ? "done" : "";
+  clearTimeout(copyBtn.timer);
+  copyBtn.timer = setTimeout(() => { copyBtn.textContent = "Copy config"; delete copyBtn.dataset.state; }, 1600);
+});
 
 render();
 setMood("neutral");

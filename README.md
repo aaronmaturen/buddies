@@ -17,6 +17,15 @@ animate(buddy);
 buddy.setMood("happy");
 ```
 
+The **Copy config** button on the stage copies the featured buddy as JSON (seed, name, head shape, color, head style, mood). Rebuild it with:
+
+```js
+import { Buddy, fromConfig, animate } from "./buddy/index.js";
+const buddy = new Buddy(canvas, fromConfig(config), { headMode: config.headStyle });
+buddy.setMood(config.mood);
+animate(buddy);
+```
+
 ## Deploy
 
 Every push to `main` deploys to Cloudflare through `.github/workflows/deploy.yml`. The workflow needs two repository secrets, `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`; see CLAUDE.md for the token permissions.

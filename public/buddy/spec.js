@@ -63,3 +63,15 @@ export function setColor(spec, key, palette) {
   spec.colorKey = key;
   spec.color = key === "seed" ? spec.seedColor : { ...palette[key], name: key };
 }
+
+// A small, shareable description of a buddy. The seed rebuilds everything else; head shape and color are
+// stored too because pickers and the cast's color spreading can change them away from the seed's own.
+export function toConfig(spec) {
+  return { seed: spec.seed, name: spec.name, headShape: spec.headShape, color: { ...spec.color } };
+}
+
+export function fromConfig(config) {
+  const spec = makeSpec(config.seed, config.headShape);
+  if (config.color) spec.color = spec.seedColor = { ...config.color };
+  return spec;
+}
