@@ -26,6 +26,7 @@
 - [x] Six more morphs: balloon, rocket, bouncy ball, ghost, fish, star; morphs can have their own motion, moving outlines and timed symbols (2026-10-29)
 - [x] Morphs: the head melts into an object that acts, then melts back; works in every head style (2026-10-29)
 - [x] Removed the paper airplane morph (2026-10-29)
+- [x] Cat (licks a paw) and dog (wags its tail, pants) morphs; morph events can borrow a mood, details get the head colors (2026-10-29)
 - [x] Fish swims in place and turns around instead of following a path (2026-10-29)
 - [x] Seven more head styles: Inked, Comic, Clay, Fuzzy, Hologram, Paper, Chalk; all 13 drawn styles are seeded, so every buddy on the page differs (2026-10-29)
 - [x] Tunable traits in the Buddy tab: eye shape, eye size, spacing, temper, attention, gaze, blinks, with From seed reset; Copy config saves only changed traits (2026-10-29)

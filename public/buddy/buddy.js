@@ -83,6 +83,8 @@ export class Buddy {
     const at = [f.x * fit, f.y * fit];
     for (const _ of mo.puff) spawnSymbol(this.emotes.symbols, "puff", sp, { offset: at });
     for (const ev of mo.spawn) {
+      if (ev.mood) this.override = { mood: ev.mood, until: this.now + (ev.for ?? 1) };
+      if (!ev.symbol) continue;
       if (ev.from === "nose" && mo.def.nose) {
         // Same order the object is drawn in: flip, turn, size, then squash (which also handles turning around).
         const [nx, ny] = mo.def.nose, c = Math.cos(f.rot), s = Math.sin(f.rot), x0 = nx * (f.flip ? -1 : 1);
@@ -243,7 +245,7 @@ export class Buddy {
       style.head?.(ctx, objectSpace, { cx: mx, cy: my, R, head: { ...head, points: mo.points }, colors, color: spec.color, roll: 0, now: this.now, px });
       ctx.setTransform(objectSpace.translate(mx, my).scale(R));
       ctx.globalAlpha = clamp((mo.k - .6) / .4, 0, 1);
-      mo.def.detail?.(ctx, { ...f, now: this.now, k: mo.k });
+      mo.def.detail?.(ctx, { ...f, now: this.now, k: mo.k, colors });
       ctx.globalAlpha = 1;
     } else {
       style.head?.(ctx, m, { cx, cy, R, head, colors, color: spec.color, roll: this.hRoll.x * 180 / Math.PI, now: this.now, px });
