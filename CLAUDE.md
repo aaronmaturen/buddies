@@ -22,7 +22,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `index.js` — public API (re-exports).
   - `buddy.js` — `Buddy` class: per-frame thinking, spring integration, drawing.
   - `loop.js` — one shared animation loop (`animate`, `stopAnimating`).
-  - `spec.js` — seeded generation (`makeSpec`), `describe`, shape/color overrides.
+  - `spec.js` — seeded generation (`makeSpec`), `describe`, shape/color overrides, `toConfig`/`fromConfig` (the JSON the stage's Copy config button produces).
   - `moods.js` — mood presets over `BASE`.
   - `heads.js` — head silhouettes (`HEADS`), `headPath`, floor shadow.
   - `styles/` — head styles, one file each (cel/ghost, sticker, sketch, jelly, neon); `styles/index.js` is the `HEAD_STYLES` table with labels and face colors. Pixel reuses cel with a whole-buddy pixel pass in `Buddy.draw`.
