@@ -57,34 +57,35 @@
         </div>
         <div class="group">
           <span class="label">Shape</span>
-          <div class="swatches" id="shapes">
-            <button class="chip" data-shape="seed" aria-pressed="true">From seed</button>
-          </div>
+          <div class="swatches" id="shapes"></div>
         </div>
         <div class="group">
           <span class="label">Color</span>
-          <div class="swatches" id="swatches">
-            <button class="chip" data-color="seed" aria-pressed="true">From seed</button>
-          </div>
+          <div class="swatches" id="swatches"></div>
         </div>
       </div>
 
       <div class="tab-panel" role="tabpanel" id="panel-buddy" aria-labelledby="tab-buddy" hidden>
         <div class="group">
-          <label class="label" for="seed">Seed</label>
+          <label class="label" for="buddy-name">Name</label>
           <div class="row seed-row">
-            <input type="text" id="seed" value="glance" autocomplete="off" spellcheck="false">
+            <input type="text" id="buddy-name" autocomplete="off" spellcheck="false" maxlength="24">
             <button class="btn" id="reroll">Reroll everyone</button>
           </div>
         </div>
         <div class="group">
-          <div class="label-row">
-            <span class="label">Traits</span>
-            <button class="chip mini" id="traits-reset">From seed</button>
-          </div>
+          <span class="label">Traits</span>
           <div class="swatches" id="eye-shapes" aria-label="Eye shape"></div>
           <div class="trait-sliders" id="trait-sliders"></div>
         </div>
+        <details class="load-config">
+          <summary class="label">Load a config</summary>
+          <textarea id="config-input" rows="4" spellcheck="false" placeholder="Paste JSON from Copy config"></textarea>
+          <div class="row">
+            <button class="chip" id="config-load">Load</button>
+            <span class="config-status" id="config-status" role="status"></span>
+          </div>
+        </details>
       </div>
     </div>
 

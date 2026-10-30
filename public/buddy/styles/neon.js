@@ -3,7 +3,7 @@ import { shapeSpace } from "./common.js";
 
 // Neon tube colors from the buddy's hue; grays get cyan.
 export function neonColors(color) {
-  const h = color.tone === "gray" || color.s < 15 ? 190 : color.h;
+  const h = color.s < 15 ? 190 : color.h;
   return { tube: `hsl(${h} 95% 62%)`, core: `hsl(${h} 100% 88%)`, body: `hsl(${h} 35% 11%)` };
 }
 

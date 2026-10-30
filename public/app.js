@@ -1,15 +1,14 @@
 import {
-  Buddy, animate, makeSpec, describe, setHeadShape, setHeadStyle, setColor, toConfig,
-  TRAITS, setTrait, setEyeShape, resetTraits, EYE_SHAPES,
+  Buddy, animate, fromConfig, toConfig, randomConfig, randomNames, describe, setHeadShape, setHeadStyle, setColor,
+  TRAITS, setTrait, setEyeShape, EYE_SHAPES,
   MOOD_NAMES, EMOTE_NAMES, MORPHS, MORPH_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
-  castShapes, spreadColors, spreadStyles, mulberry32, reducedMotion,
+  castShapes, spreadColors, spreadStyles, reducedMotion,
 } from "./buddy/index.js";
 
-const SEEDS = ["glance", "pip", "moss", "orbit", "juniper", "tock", "ember", "biscuit", "nova", "pebble", "widget", "sprocket", "waffle"];
-const WORDS = ["fern", "pixel", "dune", "otter", "kite", "nimbus", "pebble", "sprout", "quill", "comet", "maple", "zinc"];
+const CAST_SIZE = 12;
 const $ = id => document.getElementById(id);
 
-const seedInput = $("seed"), moodsEl = $("moods"), cycleEl = $("cycle");
+const nameInput = $("buddy-name"), moodsEl = $("moods"), cycleEl = $("cycle");
 const shapesEl = $("shapes"), swatchesEl = $("swatches"), castEl = $("cast");
 let mood = "neutral";
 
@@ -40,25 +39,34 @@ for (const t of tabs) {
 try { const saved = $(localStorage.getItem("buddies:tab")); if (tabs.includes(saved)) selectTab(saved); } catch {}
 
 // ---------- buddies ----------
-const featured = new Buddy($("featured"), makeSpec(SEEDS[0]), { scale: .27 });
-const startShapes = castShapes(featured.spec.headShape, mulberry32(7));
-const cast = SEEDS.slice(1).map((seed, i) => {
+// The stage buddy and the cast are random configs: names from the list, every head shape different,
+// colors spread around the wheel and styles dealt out so neighbours differ.
+function rollSpecs() {
+  const names = randomNames(CAST_SIZE + 1);
+  const first = fromConfig(randomConfig({ name: names[0] }));
+  const shapes = castShapes(first.headShape, Math.random);
+  const specs = [first, ...names.slice(1).map((name, i) => fromConfig(randomConfig({ name, shape: shapes[i] })))];
+  spreadColors(specs, Math.random);
+  spreadStyles(specs, Math.random);
+  return specs;
+}
+
+const startSpecs = rollSpecs();
+const featured = new Buddy($("featured"), startSpecs[0], { scale: .27 });
+const cast = startSpecs.slice(1).map(spec => {
   const btn = document.createElement("button");
   btn.className = "member";
   btn.innerHTML = `<canvas></canvas><strong></strong><small></small>`;
   castEl.append(btn);
-  const b = new Buddy(btn.querySelector("canvas"), makeSpec(seed, startShapes[i]));
+  const b = new Buddy(btn.querySelector("canvas"), spec);
   b.card = btn;
   btn.addEventListener("click", () => {
     const a = featured.spec; featured.setSpec(b.spec); b.setSpec(a);
-    seedInput.value = featured.spec.seed;
     render();
   });
   return b;
 });
 const all = [featured, ...cast];
-spreadColors(all.map(b => b.spec), mulberry32(11));
-spreadStyles(all.map(b => b.spec), mulberry32(13));
 
 // ---------- panel ----------
 function render() {
@@ -71,9 +79,10 @@ function render() {
     b.card.querySelector("small").textContent = `${shapeLabel(b.spec.headShape).toLowerCase()}, ${cd.temper}, ${cd.attn}`;
     b.card.setAttribute("aria-label", `Bring ${b.spec.name} forward`);
   }
-  for (const el of swatchesEl.children) el.setAttribute("aria-pressed", String(el.dataset.color === sp.colorKey));
-  for (const el of shapesEl.children) el.setAttribute("aria-pressed", String(el.dataset.shape === sp.headKey));
-  for (const el of $("head-modes").children) el.setAttribute("aria-pressed", String(el.dataset.head === sp.headStyleKey));
+  if (document.activeElement !== nameInput) nameInput.value = sp.name;
+  for (const el of swatchesEl.children) el.setAttribute("aria-pressed", String(el.dataset.color === sp.color.name));
+  for (const el of shapesEl.children) el.setAttribute("aria-pressed", String(el.dataset.shape === sp.headShape));
+  for (const el of $("head-modes").children) el.setAttribute("aria-pressed", String(el.dataset.head === sp.headStyle));
 }
 
 // ---------- traits ----------
@@ -106,17 +115,12 @@ for (const key of Object.keys(EYE_SHAPES)) {
   b.addEventListener("click", () => { setEyeShape(featured.spec, key); renderTraits(featured.spec); });
   $("eye-shapes").append(b);
 }
-$("traits-reset").addEventListener("click", () => { resetTraits(featured.spec); renderTraits(featured.spec); });
-
 function renderTraits(sp) {
-  const changed = sp.traitOverrides || {};
-  for (const [key, { row, input, out }] of Object.entries(traitRows)) {
+  for (const [key, { input, out }] of Object.entries(traitRows)) {
     if (document.activeElement !== input) input.value = sp[key];
     out.textContent = readout(key, sp);
-    row.toggleAttribute("data-changed", key in changed);
   }
   for (const el of $("eye-shapes").children) el.setAttribute("aria-pressed", String(el.dataset.eye === sp.shape));
-  $("traits-reset").disabled = !Object.keys(changed).length;
 }
 
 function chip(className, text) {
@@ -147,7 +151,7 @@ for (const [key, c] of Object.entries(PALETTE)) {
 swatchesEl.addEventListener("click", e => {
   const b = e.target.closest("[data-color]");
   if (!b) return;
-  setColor(featured.spec, b.dataset.color, PALETTE);
+  setColor(featured.spec, { ...PALETTE[b.dataset.color], name: b.dataset.color });
   render();
 });
 
@@ -193,33 +197,40 @@ for (const name of MORPH_NAMES) {
   $("morphs").append(b);
 }
 
-// ---------- head mode, seed, reroll, boop ----------
-// Like shape and color, the head style only changes the buddy on the stage; "From seed" restores its own.
+// ---------- head style, name, reroll, load, boop ----------
+// Like shape and color, the head style only changes the buddy on the stage.
 const modesEl = $("head-modes");
-for (const [key, label] of [["seed", "From seed"], ...Object.entries(HEAD_STYLES).map(([k, s]) => [k, s.label])]) {
-  const b = chip("chip", label);
+for (const [key, s] of Object.entries(HEAD_STYLES)) {
+  const b = chip("chip", s.label);
   b.dataset.head = key;
   b.addEventListener("click", () => { setHeadStyle(featured.spec, key); render(); });
   modesEl.append(b);
 }
 
-seedInput.addEventListener("input", () => { featured.setSpec(makeSpec(seedInput.value.trim() || "blank")); render(); });
+nameInput.addEventListener("input", () => { featured.spec.name = nameInput.value.trim().slice(0, 24) || "Buddy"; render(); });
 
 $("reroll").addEventListener("click", () => {
-  const fresh = () => `${WORDS[Math.floor(Math.random() * WORDS.length)]}-${Math.floor(Math.random() * 900 + 100)}`;
-  featured.setSpec(makeSpec(fresh()));
-  const shapes = castShapes(featured.spec.headShape, Math.random);
-  cast.forEach((b, i) => b.setSpec(makeSpec(fresh(), shapes[i])));
-  spreadColors(all.map(b => b.spec), Math.random);
-  spreadStyles(all.map(b => b.spec), Math.random);
-  seedInput.value = featured.spec.seed;
+  rollSpecs().forEach((spec, i) => all[i].setSpec(spec));
   render();
+});
+
+// Paste a config from Copy config to put that buddy on the stage.
+$("config-load").addEventListener("click", () => {
+  const status = $("config-status");
+  try {
+    const config = JSON.parse($("config-input").value);
+    featured.setSpec(fromConfig(config));
+    status.textContent = `Loaded ${featured.spec.name}.`;
+    render();
+  } catch {
+    status.textContent = "That isn't valid JSON. Paste the text from Copy config.";
+  }
 });
 
 featured.canvas.addEventListener("click", () => featured.boop());
 
 // ---------- copy config ----------
-// The featured buddy as JSON: enough for fromConfig() to rebuild it, plus how it's shown right now.
+// The featured buddy's config as JSON; Load a config (or fromConfig in code) rebuilds it.
 const copyBtn = $("copy-config");
 async function copyText(text) {
   try { await navigator.clipboard.writeText(text); return true; } catch {
@@ -232,8 +243,7 @@ async function copyText(text) {
   }
 }
 copyBtn.addEventListener("click", async () => {
-  const config = { ...toConfig(featured.spec), headStyle: featured.styleKey, mood };
-  const ok = await copyText(JSON.stringify(config, null, 2));
+  const ok = await copyText(JSON.stringify(toConfig(featured.spec), null, 2));
   copyBtn.textContent = ok ? "Copied" : "Copy failed";
   copyBtn.dataset.state = ok ? "done" : "";
   clearTimeout(copyBtn.timer);

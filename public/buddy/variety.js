@@ -1,6 +1,6 @@
 import { HEADS } from "./heads.js";
 import { TONES } from "./colors.js";
-import { SEEDED_STYLES } from "./styles/index.js";
+import { RANDOM_STYLES } from "./styles/index.js";
 
 // Helpers for showing several buddies together without repeats.
 
@@ -21,12 +21,14 @@ export function spreadColors(specs, rand) {
   let grays = 0;
   specs.forEach((sp, i) => {
     const c = { ...sp.color };
-    if (c.tone === "gray" && (i === 0 || grays++ >= 1)) {
+    const gray = c.s < 15;
+    if (gray && (i === 0 || grays++ >= 1)) {
       const T = TONES.candy;
-      c.tone = "candy"; c.s = Math.round((T.s[0] + T.s[1]) / 2); c.l = Math.round((T.l[0] + T.l[1]) / 2);
+      c.s = Math.round((T.s[0] + T.s[1]) / 2); c.l = Math.round((T.l[0] + T.l[1]) / 2);
     }
-    if (c.tone !== "gray") c.h = Math.round((start + i * 137.5) % 360);
-    sp.color = sp.seedColor = c;
+    if (c.s >= 15) c.h = Math.round((start + i * 137.5) % 360);
+    delete c.name;
+    sp.color = c;
   });
 }
 
@@ -36,10 +38,10 @@ export function spreadStyles(specs, rand) {
   let deck = [];
   specs.forEach((sp, i) => {
     if (!deck.length) {
-      deck = [...SEEDED_STYLES];
+      deck = [...RANDOM_STYLES];
       for (let j = deck.length - 1; j > 0; j--) { const k = Math.floor(rand() * (j + 1)); [deck[j], deck[k]] = [deck[k], deck[j]]; }
       if (i && deck[0] === specs[i - 1].headStyle) deck.push(deck.shift());
     }
-    sp.headStyle = sp.seedHeadStyle = deck.shift();
+    sp.headStyle = deck.shift();
   });
 }

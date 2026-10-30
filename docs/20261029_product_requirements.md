@@ -12,7 +12,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 ## Requirements
 
 ### Characters
-- Generated from a text seed; the same seed always produces the same character.
+- Each buddy is a JSON config (name, head, eyes, brows, hands, personality); random buddies get random configs and names from a list.
 - Looks: 16 head shapes, 4 eye shapes, brows, color from weighted tones, and a head style (cel-shaded, sticker, sketch, jelly, pixel, neon, inked, comic, clay, fuzzy, hologram, paper or chalk).
 - Personality from motion: spring stiffness, blink rate, curiosity, attention to the cursor, resting tilt.
 - Eyes always have whites and pupils.
@@ -32,7 +32,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 - 27 one-off reactions layered on the current mood, including blowing bubbles that drift off and pop, and whistling music notes.
 - Mouths appear only during emotes.
 - Cartoon symbols (hearts, !, ?, Z, sweat drop, anger mark, sparkles, blush) either turn with the head or float around it.
-- Floating hands with no arms (white gloves or head-colored mittens, by seed) for wave, facepalm, peekaboo, thumbs up, shrug, clap, think and no.
+- Floating hands with no arms (white gloves or head-colored mittens, per buddy) for wave, facepalm, peekaboo, thumbs up, shrug, clap, think and no.
 - Accessories during emotes: worn (sunglasses, party hat, nightcap) and held (coffee mug, gift, magnifying glass that enlarges the eye behind it).
 - Booping the featured buddy plays Love; the cast follows an emote a beat later.
 
@@ -42,8 +42,8 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 
 ### Page
 - One featured character with the cast of 12 beneath it, each with a unique head shape and well-spread colors.
-- Tunable traits for the stage buddy: eye shape, eye size, eye spacing, temper, attention, gaze and blink rate, with a reset to the seed.
-- Controls: mood, emotes, head style for the stage buddy (from seed, invisible, ghost, or any of the 13 drawn styles), shape, color, seed, reroll.
+- Tunable traits for the stage buddy: eye shape, eye size, eye spacing, temper, attention, gaze and blink rate.
+- Controls: mood, emotes, head style for the stage buddy (invisible, ghost, or any of the 13 drawn styles), shape, color, name, reroll, load a config.
 - Light and dark themes, phone width, reduced motion.
 
 ### Hosting
@@ -53,4 +53,4 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 ## Out of scope (for now)
 - Permanent mouths and lip sync.
 - WebGL rendering.
-- Saving or sharing characters beyond the seed text.
+- Saving buddies anywhere beyond copying and pasting their config.

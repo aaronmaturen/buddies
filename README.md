@@ -1,6 +1,6 @@
 # Buddies
 
-Little seeded characters made of eyes, brows and a cel-shaded head. They look around, follow your cursor and show 15 moods. Live at https://buddies.aaronmaturen.com.
+Little characters made of eyes, brows and a head you mostly can't see. They look around, follow your cursor and show 15 moods. Live at https://buddies.aaronmaturen.com.
 
 For detailed specifications, see CLAUDE.md.
 
@@ -11,15 +11,15 @@ Serve `public/` from any static server, for example `python3 -m http.server 8790
 The characters live in a small library under `public/buddy/`:
 
 ```js
-import { Buddy, makeSpec, animate } from "./buddy/index.js";
-const buddy = new Buddy(canvas, makeSpec("glance"));
+import { Buddy, fromConfig, randomConfig, animate } from "./buddy/index.js";
+const buddy = new Buddy(canvas, fromConfig(randomConfig()));
 animate(buddy);
 buddy.setMood("happy");
 buddy.emote("wave");
 buddy.morphInto("ghost");
 ```
 
-The **Copy config** button on the stage copies the featured buddy as JSON (seed, name, head shape, color, head style, mood, and any traits you tuned in the Buddy tab). Rebuild it with:
+The **Copy config** button on the stage copies the featured buddy's config as JSON (name, head, eyes, brows, hands, personality). Paste it into **Load a config** in the Buddy tab, or rebuild it in code:
 
 ```js
 import { Buddy, fromConfig, animate } from "./buddy/index.js";
