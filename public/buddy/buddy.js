@@ -8,6 +8,7 @@ import { MOUTHS, MOUTH_REST, drawMouth } from "./mouth.js";
 import { EmotePlayer } from "./emote-player.js";
 import { drawSymbols, spawnSymbol } from "./symbols.js";
 import { MorphPlayer } from "./morph.js";
+import { Presence } from "./presence.js";
 import { HandRig } from "./hands.js";
 import { WearRig } from "./wear.js";
 import { HEAD_STYLES } from "./styles/index.js";
@@ -39,6 +40,7 @@ export class Buddy {
     this.hands = new HandRig();
     this.morph = new MorphPlayer(); this.morphState = null;
     this.wear = new WearRig();
+    this.presence = new Presence();
     this.boost = new Spring(1); this.boostSide = 1;
     this.mouth = {}; for (const k in MOUTH_REST) this.mouth[k] = new Spring(MOUTH_REST[k]);
     this.mouthShow = new Spring(0);
@@ -71,8 +73,23 @@ export class Buddy {
     if (m === "surprised") { this.jump.v += 3.2; this.squash.v += 4; }
   }
 
-  // Play a one-off reaction from EMOTES on top of the current mood. Ignored while morphed.
-  emote(name) { if (!this.morph.busy) this.emotes.play(name, this.now, this); }
+  // Play a one-off reaction from EMOTES on top of the current mood. Ignored while morphed or away.
+  emote(name) { if (!this.morph.busy && !this.away) this.emotes.play(name, this.now, this); }
+
+  // Away from vanish() until appear(), with no time limit. Emotes, morphs and boops are ignored meanwhile.
+  get away() { return this.presence.away; }
+
+  vanish() {
+    if (!this.presence.vanish(this.now)) return;
+    this.morph.stop(); this.emotes.active = null; this.emotes.symbols.length = 0;
+    this.hands.hide(); this.wear.removeAll(); this.override = null;
+  }
+
+  appear() {
+    if (!this.presence.appear()) return;
+    spawnSymbol(this.emotes.symbols, "puff", this.spec, { offset: [0, 0] });
+    this.blinkT = 0; this.blinkDur = .2;
+  }
 
   // Puffs at the start and end of a morph, and each morph's own event symbols at the object (or its nose).
   // Positions are in head units from the resting spot, scaled the way the flight is scaled to fit this canvas.
@@ -98,11 +115,12 @@ export class Buddy {
 
   // Turn into an object from MORPHS for a while, then back. Cancels any emote.
   morphInto(name) {
-    if (!this.morph.start(name, this.now)) return;
+    if (this.away || !this.morph.start(name, this.now)) return;
     this.emotes.active = null; this.hands.hide(); this.wear.removeAll(); this.override = null;
   }
 
   boop() {
+    if (this.away) return;
     this.squash.v -= 7;
     this.blinkT = 0; this.blinkDur = .15;
     this.emote("love");
@@ -155,6 +173,7 @@ export class Buddy {
     const em = this.emotes.update(now, dt, this);
     this.morphState = this.morph.update(now, sp.head);
     this.spawnMorphSymbols(sp);
+    if (this.presence.update(now)) spawnSymbol(this.emotes.symbols, "puff", sp, { offset: [0, 0] });
     this.hYaw.t += em.motion.yaw; this.hPitch.t += em.motion.pitch; this.hRoll.t += em.motion.roll;
     // Keep the last mouth shape while it shrinks away.
     this.mouthShow.t = em.mouth ? 1 : 0;
@@ -194,6 +213,7 @@ export class Buddy {
     this.mouthShow.step(dt, 200, .6);
     this.hands.integrate(dt);
     this.morph.integrate(dt);
+    this.presence.integrate(dt);
     this.wear.integrate(dt);
     this.boost.step(dt, 160, .55);
   }
@@ -230,11 +250,19 @@ export class Buddy {
     const fit = this.flightFit = clamp(Math.min((W / 2 - R * 1.2) / (R * 2.2), (H * .48 - R * 1.1) / (R * 1.05)), 0, 1);
     const mx = mo ? cx + mo.flight.x * R * fit : cx, my = mo ? cy + mo.flight.y * R * fit : cy;
 
-    drawShadow(ctx, base, { cx: mx, groundY: H * .48, R, head, lift: lift + (mo ? Math.max(0, -mo.flight.y * fit) * .35 : 0), color: theme.fg });
+    // While gone only the puff is left; while going or coming back the whole buddy scales about its feet.
+    if (this.presence.gone) {
+      drawSymbols(ctx, this.emotes.symbols, { base, cx, cy, R, place: () => {}, layer: "over" });
+      ctx.globalAlpha = 1;
+      return;
+    }
+    const [psx, psy] = this.presence.scale;
+
+    drawShadow(ctx, base.translate(cx, 0).scale(psx, 1).translate(-cx, 0), { cx: mx, groundY: H * .48, R, head, lift: lift + (mo ? Math.max(0, -mo.flight.y * fit) * .35 : 0), color: theme.fg });
 
     // Squash and stretch about the bottom of the head.
     const sq = this.squash.x;
-    const m = base.translate(cx, cy + R).scale(2 - sq, sq).translate(-cx, -(cy + R));
+    const m = base.translate(cx, cy + R).scale((2 - sq) * psx, sq * psy).translate(-cx, -(cy + R));
     const colors = headColors(spec.color, theme.dark);
     let objectSpace = null;
     if (mo) {

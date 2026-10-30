@@ -66,6 +66,9 @@ export class MorphPlayer {
     return true;
   }
 
+  // Drop the current morph at once (used when the buddy vanishes).
+  stop() { this.active = null; this.k.x = this.k.t = this.k.v = 0; }
+
   integrate(dt) { this.k.step(dt, 110, .5); }
 
   // Per frame. Returns null when not morphing, else { k, points, def, puff, spawn, flight }:

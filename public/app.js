@@ -198,6 +198,19 @@ for (const name of MORPH_NAMES) {
   $("morphs").append(b);
 }
 
+// ---------- away ----------
+// Everyone vanishes and stays gone until Come back (or a click on the empty stage).
+const vanishBtn = $("vanish");
+let away = false;
+function setAway(on) {
+  away = on;
+  vanishBtn.textContent = on ? "Come back" : "Disappear";
+  const act = b => on ? b.vanish() : b.appear();
+  act(featured);
+  for (const c of cast) setTimeout(() => act(c), 120 + Math.random() * 450);
+}
+vanishBtn.addEventListener("click", () => setAway(!away));
+
 // ---------- head style, name, reroll, load, boop ----------
 // Like shape and color, the head style only changes the buddy on the stage.
 const modesEl = $("head-modes");
@@ -250,7 +263,7 @@ $("load-config").addEventListener("toggle", async e => {
   }
 });
 
-featured.canvas.addEventListener("click", () => featured.boop());
+featured.canvas.addEventListener("click", () => away ? setAway(false) : featured.boop());
 
 // ---------- copy config ----------
 // The featured buddy's config as JSON; Load a config (or fromConfig in code) rebuilds it.
