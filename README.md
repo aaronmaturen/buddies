@@ -19,7 +19,7 @@ buddy.emote("wave");
 buddy.morphInto("ghost");
 ```
 
-The **Copy config** button on the stage copies the featured buddy's config as JSON (name, head, eyes, brows, hands, personality). Paste it into **Load a config** in the Buddy tab, or rebuild it in code:
+The **Copy config** button on the stage copies the featured buddy's config as JSON (name, head, eyes, brows, hands, personality). Paste it into **Load a config** in the Buddy tab, which has autocomplete for every setting and flags invalid values, or rebuild it in code:
 
 ```js
 import { Buddy, fromConfig, animate } from "./buddy/index.js";
