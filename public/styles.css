@@ -53,57 +53,86 @@ h1 {
 }
 header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.4; }
 
+/* The viewer (stage or cast) stays put while the controls scroll beside it, or under it on phones. */
 .studio {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-  grid-template-areas: "stage panel" "cast panel";
-  grid-template-rows: auto 1fr;
   gap: 24px;
   align-items: start;
+  --viewer-top: 16px;
 }
-.stage { grid-area: stage; }
-.panel { grid-area: panel; }
-.cast-area { grid-area: cast; }
-/* On phones: stage, then the controls, then the cast. */
-@media (max-width: 860px) {
-  .studio { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "panel" "cast"; grid-template-rows: auto; }
-  /* Keep the buddy in view while scrolling the controls, so you can watch what you tap. */
-  .studio .stage { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; box-shadow: 0 8px 18px -12px rgba(20, 24, 40, .35); }
-  .studio .stage canvas { aspect-ratio: 16 / 10; }
-}
-
-.stage {
-  position: relative;
+/* The dock is the sticky part; its page-colored padding hides what scrolls past the viewer's rounded corners. */
+.viewer-dock { position: sticky; top: var(--viewer-top); z-index: 5; }
+.viewer {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 20px;
   overflow: hidden;
 }
-.stage canvas { display: block; width: 100%; aspect-ratio: 4 / 3; max-width: 100%; cursor: pointer; touch-action: manipulation; }
+.viewer-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px 0; }
+.view-body { position: relative; aspect-ratio: 4 / 3; max-height: calc(100dvh - 2 * var(--viewer-top) - 56px); }
+.stage, .cast { position: absolute; inset: 0; }
+.stage canvas { display: block; width: 100%; height: 100%; cursor: pointer; touch-action: manipulation; }
 .stage-meta {
   position: absolute; left: 18px; right: 18px; bottom: 14px;
   display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
   pointer-events: none;
 }
 .stage-name { font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; letter-spacing: -0.02em; }
-.stage-copy {
-  position: absolute; top: 12px; right: 12px;
-  font-family: var(--font-mono); font-size: 12px; padding: 6px 10px;
-}
+.stage-copy { font-family: var(--font-mono); font-size: 12px; padding: 6px 10px; }
 .stage-copy[data-state="done"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
 .stage-mood { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
 
-.panel { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-
-.tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
-.tab {
-  background: none; border: 0; padding: 10px 8px; cursor: pointer;
-  font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--muted);
+.cast {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 8px; padding: 12px;
 }
-.tab + .tab { border-left: 1px solid var(--line); }
-.tab:hover { color: var(--fg); }
-.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); }
-.tab-panel { display: flex; flex-direction: column; gap: 18px; }
+.member {
+  position: relative; min-width: 0; min-height: 0; padding: 0;
+  background: var(--bg); border: 1px solid transparent; border-radius: 12px;
+  cursor: pointer; overflow: hidden;
+}
+.member:hover { border-color: var(--line); }
+.member canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.member strong {
+  position: absolute; left: 8px; bottom: 6px;
+  font-family: var(--font-display); font-size: 13px; font-weight: 600; pointer-events: none;
+}
+
+/* On phones: one column, the viewer pinned to the top and shorter, the cast as a tight grid of faces. */
+@media (max-width: 860px) {
+  .studio { grid-template-columns: minmax(0, 1fr); --viewer-top: env(safe-area-inset-top, 0px); }
+  .viewer-dock { background: var(--bg); padding-bottom: 8px; }
+  .viewer { box-shadow: 0 8px 18px -12px rgba(20, 24, 40, .35); }
+  .view-body { aspect-ratio: 16 / 10; max-height: 40dvh; }
+  .cast { gap: 4px; padding: 6px; }
+  .member strong { display: none; }
+}
+
+.panel { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+.jump {
+  position: sticky; top: 0; z-index: 4;
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding-block: 8px; margin-block: -8px; background: var(--bg);
+}
+.jump a {
+  padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface);
+  color: var(--fg); text-decoration: none; font-family: var(--font-display); font-weight: 600; font-size: 14px;
+}
+.jump a:hover { border-color: var(--muted); }
+@media (max-width: 860px) {
+  .jump { position: static; }
+  /* Land below the pinned viewer: its bar, the 16:10 body (at most 40% of the screen) and the dock padding. */
+  .panel .section { scroll-margin-top: calc(min(40dvh, (100vw - 32px) * 10 / 16) + 76px); }
+}
+.section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 60px; }
+.section + .section { border-top: 1px solid var(--line); padding-top: 22px; }
+.section h2 {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; letter-spacing: -0.02em;
+}
+.section h2 .hint { font-family: var(--font-body); font-weight: 400; font-size: 13px; letter-spacing: 0; color: var(--muted); }
 .moods.emote-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @media (max-width: 480px) { .moods.emote-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .group { display: flex; flex-direction: column; gap: 10px; }
@@ -174,20 +203,6 @@ button, input[type="text"] { font: inherit; color: inherit; }
 dl.traits { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; }
 dl.traits dt { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
 dl.traits dd { margin: 0; font-variant-numeric: tabular-nums; }
-
-.cast-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.cast-head h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; letter-spacing: -0.02em; }
-.cast-head span { color: var(--muted); font-size: 14px; }
-.cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 12px; }
-.member {
-  display: flex; flex-direction: column; gap: 2px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  padding: 0 0 12px; cursor: pointer; text-align: left; overflow: hidden;
-}
-.member:hover { border-color: var(--muted); }
-.member canvas { display: block; width: 100%; aspect-ratio: 1 / 1; max-width: 100%; }
-.member strong { padding-inline: 12px; font-family: var(--font-display); font-size: 1.05rem; }
-.member small { padding-inline: 12px; color: var(--muted); font-size: 12.5px; line-height: 1.4; }
 
 .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; border-top: 1px solid var(--line); padding-top: 22px; }
 .notes h3 { margin: 0 0 6px; font-family: var(--font-display); font-size: 1rem; }

@@ -15,7 +15,7 @@ Buddies (page title "Build a Buddy") is a browser-only toy: characters made of e
 
 Native ES modules, no bundler. Every file stays small and does one thing.
 
-- `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: stage and cast on the left, controls on the right in four tabs (Emotes, Mood, Look, Buddy) so the panel stays about stage height; on phones the stage pins to the top while the controls scroll under it.
+- `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: a sticky viewer on the left that shows either the stage buddy or the whole cast (Stage | Cast switch), and every control on the right in one scrolling column of sections (Emotes, Mood, Look, Buddy) with jump links. On phones the viewer pins to the top at most 40% of the screen tall while the controls scroll under it.
 - `public/styles.css` — page styles and theme tokens.
 - `public/og.png`, `favicon.png`, `favicon.ico`, `apple-touch-icon.png` — link preview (1200×630) and icons, all the same orange gumdrop buddy rendered from the library with headless Chrome. Re-render rather than hand-edit if the look changes.
 - `public/app.js` — page wiring: the featured buddy, the cast, and every control.
@@ -71,6 +71,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).
+- Look and Buddy controls change only the stage buddy, so using one switches the viewer to Stage; picking a cast member does too. Reroll everyone leaves the view alone.
 - `app.js` never touches springs or drawing; it only creates buddies, sets specs and moods. The Shape, Head, Color and trait controls change only the stage buddy's spec, so a pick travels with that buddy if it's swapped into the cast.
 
 ## UI/UX Standards
