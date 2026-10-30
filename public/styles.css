@@ -138,8 +138,6 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.4; }
   font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; letter-spacing: -0.02em;
 }
 .section .hint { margin: -10px 0 0; font-size: 13px; color: var(--muted); }
-.moods.emote-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-@media (max-width: 480px) { .moods.emote-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .group { display: flex; flex-direction: column; gap: 10px; }
 .label {
   font-family: var(--font-mono); font-size: 11px; font-weight: 500;
@@ -148,7 +146,9 @@ header p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.4; }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 
 button, input[type="text"] { font: inherit; color: inherit; }
-.moods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+/* Every group of choice buttons shares one grid, so all the sections line up. */
+.choices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 480px) { .choices { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .chip {
   background: var(--surface);
   border: 1px solid var(--control-line);
@@ -168,7 +168,6 @@ button, input[type="text"] { font: inherit; color: inherit; }
 .toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 
 .swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.swatches .chip { padding-block: 6px; }
 .swatch {
   width: 30px; height: 30px; border-radius: 50%;
   border: 2px solid var(--surface);
