@@ -17,6 +17,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 
 - `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: stage and cast on the left, controls on the right in four tabs (Emotes, Mood, Look, Buddy) so the panel stays about stage height; on phones the stage pins to the top while the controls scroll under it.
 - `public/styles.css` — page styles and theme tokens.
+- `public/og.png`, `favicon.png`, `favicon.ico`, `apple-touch-icon.png` — link preview (1200×630) and icons, all the same orange gumdrop buddy rendered from the library with headless Chrome. Re-render rather than hand-edit if the look changes.
 - `public/app.js` — page wiring: the featured buddy, the cast, and every control.
 - `public/config-editor.js` — the Load a config editor: CodeMirror with schema-driven autocomplete, checking and hover help. Loaded only when the box is opened; falls back to the plain textarea if it can't load.
 - `public/vendor/codemirror.js` — CodeMirror 6 bundled into one file by `scripts/vendor-codemirror.sh` (exact pinned versions, one copy of the core). Don't edit; rerun the script to upgrade.

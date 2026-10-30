@@ -15,6 +15,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Link preview image (og/twitter tags) and favicon from a rendered buddy (2026-10-30)
 - [x] Seeded eyes-and-brows characters on an invisible sphere, eyes lead / head follows (2026-10-29)
 - [x] 15 head shapes, color palette and shape pickers, cast with unique shapes (2026-10-29)
 - [x] Eye expressions as outline shape changes instead of clipping lids (2026-10-29)
