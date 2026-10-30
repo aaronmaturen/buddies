@@ -172,7 +172,7 @@ export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
   ]);
 
   const theme = EditorView.theme({
-    "&": { backgroundColor: "var(--surface)", color: "var(--fg)", border: "1px solid var(--line)", borderRadius: "10px", fontSize: "12px" },
+    "&": { backgroundColor: "var(--surface)", color: "var(--fg)", border: "1px solid var(--control-line)", borderRadius: "10px", fontSize: "12px" },
     "&.cm-focused": { outline: "2px solid var(--accent)", outlineOffset: "2px" },
     ".cm-scroller": { fontFamily: "var(--font-mono)", maxHeight: "280px", lineHeight: "1.5" },
     ".cm-content": { caretColor: "var(--fg)" },
@@ -195,6 +195,7 @@ export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
       basicSetup, json(), jsonLanguage.data.of({ autocomplete: complete }),
       schemaLint, lintGutter(), hover, syntaxHighlighting(highlight), theme, EditorView.lineWrapping,
       keymap.of([{ key: "Mod-Enter", run: () => { onSubmit?.(); return true; } }]),
+      EditorView.contentAttributes.of({ "aria-label": textarea.getAttribute("aria-label") || "Config" }),
     ],
   });
   textarea.hidden = true;

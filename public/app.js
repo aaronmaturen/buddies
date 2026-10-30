@@ -58,6 +58,7 @@ const cast = startSpecs.slice(1).map(spec => {
     const a = featured.spec; featured.setSpec(b.spec); b.setSpec(a);
     render();
     setView("stage");
+    featured.canvas.focus();
   });
   return b;
 });
@@ -67,6 +68,7 @@ const all = [featured, ...cast];
 function render() {
   const sp = featured.spec, d = describe(sp);
   $("stage-name").textContent = sp.name;
+  labelStage();
   renderTraits(sp);
   for (const b of cast) {
     const cd = describe(b.spec);
@@ -156,6 +158,7 @@ function setMood(m, fromCycle = false) {
   for (const b of all) setTimeout(() => b.setMood(m), Math.random() * (fromCycle ? 350 : 120));
   for (const el of moodsEl.children) el.setAttribute("aria-pressed", String(el.dataset.mood === m));
   $("stage-mood").textContent = m;
+  labelStage();
 }
 
 for (const m of MOOD_NAMES) {
@@ -166,6 +169,11 @@ for (const m of MOOD_NAMES) {
 }
 
 cycleEl.checked = !reducedMotion;
+// Holding still also stops the mood cycle: both are motion nobody asked for.
+$("hold-still").addEventListener("change", e => {
+  for (const b of all) b.still = e.target.checked;
+  if (e.target.checked) cycleEl.checked = false;
+});
 setInterval(() => {
   if (cycleEl.checked) setMood(MOOD_NAMES[(MOOD_NAMES.indexOf(mood) + 1) % MOOD_NAMES.length], true);
 }, 3400);
@@ -199,6 +207,7 @@ let away = false;
 function setAway(on) {
   away = on;
   vanishBtn.textContent = on ? "Come back" : "Disappear";
+  labelStage();
   const act = b => on ? b.vanish() : b.appear();
   act(featured);
   for (const c of cast) setTimeout(() => act(c), 120 + Math.random() * 450);
@@ -257,7 +266,17 @@ $("load-config").addEventListener("toggle", async e => {
   }
 });
 
-featured.canvas.addEventListener("click", () => away ? setAway(false) : featured.boop());
+// The stage buddy is a button: Enter or Space boops it, or brings everyone back while they're away.
+function labelStage() {
+  featured.canvas.setAttribute("aria-label", away ? "Bring everyone back" : `Boop ${featured.spec.name} (${mood})`);
+}
+const pressStage = () => away ? setAway(false) : featured.boop();
+featured.canvas.addEventListener("click", pressStage);
+featured.canvas.addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  e.preventDefault();
+  pressStage();
+});
 
 // ---------- copy config ----------
 // The featured buddy's config as JSON; Load a config (or fromConfig in code) rebuilds it.
@@ -275,6 +294,7 @@ async function copyText(text) {
 copyBtn.addEventListener("click", async () => {
   const ok = await copyText(JSON.stringify(toConfig(featured.spec), null, 2));
   copyBtn.textContent = ok ? "Copied" : "Copy failed";
+  $("copy-status").textContent = ok ? `${featured.spec.name}'s config copied` : "Copy failed";
   copyBtn.dataset.state = ok ? "done" : "";
   clearTimeout(copyBtn.timer);
   copyBtn.timer = setTimeout(() => { copyBtn.textContent = "Copy config"; delete copyBtn.dataset.state; }, 1600);
