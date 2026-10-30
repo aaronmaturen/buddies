@@ -30,7 +30,7 @@
     <p>Pick an emote, or click the big buddy. Switch to Cast to watch everyone at once.</p>
   </header>
 
-  <section class="studio">
+  <main class="studio">
     <div class="viewer-dock">
     <div class="viewer">
       <div class="viewer-bar">
@@ -39,16 +39,17 @@
           <button class="chip" id="view-cast" aria-pressed="false">Cast</button>
         </div>
         <button class="chip stage-copy" id="copy-config" title="Copy this buddy's configuration as JSON">Copy config</button>
+        <span class="sr-only" id="copy-status" role="status"></span>
       </div>
       <div class="view-body">
         <div class="stage" id="stage">
-          <canvas id="featured" aria-label="Featured character. Click to boop."></canvas>
+          <canvas id="featured" role="button" tabindex="0"></canvas>
           <div class="stage-meta">
             <span class="stage-name" id="stage-name"></span>
             <span class="stage-mood" id="stage-mood"></span>
           </div>
         </div>
-        <div class="cast" id="cast" aria-label="The cast. Click one to bring it onto the stage." hidden></div>
+        <div class="cast" id="cast" role="group" aria-label="The cast. Pick one to bring it onto the stage." hidden></div>
       </div>
     </div>
     </div>
@@ -78,10 +79,12 @@
         <h2 id="h-mood">Mood</h2>
         <div class="moods" id="moods"></div>
         <label class="toggle"><input type="checkbox" id="cycle"> Cycle through moods</label>
+        <label class="toggle"><input type="checkbox" id="hold-still"> Hold still (no idle looking around, blinking or bobbing)</label>
       </section>
 
       <section class="section" id="sec-look" aria-labelledby="h-look">
-        <h2 id="h-look">Look <span class="hint">changes the buddy on the stage</span></h2>
+        <h2 id="h-look">Look</h2>
+        <p class="hint">Changes the buddy on the stage.</p>
         <div class="group">
           <span class="label">Head</span>
           <div class="swatches" id="head-modes"></div>
@@ -107,12 +110,12 @@
         </div>
         <div class="group">
           <span class="label">Traits</span>
-          <div class="swatches" id="eye-shapes" aria-label="Eye shape"></div>
+          <div class="swatches" id="eye-shapes" role="group" aria-label="Eye shape"></div>
           <div class="trait-sliders" id="trait-sliders"></div>
         </div>
         <details class="load-config" id="load-config">
           <summary class="label">Load a config</summary>
-          <textarea id="config-input" rows="4" spellcheck="false" placeholder="Paste JSON from Copy config"></textarea>
+          <textarea id="config-input" rows="4" spellcheck="false" aria-label="Buddy config (JSON)" placeholder="Paste JSON from Copy config"></textarea>
           <div class="row">
             <button class="chip" id="config-load">Load</button>
             <span class="config-status" id="config-status" role="status"></span>
@@ -120,9 +123,9 @@
         </details>
       </section>
     </div>
-  </section>
+  </main>
 
-  <section class="notes">
+  <section class="notes" aria-label="How it works">
     <div>
       <h3>Eyes lead, the head follows</h3>
       <p>The eyes reach a new target on a stiff spring. The head follows on a softer one a beat later, and the gap between them is what reads as attention.</p>

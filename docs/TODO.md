@@ -15,6 +15,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Accessibility fixes from the audit: focus not hidden under pinned parts, focus kept on cast pick, labelled config editor, Hold still, stage buddy button, main landmark, 3:1 control borders (2026-10-30)
 - [x] Tabs replaced by a sticky Stage | Cast viewer and one scrolling column of controls (2026-10-30)
 - [x] Disappear / come back: buddies vanish in a puff and stay away until called back (2026-10-30)
 - [x] Link preview image (og/twitter tags) and favicon from a rendered buddy (2026-10-30)

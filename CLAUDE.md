@@ -78,6 +78,8 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 
 - Colors are CSS tokens on `:root` with light and dark variants; characters' own colors come from their spec.
 - Respect `prefers-reduced-motion` (less noise, no bob, mood cycling off).
+- Hold still (`buddy.still = true`) stops idle motion (glances, pointer following, drift, bob, blinks) while moods, emotes and morphs still play; the page's Hold still box sets it on every buddy and turns mood cycling off.
+- Accessibility: whatever is pinned at the top (jump links on desktop, the viewer on phones) is matched by `scroll-padding-top` on `html` so focused controls and anchors stop below it. Interactive borders use `--control-line` (3:1 against both backgrounds); `--line` is for dividers only. The stage buddy is a focusable button labelled with its name and mood. When a control hides itself (picking a cast member), move focus somewhere visible.
 - Must work at phone width with a 16px gutter.
 
 ## Deployment and Environment

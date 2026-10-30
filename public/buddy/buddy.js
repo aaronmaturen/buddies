@@ -27,6 +27,8 @@ export class Buddy {
     this.canvas = canvas; this.ctx = canvas.getContext("2d");
     this.scale = scale; this.headMode = headMode;
     this.visible = true; this.w = 0; this.h = 0;
+    // still: no idle motion (glancing, following the pointer, drift, bob, blinks). Moods, emotes and morphs still play.
+    this.still = false;
     this.p = {}; for (const k in BASE) this.p[k] = new Spring(BASE[k]);
     this.gYaw = new Spring(); this.gPitch = new Spring();
     this.hYaw = new Spring(); this.hPitch = new Spring(); this.hRoll = new Spring();
@@ -140,7 +142,9 @@ export class Buddy {
     const E = S.energy.x;
 
     let ty = this.gYaw.t, tp = this.gPitch.t;
-    if (now >= this.nextGlance) {
+    if (this.still) {
+      this.glance = [0, 0]; this.nextGlance = now;
+    } else if (now >= this.nextGlance) {
       this.attending = Math.random() < sp.attention;
       const big = Math.random() < .4;
       this.glance = Math.random() < .35 ? [0, 0] : [(Math.random() * 2 - 1) * (big ? .75 : .3), (Math.random() * 2 - 1) * (big ? .45 : .18)];
@@ -149,9 +153,10 @@ export class Buddy {
     const r = this.canvas.getBoundingClientRect();
     const recent = now - pointer.t < 2.2;
     if (mood === "thinking") {
-      ty = .45 * this.thinkSide + Math.sin(now * .5 + this.phase[0]) * .08;
-      tp = .38 + Math.sin(now * .37 + this.phase[1]) * .05;
-    } else if (recent && this.attending) {
+      const drift = this.still ? 0 : 1;
+      ty = .45 * this.thinkSide + Math.sin(now * .5 + this.phase[0]) * .08 * drift;
+      tp = .38 + Math.sin(now * .37 + this.phase[1]) * .05 * drift;
+    } else if (recent && this.attending && !this.still) {
       const D = 420;
       ty = clamp(Math.atan2(pointer.x - (r.left + r.width / 2), D), -1, 1);
       tp = clamp(-Math.atan2(pointer.y - (r.top + r.height * .48), D), -.7, .7);
@@ -159,12 +164,12 @@ export class Buddy {
       [ty, tp] = this.glance;
     }
     ty += S.gazeYaw.x; tp += S.gazePitch.x;
-    if (Math.hypot(ty - this.gYaw.t, tp - this.gPitch.t) > .5 && Math.random() < .4) this.blinkNow();
+    if (!this.still && Math.hypot(ty - this.gYaw.t, tp - this.gPitch.t) > .5 && Math.random() < .4) this.blinkNow();
     this.gYaw.t = ty; this.gPitch.t = tp;
 
-    const amp = reducedMotion ? .3 : 1;
+    const amp = this.still ? 0 : reducedMotion ? .3 : 1;
     const n = (i, f) => (Math.sin(now * f + this.phase[i]) * .6 + Math.sin(now * f * 2.3 + this.phase[i + 1]) * .4) * amp;
-    const nod = mood === "sleepy" ? -.1 * (.5 + .5 * Math.sin(now * .8)) : 0;
+    const nod = mood === "sleepy" && !this.still ? -.1 * (.5 + .5 * Math.sin(now * .8)) : 0;
     this.hYaw.t = ty * S.follow.x + S.yawBias.x + n(0, .6) * .05;
     this.hPitch.t = tp * S.follow.x + S.pitch.x + n(2, .5) * .04 + nod;
     this.hRoll.t = sp.restTilt + S.roll.x + n(3, .45) * .03 - this.hYaw.x * .08;
@@ -182,10 +187,10 @@ export class Buddy {
     if (em.magnify) this.boostSide = em.magnify.side;
     const head = sp.head;
     this.hands.update(now, { yaw: this.hYaw.x, pitch: this.hPitch.x, faceY: Math.sin(sp.eyeLat + (head.faceY || 0)) * head.sy, sx: head.sx });
-    this.bobY = reducedMotion ? 0 : S.bob.x * .018 * Math.sin(now * (1.4 + E * 1.2) + this.phase[4]);
+    this.bobY = reducedMotion || this.still ? 0 : S.bob.x * .018 * Math.sin(now * (1.4 + E * 1.2) + this.phase[4]);
 
     // Blinks: fast close, slower open, sometimes a double.
-    if (this.blinkT < 0 && now >= this.nextBlink) { this.blinkNow(); this.queued = Math.random() < .18; }
+    if (this.blinkT < 0 && now >= this.nextBlink && !this.still) { this.blinkNow(); this.queued = Math.random() < .18; }
     if (this.blinkT >= 0) {
       this.blinkT += dt;
       const ph = this.blinkT / this.blinkDur;
