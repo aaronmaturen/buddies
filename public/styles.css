@@ -7,6 +7,9 @@
   --line: #cfd4de;
   --accent: #3451d1;
   --accent-fg: #ffffff;
+  --code-key: #3451d1;
+  --code-string: #1d7a4f;
+  --code-number: #b4541a;
   --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
   --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -15,11 +18,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0f1116; --surface: #181b23; --fg: #e6e9f0; --muted: #959cad; --line: #2b303c; --accent: #8fa3ff; --accent-fg: #0f1116;
+    --code-key: #8fa3ff; --code-string: #7fd6a4; --code-number: #f0a56b;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f1116; --surface: #181b23; --fg: #e6e9f0; --muted: #959cad; --line: #2b303c; --accent: #8fa3ff; --accent-fg: #0f1116;
+  --code-key: #8fa3ff; --code-string: #7fd6a4; --code-number: #f0a56b;
   color-scheme: dark;
 }
 
@@ -159,6 +164,7 @@ button, input[type="text"] { font: inherit; color: inherit; }
   background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 10px;
   padding: 9px 12px; font-family: var(--font-mono); font-size: 12px;
 }
+.config-editor { min-width: 0; }
 .config-status { font-size: 13px; color: var(--muted); }
 .trait-sliders { display: grid; gap: 10px; }
 .trait { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 2px 12px; }

@@ -2,8 +2,9 @@ import {
   Buddy, animate, fromConfig, toConfig, randomConfig, randomNames, describe, setHeadShape, setHeadStyle, setColor,
   TRAITS, setTrait, setEyeShape, EYE_SHAPES,
   MOOD_NAMES, EMOTE_NAMES, MORPHS, MORPH_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
-  castShapes, spreadColors, spreadStyles, reducedMotion,
+  castShapes, spreadColors, spreadStyles, reducedMotion, configSchema,
 } from "./buddy/index.js";
+import { createConfigEditor } from "./config-editor.js";
 
 const CAST_SIZE = 12;
 const $ = id => document.getElementById(id);
@@ -214,16 +215,38 @@ $("reroll").addEventListener("click", () => {
   render();
 });
 
-// Paste a config from Copy config to put that buddy on the stage.
-$("config-load").addEventListener("click", () => {
+// Paste or edit a config to put that buddy on the stage. Opening the box fills it with the stage buddy's
+// config and swaps the textarea for a schema-aware editor; if the editor can't load, the textarea stays.
+let configEditor = null;
+const configText = () => configEditor ? configEditor.value : $("config-input").value;
+
+function loadConfig() {
   const status = $("config-status");
   try {
-    const config = JSON.parse($("config-input").value);
-    featured.setSpec(fromConfig(config));
+    featured.setSpec(fromConfig(JSON.parse(configText())));
     status.textContent = `Loaded ${featured.spec.name}.`;
     render();
   } catch {
-    status.textContent = "That isn't valid JSON. Paste the text from Copy config.";
+    status.textContent = "That isn't valid JSON yet. The editor marks where.";
+  }
+}
+$("config-load").addEventListener("click", loadConfig);
+
+$("load-config").addEventListener("toggle", async e => {
+  if (!e.target.open) return;
+  const area = $("config-input");
+  if (!configText().trim()) {
+    const json = JSON.stringify(toConfig(featured.spec), null, 2);
+    if (configEditor) configEditor.value = json; else area.value = json;
+  }
+  if (configEditor || area.dataset.loading) return;
+  area.dataset.loading = "1";
+  $("config-status").textContent = "Loading editor…";
+  try {
+    configEditor = await createConfigEditor(area, configSchema(), { onSubmit: loadConfig });
+    $("config-status").textContent = "Type for suggestions; hover a key for help. ⌘↵ loads.";
+  } catch {
+    $("config-status").textContent = "";
   }
 });
 

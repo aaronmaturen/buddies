@@ -35,10 +35,22 @@ export const TRAITS = {
   blinkRate: { label: "blinks", min: .4, max: 2, step: .01 },
 };
 
-const num = (v, fallback, min, max) => clamp(typeof v === "number" && isFinite(v) ? v : fallback, min, max);
+// Allowed ranges for config numbers. fromConfig clamps to these; schema.js reports values outside them.
+export const LIMITS = {
+  color: { h: [0, 360], s: [0, 100], l: [20, 92] },
+  eyes: { size: [TRAITS.eyeSize.min, TRAITS.eyeSize.max], spacing: [TRAITS.spacing.min, TRAITS.spacing.max], height: [-.1, .2] },
+  brows: { length: [.08, .4], thickness: [.02, .1], gap: [.03, .2] },
+  personality: {
+    temper: [TRAITS.stiffness.min, TRAITS.stiffness.max], attention: [TRAITS.attention.min, TRAITS.attention.max],
+    curiosity: [TRAITS.curiosity.min, TRAITS.curiosity.max], blinkRate: [TRAITS.blinkRate.min, TRAITS.blinkRate.max], tilt: [-.2, .2],
+  },
+};
+
+const num = (v, fallback, [min, max]) => clamp(typeof v === "number" && isFinite(v) ? v : fallback, min, max);
 const pickFrom = (list, rand) => list[Math.floor(rand() * list.length)];
 
 export function fromConfig(config = {}) {
+  const L = LIMITS;
   const head = config.head || {}, eyes = config.eyes || {}, brows = config.brows || {}, mind = config.personality || {};
   const c = head.color || {};
   const shape = HEADS[head.shape] ? head.shape : "round";
@@ -46,20 +58,20 @@ export function fromConfig(config = {}) {
     name: typeof config.name === "string" && config.name.trim() ? config.name.trim().slice(0, 24) : "Buddy",
     headShape: shape, head: headFor(shape, Math.random() * TAU),
     headStyle: HEAD_STYLES[head.style] ? head.style : "solid",
-    color: { h: num(c.h, 200, 0, 360), s: num(c.s, 60, 0, 100), l: num(c.l, 65, 20, 92), ...(typeof c.name === "string" ? { name: c.name } : {}) },
+    color: { h: num(c.h, 200, L.color.h), s: num(c.s, 60, L.color.s), l: num(c.l, 65, L.color.l), ...(typeof c.name === "string" ? { name: c.name } : {}) },
     shape: EYE_SHAPES[eyes.shape] ? eyes.shape : "round",
-    eyeSize: num(eyes.size, .25, TRAITS.eyeSize.min, TRAITS.eyeSize.max),
-    spacing: num(eyes.spacing, .33, TRAITS.spacing.min, TRAITS.spacing.max),
-    eyeLat: num(eyes.height, .05, -.1, .2),
-    browLen: num(brows.length, .22, .08, .4),
-    browThick: num(brows.thickness, .05, .02, .1),
-    browGap: num(brows.gap, .1, .03, .2),
+    eyeSize: num(eyes.size, .25, L.eyes.size),
+    spacing: num(eyes.spacing, .33, L.eyes.spacing),
+    eyeLat: num(eyes.height, .05, L.eyes.height),
+    browLen: num(brows.length, .22, L.brows.length),
+    browThick: num(brows.thickness, .05, L.brows.thickness),
+    browGap: num(brows.gap, .1, L.brows.gap),
     handStyle: config.hands === "mitt" ? "mitt" : "glove",
-    stiffness: num(mind.temper, 1, TRAITS.stiffness.min, TRAITS.stiffness.max),
-    attention: num(mind.attention, .6, TRAITS.attention.min, TRAITS.attention.max),
-    curiosity: num(mind.curiosity, 1, TRAITS.curiosity.min, TRAITS.curiosity.max),
-    blinkRate: num(mind.blinkRate, 1, TRAITS.blinkRate.min, TRAITS.blinkRate.max),
-    restTilt: num(mind.tilt, 0, -.2, .2),
+    stiffness: num(mind.temper, 1, L.personality.temper),
+    attention: num(mind.attention, .6, L.personality.attention),
+    curiosity: num(mind.curiosity, 1, L.personality.curiosity),
+    blinkRate: num(mind.blinkRate, 1, L.personality.blinkRate),
+    restTilt: num(mind.tilt, 0, L.personality.tilt),
   };
   applyEyes(spec);
   return spec;

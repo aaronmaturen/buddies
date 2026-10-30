@@ -18,10 +18,13 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: stage and cast on the left, controls on the right in four tabs (Emotes, Mood, Look, Buddy) so the panel stays about stage height; on phones the stage pins to the top while the controls scroll under it.
 - `public/styles.css` — page styles and theme tokens.
 - `public/app.js` — page wiring: the featured buddy, the cast, and every control.
+- `public/config-editor.js` — the Load a config editor: CodeMirror with schema-driven autocomplete, checking and hover help. Loaded only when the box is opened; falls back to the plain textarea if it can't load.
+- `public/vendor/codemirror.js` — CodeMirror 6 bundled into one file by `scripts/vendor-codemirror.sh` (exact pinned versions, one copy of the core). Don't edit; rerun the script to upgrade.
 - `public/buddy/` — the buddy library; import from `buddy/index.js` only.
   - `index.js` — public API (re-exports).
   - `buddy.js` — `Buddy` class: per-frame thinking, spring integration, drawing.
   - `loop.js` — one shared animation loop (`animate`, `stopAnimating`).
+  - `schema.js` — `configSchema()`: JSON Schema for configs, built from `HEADS`, `HEAD_STYLES`, `EYE_SHAPES` and `LIMITS`, with descriptions for hover help.
   - `spec.js` — the config format (documented at the top): `fromConfig` (config → internal spec, with defaults and range clamping), `toConfig` (spec → full config), `randomConfig`, `NAMES`/`randomNames`, setters (`setHeadShape`, `setHeadStyle`, `setColor`, `setTrait`, `setEyeShape`), `TRAITS` slider ranges, `describe`.
   - `moods.js` — mood presets over `BASE`.
   - `heads.js` — head silhouettes (`HEADS`), `headPath`, `outlinePoints` (points and normals along the edge, for fur and chalk), floor shadow.
@@ -59,7 +62,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Symbols anchor either to the head surface (turn with it) or float in screen space around it.
 - Hands are emote-only and float in screen space; `face: true` pins a hand to the eye line and follows the head's turn. New poses go in `POSES` (hands.js) as a palm plus round-capped finger strokes.
 - Accessories are emote-only. Worn items go in `WEARABLES` (wear.js) with a drawing in props.js; held items go in `HELD` (props.js) and are given to a hand with `holds` in an emote's hand event.
-- A buddy is its config. To add something new about a buddy, add it to the config in `fromConfig` (with a default, so older configs still load), `toConfig` and `randomConfig`.
+- A buddy is its config. To add something new about a buddy, add it to `fromConfig` (with a default, so older configs still load), `toConfig`, `randomConfig` and `configSchema`. Number ranges live in `LIMITS` (spec.js) so clamping and the editor's checks agree.
 - `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()` → `render(ctx, px, style)`. Options: `scale`, `headMode` — `"mixed"` (default: each buddy draws its own `spec.headStyle`) or a `HEAD_STYLES` key to force one style; `styleKey` is the style actually drawn.
 - `RANDOM_STYLES` (styles/index.js) lists the styles random buddies get and the cast deals out; all 13 head-drawing styles are in it, so each of the 13 buddies on the page gets a different one.
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
@@ -86,3 +89,4 @@ GitHub Actions secrets (repo settings → Secrets → Actions):
 
 - Preview locally: `python3 -m http.server 8790 --directory public` or `npx wrangler dev` (modules don't load from `file://`)
 - Deploy manually: `npx wrangler deploy`
+- Upgrade the vendored CodeMirror: edit versions in `scripts/vendor-codemirror.sh`, then run it (needs npm)
