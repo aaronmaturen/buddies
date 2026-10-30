@@ -15,6 +15,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Tabs replaced by a sticky Stage | Cast viewer and one scrolling column of controls (2026-10-30)
 - [x] Disappear / come back: buddies vanish in a puff and stay away until called back (2026-10-30)
 - [x] Link preview image (og/twitter tags) and favicon from a rendered buddy (2026-10-30)
 - [x] Seeded eyes-and-brows characters on an invisible sphere, eyes lead / head follows (2026-10-29)

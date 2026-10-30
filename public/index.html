@@ -27,28 +27,42 @@
 <div class="wrap">
   <header>
     <h1>Build a Buddy</h1>
-    <p>Pick an emote, or click the big buddy.</p>
+    <p>Pick an emote, or click the big buddy. Switch to Cast to watch everyone at once.</p>
   </header>
 
   <section class="studio">
-    <div class="stage">
-      <canvas id="featured" aria-label="Featured character. Click to boop."></canvas>
-      <button class="chip stage-copy" id="copy-config" title="Copy this buddy's configuration as JSON">Copy config</button>
-      <div class="stage-meta">
-        <span class="stage-name" id="stage-name"></span>
-        <span class="stage-mood" id="stage-mood"></span>
+    <div class="viewer-dock">
+    <div class="viewer">
+      <div class="viewer-bar">
+        <div class="segmented" role="group" aria-label="Show">
+          <button class="chip" id="view-stage" aria-pressed="true">Stage</button>
+          <button class="chip" id="view-cast" aria-pressed="false">Cast</button>
+        </div>
+        <button class="chip stage-copy" id="copy-config" title="Copy this buddy's configuration as JSON">Copy config</button>
       </div>
+      <div class="view-body">
+        <div class="stage" id="stage">
+          <canvas id="featured" aria-label="Featured character. Click to boop."></canvas>
+          <div class="stage-meta">
+            <span class="stage-name" id="stage-name"></span>
+            <span class="stage-mood" id="stage-mood"></span>
+          </div>
+        </div>
+        <div class="cast" id="cast" aria-label="The cast. Click one to bring it onto the stage." hidden></div>
+      </div>
+    </div>
     </div>
 
     <div class="panel">
-      <div class="tabs" role="tablist" aria-label="Controls">
-        <button class="tab" role="tab" id="tab-emotes" aria-controls="panel-emotes" aria-selected="true">Emotes</button>
-        <button class="tab" role="tab" id="tab-mood" aria-controls="panel-mood" aria-selected="false" tabindex="-1">Mood</button>
-        <button class="tab" role="tab" id="tab-look" aria-controls="panel-look" aria-selected="false" tabindex="-1">Look</button>
-        <button class="tab" role="tab" id="tab-buddy" aria-controls="panel-buddy" aria-selected="false" tabindex="-1">Buddy</button>
-      </div>
+      <nav class="jump" aria-label="Controls">
+        <a href="#sec-emotes">Emotes</a>
+        <a href="#sec-mood">Mood</a>
+        <a href="#sec-look">Look</a>
+        <a href="#sec-buddy">Buddy</a>
+      </nav>
 
-      <div class="tab-panel" role="tabpanel" id="panel-emotes" aria-labelledby="tab-emotes">
+      <section class="section" id="sec-emotes" aria-labelledby="h-emotes">
+        <h2 id="h-emotes">Emotes</h2>
         <div class="moods emote-grid" id="emotes"></div>
         <div class="group">
           <span class="label">Morphs</span>
@@ -58,14 +72,16 @@
           <span class="label">Away</span>
           <div class="swatches"><button class="chip" id="vanish">Disappear</button></div>
         </div>
-      </div>
+      </section>
 
-      <div class="tab-panel" role="tabpanel" id="panel-mood" aria-labelledby="tab-mood" hidden>
+      <section class="section" id="sec-mood" aria-labelledby="h-mood">
+        <h2 id="h-mood">Mood</h2>
         <div class="moods" id="moods"></div>
         <label class="toggle"><input type="checkbox" id="cycle"> Cycle through moods</label>
-      </div>
+      </section>
 
-      <div class="tab-panel" role="tabpanel" id="panel-look" aria-labelledby="tab-look" hidden>
+      <section class="section" id="sec-look" aria-labelledby="h-look">
+        <h2 id="h-look">Look <span class="hint">changes the buddy on the stage</span></h2>
         <div class="group">
           <span class="label">Head</span>
           <div class="swatches" id="head-modes"></div>
@@ -78,9 +94,10 @@
           <span class="label">Color</span>
           <div class="swatches" id="swatches"></div>
         </div>
-      </div>
+      </section>
 
-      <div class="tab-panel" role="tabpanel" id="panel-buddy" aria-labelledby="tab-buddy" hidden>
+      <section class="section" id="sec-buddy" aria-labelledby="h-buddy">
+        <h2 id="h-buddy">Buddy</h2>
         <div class="group">
           <label class="label" for="buddy-name">Name</label>
           <div class="row seed-row">
@@ -101,16 +118,8 @@
             <span class="config-status" id="config-status" role="status"></span>
           </div>
         </details>
-      </div>
+      </section>
     </div>
-
-    <section class="group cast-area">
-      <div class="cast-head">
-        <h2>The cast</h2>
-        <span>Same mood, different temperaments. Click one to bring it forward.</span>
-      </div>
-      <div class="cast" id="cast"></div>
-    </section>
   </section>
 
   <section class="notes">

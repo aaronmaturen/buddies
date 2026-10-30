@@ -13,31 +13,24 @@ const nameInput = $("buddy-name"), moodsEl = $("moods"), cycleEl = $("cycle");
 const shapesEl = $("shapes"), swatchesEl = $("swatches"), castEl = $("cast");
 let mood = "neutral";
 
-// ---------- tabs ----------
-// One group of controls at a time so the panel stays about as tall as the stage. Arrow keys move between
-// tabs; the last tab used is remembered in this browser.
-const tabs = [...document.querySelectorAll('[role="tab"]')];
-function selectTab(tab, focus = false) {
-  for (const t of tabs) {
-    const on = t === tab;
-    t.setAttribute("aria-selected", String(on));
-    t.tabIndex = on ? 0 : -1;
-    $(t.getAttribute("aria-controls")).hidden = !on;
+// ---------- viewer ----------
+// The viewer shows the stage buddy or the whole cast. Look and Buddy controls only change the stage buddy, so
+// using one switches back to the stage. The last view is remembered in this browser.
+const viewBtns = { stage: $("view-stage"), cast: $("view-cast") };
+function setView(view) {
+  for (const [key, btn] of Object.entries(viewBtns)) btn.setAttribute("aria-pressed", String(key === view));
+  $("stage").hidden = view !== "stage";
+  castEl.hidden = view !== "cast";
+  $("copy-config").hidden = view !== "stage";
+  try { localStorage.setItem("buddies:view", view); } catch {}
+}
+for (const [key, btn] of Object.entries(viewBtns)) btn.addEventListener("click", () => setView(key));
+for (const id of ["sec-look", "sec-buddy"]) {
+  for (const type of ["click", "input"]) {
+    $(id).addEventListener(type, e => { if (e.target.closest("button:not(#reroll), input, textarea, summary, .cm-editor")) setView("stage"); });
   }
-  if (focus) tab.focus();
-  try { localStorage.setItem("buddies:tab", tab.id); } catch {}
 }
-for (const t of tabs) {
-  t.addEventListener("click", () => selectTab(t));
-  t.addEventListener("keydown", e => {
-    const i = tabs.indexOf(t);
-    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
-    if (next === undefined) return;
-    e.preventDefault();
-    selectTab(tabs[(next + tabs.length) % tabs.length], true);
-  });
-}
-try { const saved = $(localStorage.getItem("buddies:tab")); if (tabs.includes(saved)) selectTab(saved); } catch {}
+try { if (localStorage.getItem("buddies:view") === "cast") setView("cast"); } catch {}
 
 // ---------- buddies ----------
 // The stage buddy and the cast are random configs: names from the list, every head shape different,
@@ -57,13 +50,14 @@ const featured = new Buddy($("featured"), startSpecs[0], { scale: .27 });
 const cast = startSpecs.slice(1).map(spec => {
   const btn = document.createElement("button");
   btn.className = "member";
-  btn.innerHTML = `<canvas></canvas><strong></strong><small></small>`;
+  btn.innerHTML = `<canvas></canvas><strong></strong>`;
   castEl.append(btn);
   const b = new Buddy(btn.querySelector("canvas"), spec);
   b.card = btn;
   btn.addEventListener("click", () => {
     const a = featured.spec; featured.setSpec(b.spec); b.setSpec(a);
     render();
+    setView("stage");
   });
   return b;
 });
@@ -77,8 +71,8 @@ function render() {
   for (const b of cast) {
     const cd = describe(b.spec);
     b.card.querySelector("strong").textContent = b.spec.name;
-    b.card.querySelector("small").textContent = `${shapeLabel(b.spec.headShape).toLowerCase()}, ${cd.temper}, ${cd.attn}`;
-    b.card.setAttribute("aria-label", `Bring ${b.spec.name} forward`);
+    b.card.title = `${b.spec.name}: ${shapeLabel(b.spec.headShape).toLowerCase()}, ${cd.temper}, ${cd.attn}`;
+    b.card.setAttribute("aria-label", `Bring ${b.spec.name} onto the stage`);
   }
   if (document.activeElement !== nameInput) nameInput.value = sp.name;
   for (const el of swatchesEl.children) el.setAttribute("aria-pressed", String(el.dataset.color === sp.color.name));
