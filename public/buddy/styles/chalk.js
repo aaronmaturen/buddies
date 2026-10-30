@@ -7,7 +7,7 @@ export const SLATE = "#26332f";
 
 // Chalk in the buddy's hue, toned pastel the way colored chalk is; grays get plain white chalk.
 export function chalkColor(color) {
-  return color.tone === "gray" || color.s < 15 ? "hsl(60 20% 92%)" : `hsl(${color.h} 70% 82%)`;
+  return color.s < 15 ? "hsl(60 20% 92%)" : `hsl(${color.h} 70% 82%)`;
 }
 
 // Chalk on slate: a dark slate head dusted with chalk grain, outlined by broken, doubled chalk strokes that

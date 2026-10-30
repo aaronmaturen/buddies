@@ -4,9 +4,9 @@ Source of truth for this project. README.md summarizes it for humans.
 
 ## Project Overview
 
-Buddies (page title "Build a Buddy") is a browser-only toy: seeded characters made of eyes, brows and a cel-shaded head that look around, follow the cursor and show moods. No build step, no dependencies.
+Buddies (page title "Build a Buddy") is a browser-only toy: characters made of eyes, brows and a cel-shaded head that look around, follow the cursor and show moods. No build step, no dependencies.
 
-- Each seed deterministically sets looks (head shape, color, eye shape, brows) and personality (spring stiffness, blink rate, curiosity, attention).
+- Each buddy is a JSON config: name, head (shape, style, color), eyes, brows, hands and personality (temper, attention, curiosity, blink rate, tilt). The page's buddies are random configs.
 - Faces sit on an invisible sphere stretched to the head silhouette; turning the sphere slides and foreshortens features to imply a 3D head.
 - Eyes lead, head follows: the gaze uses a stiff spring, the head a softer one.
 - Hosted on Cloudflare Workers static assets at https://buddies.aaronmaturen.com.
@@ -22,7 +22,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `index.js` — public API (re-exports).
   - `buddy.js` — `Buddy` class: per-frame thinking, spring integration, drawing.
   - `loop.js` — one shared animation loop (`animate`, `stopAnimating`).
-  - `spec.js` — seeded generation (`makeSpec`), `describe`, shape/style/color overrides (`setHeadShape`, `setHeadStyle`, `setColor`), tunable traits (`TRAITS`, `setTrait`, `setEyeShape`, `resetTraits`; changes recorded in `spec.traitOverrides`), `toConfig`/`fromConfig` (the JSON the stage's Copy config button produces).
+  - `spec.js` — the config format (documented at the top): `fromConfig` (config → internal spec, with defaults and range clamping), `toConfig` (spec → full config), `randomConfig`, `NAMES`/`randomNames`, setters (`setHeadShape`, `setHeadStyle`, `setColor`, `setTrait`, `setEyeShape`), `TRAITS` slider ranges, `describe`.
   - `moods.js` — mood presets over `BASE`.
   - `heads.js` — head silhouettes (`HEADS`), `headPath`, `outlinePoints` (points and normals along the edge, for fur and chalk), floor shadow.
   - `styles/` — head styles, one file each (cel/ghost, sticker, sketch, jelly, neon, inked, comic, clay, fuzzy, hologram, paper, chalk); `styles/index.js` is the `HEAD_STYLES` table with labels and face colors. Pixel reuses cel with a whole-buddy pixel pass in `Buddy.draw`.
@@ -59,10 +59,9 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Symbols anchor either to the head surface (turn with it) or float in screen space around it.
 - Hands are emote-only and float in screen space; `face: true` pins a hand to the eye line and follows the head's turn. New poses go in `POSES` (hands.js) as a palm plus round-capped finger strokes.
 - Accessories are emote-only. Worn items go in `WEARABLES` (wear.js) with a drawing in props.js; held items go in `HELD` (props.js) and are given to a hand with `holds` in an emote's hand event.
-- Seeded traits added later are drawn at the end of `makeSpec` (e.g. `handStyle`) so older seeds don't change.
-- `makeSpec(seed, forcedShape)` uses FNV hash → mulberry32. The order of `r()` calls is part of the format: reordering or removing one changes every existing seed (there is a retired draw kept on purpose).
+- A buddy is its config. To add something new about a buddy, add it to the config in `fromConfig` (with a default, so older configs still load), `toConfig` and `randomConfig`.
 - `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()` → `render(ctx, px, style)`. Options: `scale`, `headMode` — `"mixed"` (default: each buddy draws its own `spec.headStyle`) or a `HEAD_STYLES` key to force one style; `styleKey` is the style actually drawn.
-- `SEEDED_STYLES` (styles/index.js) lists the styles a seed can pick and the cast deals out; all 13 head-drawing styles are in it, so each of the 13 buddies on the page gets a different one. Adding a style there changes which style existing seeds pick (only that).
+- `RANDOM_STYLES` (styles/index.js) lists the styles random buddies get and the cast deals out; all 13 head-drawing styles are in it, so each of the 13 buddies on the page gets a different one.
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).

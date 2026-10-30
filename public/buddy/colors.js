@@ -25,7 +25,7 @@ export const PALETTE = {
 const HUE_NAMES = [[12, "red"], [30, "coral"], [45, "orange"], [65, "yellow"], [90, "lime"], [150, "green"], [185, "teal"],
                    [210, "sky"], [245, "blue"], [275, "violet"], [300, "purple"], [335, "pink"], [361, "red"]];
 
-// Draws from `r` in a fixed order; changing it changes every seed's color.
+// A random color drawn from the weighted tones.
 export function pickColor(r) {
   const lerp = (a, b) => a + (b - a) * r();
   let roll = r() * TONE_TOTAL;
@@ -39,10 +39,12 @@ export function pickColor(r) {
   };
 }
 
+// A name like "pastel teal", worked out from the color itself; palette picks keep their own name.
 export function colorName(c) {
   if (c.name) return c.name;
-  if (c.tone === "gray") return "soft gray";
-  return `${c.tone} ${HUE_NAMES.find(([max]) => c.h < max)[1]}`;
+  if (c.s < 15) return "soft gray";
+  const tone = c.l >= 72 ? "pastel" : c.l < 52 ? "deep" : c.s < 50 ? "earthy" : "bright";
+  return `${tone} ${HUE_NAMES.find(([max]) => (c.h % 360) < max)[1]}`;
 }
 
 // The three cel-shading tones for a head; `deep` heads need light brows.

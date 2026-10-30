@@ -38,6 +38,7 @@
 - [x] Cast grows to 12 so the grid fills evenly (2026-10-29)
 - [x] Split the single page into a `buddy/` ES-module library, `app.js` and `styles.css`; verified identical specs for 2,000 seeds (2026-10-29)
 - [x] Head styles: Sticker, Sketch, Jelly, Pixel, Neon via a `HEAD_STYLES` table (2026-10-29)
+- [x] Seeds removed: a buddy is a JSON config; random buddies use random configs and names from a list; Name field and Load a config replace the Seed box; no From seed buttons (2026-10-30)
 - [x] Bubbles emote: blows bubbles that drift off and pop (2026-10-29)
 - [x] Emotes step 3: accessories (sunglasses, party hat, nightcap, mug, gift, magnifier) and cool, party, idea, coffee, gift, inspect emotes; cast moved under the stage (2026-10-29)
 - [x] Emotes step 2: floating hands (gloves or mittens by seed) with wave, facepalm, peekaboo, thumbs up, shrug, clap, think and a wagging no (2026-10-29)
@@ -46,6 +47,7 @@
 ## Notes
 
 ### Development Decisions
+- Configs instead of seeds: once Copy config produced full JSON, seeds were a second way to describe a buddy that had to stay byte-stable forever. A buddy is now just its config (2026-10-30).
 - No paper airplane morph: a plane needs to bank and loop in three dimensions, and spinning flat on screen read as a cutout. Morphs that naturally move flat (balloon, ball, ghost) work in 2D. The fish also read badly on a path, so it swims in place; turning is a horizontal squash through zero, like a fish seen side-on (2026-10-29).
 - 2D canvas over WebGL: with only eyes, brows and a head, the invisible-sphere projection gives the 3D turn without WebGL's context limits (2026-10-29).
 - Expressions reshape the eye outline; only blink (squash) and sleepy/bored/smug (head-colored lid) cover the eye. Clipping lids erased short eyes (2026-10-29).
