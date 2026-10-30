@@ -195,7 +195,8 @@ export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
       basicSetup, json(), jsonLanguage.data.of({ autocomplete: complete }),
       schemaLint, lintGutter(), hover, syntaxHighlighting(highlight), theme, EditorView.lineWrapping,
       keymap.of([{ key: "Mod-Enter", run: () => { onSubmit?.(); return true; } }]),
-      EditorView.contentAttributes.of({ "aria-label": textarea.getAttribute("aria-label") || "Config" }),
+      // An explicit tabindex lets checkers see the scroll area has a focusable child (it is already focusable).
+      EditorView.contentAttributes.of({ "aria-label": textarea.getAttribute("aria-label") || "Config", tabindex: "0" }),
     ],
   });
   textarea.hidden = true;
