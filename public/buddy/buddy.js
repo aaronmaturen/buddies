@@ -17,6 +17,7 @@ import { theme } from "./theme.js";
 import { pointer } from "./pointer.js";
 
 const GLOVE = "#fbfbfd";
+const TURN_AWAY_CHANCE = .05;
 
 // One animated buddy drawn into one canvas.
 // headMode: "mixed" (each buddy uses its own spec.headStyle) or any key of HEAD_STYLES (styles/index.js)
@@ -36,7 +37,7 @@ export class Buddy {
     this.mood = "neutral"; this.override = null;
     this.open = 1; this.blinkT = -1; this.queued = false;
     this.nextBlink = 0; this.nextGlance = 0; this.attending = true;
-    this.glance = [0, 0]; this.thinkSide = 1; this.bobY = 0; this.now = 0;
+    this.glance = [0, 0]; this.turnAway = 0; this.thinkSide = 1; this.bobY = 0; this.now = 0;
     this.phase = [0, 1, 2, 3, 4, 5].map(() => Math.random() * TAU);
     this.emotes = new EmotePlayer();
     this.hands = new HandRig();
@@ -141,12 +142,14 @@ export class Buddy {
     for (const k in BASE) S[k].t = MOODS[mood][k];
     const E = S.energy.x;
 
-    let ty = this.gYaw.t, tp = this.gPitch.t;
+    let ty = this.gYaw.t, tp = this.gPitch.t, away = 0;
     if (this.still) {
-      this.glance = [0, 0]; this.nextGlance = now;
+      this.glance = [0, 0]; this.nextGlance = now; this.turnAway = 0;
     } else if (now >= this.nextGlance) {
       this.attending = Math.random() < sp.attention;
       const big = Math.random() < .4;
+      // Now and then it turns right away from the camera for one glance.
+      this.turnAway = !reducedMotion && Math.random() < TURN_AWAY_CHANCE ? (Math.random() < .5 ? -1 : 1) * 1.9 : 0;
       this.glance = Math.random() < .35 ? [0, 0] : [(Math.random() * 2 - 1) * (big ? .75 : .3), (Math.random() * 2 - 1) * (big ? .45 : .18)];
       this.nextGlance = now + (.8 + Math.random() * 2.6) / (sp.curiosity * Math.max(.4, E));
     }
@@ -162,6 +165,7 @@ export class Buddy {
       tp = clamp(-Math.atan2(pointer.y - (r.top + r.height * .48), D), -.7, .7);
     } else {
       [ty, tp] = this.glance;
+      away = this.turnAway;
     }
     ty += S.gazeYaw.x; tp += S.gazePitch.x;
     if (!this.still && Math.hypot(ty - this.gYaw.t, tp - this.gPitch.t) > .5 && Math.random() < .4) this.blinkNow();
@@ -170,9 +174,9 @@ export class Buddy {
     const amp = this.still ? 0 : reducedMotion ? .3 : 1;
     const n = (i, f) => (Math.sin(now * f + this.phase[i]) * .6 + Math.sin(now * f * 2.3 + this.phase[i + 1]) * .4) * amp;
     const nod = mood === "sleepy" && !this.still ? -.1 * (.5 + .5 * Math.sin(now * .8)) : 0;
-    this.hYaw.t = ty * S.follow.x + S.yawBias.x + n(0, .6) * .05;
+    this.hYaw.t = ty * S.follow.x + S.yawBias.x + n(0, .6) * .05 + away;
     this.hPitch.t = tp * S.follow.x + S.pitch.x + n(2, .5) * .04 + nod;
-    this.hRoll.t = sp.restTilt + S.roll.x + n(3, .45) * .03 - this.hYaw.x * .08;
+    this.hRoll.t = sp.restTilt + S.roll.x + n(3, .45) * .03 - clamp(this.hYaw.x, -1, 1) * .08;
     this.lean.t = S.lean.x;
 
     const em = this.emotes.update(now, dt, this);

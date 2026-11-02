@@ -35,6 +35,8 @@ export const EMOTES = {
   no: { duration: 1.4, mouth: "flat", motion: "shake",
     events: [{ at: 0, hand: "right", pose: "point", x: 1.05, y: .05, rot: .1, wiggle: { rot: .35, freq: 3 } }] },
 
+  lookAway: { duration: 3.4, mood: "shy", motion: "turnAround" },
+
   // Hands
   wave: { duration: 2, mood: "happy", mouth: "smile", motion: "sway",
     events: [{ at: 0, hand: "right", pose: "open", x: 1.25, y: -.3, rot: .25, wiggle: { rot: .45, freq: 2.6 } }] },

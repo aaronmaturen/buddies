@@ -4,6 +4,7 @@ import { spawnSymbol, updateSymbols } from "./symbols.js";
 
 const STILL = { yaw: 0, pitch: 0, roll: 0 };
 const W = Math.PI * 2;
+const smoothBump = (t, a, b) => { const u = clamp((t - a) / (b - a), 0, 1); return Math.sin(u * Math.PI) ** 2; };
 
 // Head movements as offsets over time, eased in at the start and out at the end. Pitch up is positive.
 const MOTIONS = {
@@ -19,6 +20,8 @@ const MOTIONS = {
   wiggle: (t, e) => ({ roll: .22 * Math.sin(t * W * 2.2) * e }),
   nod: (t, e) => ({ pitch: -.22 * Math.sin(t * W * 2.2) * e }),
   sigh: (t, e) => ({ pitch: -.18 * e, roll: .05 * e }),
+  // All the way round so the face is on the far side, with a peek back over the shoulder partway through.
+  turnAround: (t, e, side) => ({ yaw: side * e * (2.6 - 1.75 * smoothBump(t, 1.2, 2.8)) }),
 };
 
 // Which hands an event's `hand` names: 1 is the hand on the right of the screen.
@@ -31,7 +34,7 @@ export class EmotePlayer {
   play(name, now, buddy) {
     const def = EMOTES[name];
     if (!def) return;
-    this.active = { def, start: now, fired: 0, handsOut: false, magnify: null };
+    this.active = { def, start: now, fired: 0, handsOut: false, magnify: null, side: Math.random() < .5 ? -1 : 1 };
     buddy.hands.hide();
     buddy.wear.removeAll();
     if (def.mood) buddy.override = { mood: def.mood, until: now + def.duration };
@@ -62,7 +65,7 @@ export class EmotePlayer {
     if (!a.handsOut && t >= d - .35) { a.handsOut = true; a.magnify = null; buddy.hands.hide(); buddy.wear.removeAll(); }
 
     const ease = clamp(Math.min(t / .15, (d - t) / .3), 0, 1) * (reducedMotion ? .4 : 1);
-    const motion = { ...STILL, ...MOTIONS[a.def.motion]?.(t, ease) };
+    const motion = { ...STILL, ...MOTIONS[a.def.motion]?.(t, ease, a.side) };
     return { motion, mouth: t < d - .25 ? a.def.mouth : null, magnify: a.magnify };
   }
 }

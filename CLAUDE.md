@@ -61,6 +61,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Every mood value is a spring target over `BASE`, so moods blend.
 - Emotes are one-off reactions on top of the mood: `buddy.emote(name)`. To add one, add an entry to `EMOTES`; new head motions go in `MOTIONS` (emote-player.js), new marks in `KINDS`/`DRAW` (symbols.js), new mouths in `MOUTHS`.
 - Morphs: `buddy.morphInto(name)`. The head and object outlines are rings of 96 points aligned to start at the rightmost point with the same winding, blended on a spring; the ring is passed to styles as `head.points`, so every head style draws the object. To add a morph, add a file under `morphs/` and list it in `morphs/index.js`: an outline (static, or a function of time), eyes, duration, and either a `path` to follow nose-first or a `motion(u, now)` function, plus optional `events`, `behind` (parts drawn behind the shape, like tails) and `detail` (drawn over it).
+- Turning away: the head yaws past where the face sits on the sphere, so the features fade out and only the back of the head shows. The `lookAway` emote does it on purpose with a peek over the shoulder; idle buddies do it for one glance at random (`TURN_AWAY_CHANCE` in buddy.js), never with reduced motion or Hold still, or while following the pointer.
 - Away: `buddy.vanish()` / `buddy.appear()`, checked with `buddy.away`. While away, emotes, morphs and boops are ignored; vanishing cancels any emote, morph, hands and worn items. The page's Away button sends the whole cast, and clicking the empty stage brings everyone back.
 - Symbols anchor either to the head surface (turn with it) or float in screen space around it.
 - Hands are emote-only and float in screen space; `face: true` pins a hand to the eye line and follows the head's turn. New poses go in `POSES` (hands.js) as a palm plus round-capped finger strokes.
@@ -78,7 +79,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 
 - Colors are CSS tokens on `:root` with light and dark variants; characters' own colors come from their spec.
 - Respect `prefers-reduced-motion` (less noise, no bob, mood cycling off).
-- Hold still (`buddy.still = true`) stops idle motion (glances, pointer following, drift, bob, blinks) while moods, emotes and morphs still play; the page's Hold still box sets it on every buddy and turns mood cycling off.
+- Hold still (`buddy.still = true`) stops idle motion (glances, turning away, pointer following, drift, bob, blinks) while moods, emotes and morphs still play; the page's Hold still box sets it on every buddy and turns mood cycling off.
 - Accessibility: whatever is pinned at the top (jump links on desktop, the viewer on phones) is matched by `scroll-padding-top` on `html` so focused controls and anchors stop below it. Interactive borders use `--control-line` (3:1 against both backgrounds); `--line` is for dividers only. The stage buddy is a focusable button labelled with its name and mood. When a control hides itself (picking a cast member, the grid icon), move focus somewhere visible.
 - Must work at phone width with a 16px gutter.
 

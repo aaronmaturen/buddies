@@ -15,6 +15,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Buddies can turn away from the camera: Look away emote with a peek back, and an occasional idle turn (2026-11-02)
 - [x] Stage | Cast switch replaced by a grid icon on the stage; Copy config is now a copy icon (2026-11-02)
 - [x] Stage buddy is now one of the 12 cast members, outlined in the Cast view (2026-11-02)
 - [x] Accessibility fixes from the audit: focus not hidden under pinned parts, focus kept on cast pick, labelled config editor, Hold still, stage buddy button, main landmark, 3:1 control borders (2026-10-30)
