@@ -15,6 +15,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Library moved to src/ and built with esbuild as @aaronmaturen/buddies: ES module, script tag build, types; safe to import on a server; Buddy.destroy() (2026-11-02)
 - [x] Buddies can turn away from the camera: Look away emote with a peek back, and an occasional idle turn (2026-11-02)
 - [x] Stage | Cast switch replaced by a grid icon on the stage; Copy config is now a copy icon (2026-11-02)
 - [x] Stage buddy is now one of the 12 cast members, outlined in the Cast view (2026-11-02)

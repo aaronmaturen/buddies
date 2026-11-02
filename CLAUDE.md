@@ -4,7 +4,7 @@ Source of truth for this project. README.md summarizes it for humans.
 
 ## Project Overview
 
-Buddies (page title "Build a Buddy") is a browser-only toy: characters made of eyes, brows and a cel-shaded head that look around, follow the cursor and show moods. No build step, no dependencies.
+Buddies (page title "Build a Buddy") is a browser-only toy: characters made of eyes, brows and a cel-shaded head that look around, follow the cursor and show moods. The characters are a library, `@aaronmaturen/buddies`, that other apps can import; the site is built on the same bundle. No runtime dependencies; esbuild is the only build tool.
 
 - Each buddy is a JSON config: name, head (shape, style, color), eyes, brows, hands and personality (temper, attention, curiosity, blink rate, tilt). The page's buddies are random configs.
 - Faces sit on an invisible sphere stretched to the head silhouette; turning the sphere slides and foreshortens features to imply a 3D head.
@@ -13,16 +13,17 @@ Buddies (page title "Build a Buddy") is a browser-only toy: characters made of e
 
 ## Directory Structure
 
-Native ES modules, no bundler. Every file stays small and does one thing.
+Native ES modules bundled by esbuild. Every file stays small and does one thing.
 
 - `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: a sticky viewer on the left that shows either the whole cast or the stage buddy (a card opens the stage, the grid icon goes back), and every control on the right in one scrolling column of sections (Emotes, Mood, Look, Buddy) with jump links. On phones the viewer pins to the top at most 40% of the screen tall while the controls scroll under it.
 - `public/styles.css` — page styles and theme tokens.
 - `public/og.png`, `favicon.png`, `favicon.ico`, `apple-touch-icon.png` — link preview (1200×630) and icons, all the same orange gumdrop buddy rendered from the library with headless Chrome. Re-render rather than hand-edit if the look changes.
-- `public/app.js` — page wiring: the featured buddy, the cast, and every control.
+- `public/app.js` — page wiring: the featured buddy, the cast, and every control. Imports the library from `./buddies.js`, a build output (gitignored).
 - `public/config-editor.js` — the Load a config editor: CodeMirror with schema-driven autocomplete, checking and hover help. Loaded only when the box is opened; falls back to the plain textarea if it can't load.
 - `public/vendor/codemirror.js` — CodeMirror 6 bundled into one file by `scripts/vendor-codemirror.sh` (exact pinned versions, one copy of the core). Don't edit; rerun the script to upgrade.
-- `public/buddy/` — the buddy library; import from `buddy/index.js` only.
+- `src/` — the buddy library; everything public goes through `index.js`.
   - `index.js` — public API (re-exports).
+  - `index.d.ts` — hand-written types for the public API; update it when `index.js` or the config format changes.
   - `buddy.js` — `Buddy` class: per-frame thinking, spring integration, drawing.
   - `loop.js` — one shared animation loop (`animate`, `stopAnimating`).
   - `schema.js` — `configSchema()`: JSON Schema for configs, built from `HEADS`, `HEAD_STYLES`, `EYE_SHAPES` and `LIMITS`, with descriptions for hover help.
@@ -45,9 +46,11 @@ Native ES modules, no bundler. Every file stays small and does one thing.
   - `sphere.js` — rotation and surface frames for the invisible head.
   - `variety.js` — `castShapes`, `spreadColors`, `spreadStyles` for showing many buddies together.
   - `spring.js`, `random.js`, `pointer.js`, `theme.js`, `util.js` — small shared pieces.
+- `scripts/build.js` — esbuild build: `dist/buddies.js` (ES module), `dist/buddies.global.js` (script tag, `window.Buddies`), `dist/buddies.d.ts`, and `public/buddies.js` for the site. `--dev` watches and serves.
+- `package.json` — package metadata; only `dist/` is published.
 - `wrangler.jsonc` — Cloudflare Worker config: serves `public/`, binds the custom domain.
-- `.github/workflows/deploy.yml` — deploys on every push to `main`.
-- `.claude/launch.json` — local static server for previews.
+- `.github/workflows/deploy.yml` — builds, then deploys on every push to `main`.
+- `.claude/launch.json` — `npm run dev` for previews.
 - `docs/` — TODO log and product requirements.
 
 ## Project Documentation Index
@@ -70,6 +73,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()` → `render(ctx, px, style)`. Options: `scale`, `headMode` — `"mixed"` (default: each buddy draws its own `spec.headStyle`) or a `HEAD_STYLES` key to force one style; `styleKey` is the style actually drawn.
 - `RANDOM_STYLES` (styles/index.js) lists the styles random buddies get and the cast deals out; all 13 head-drawing styles are in it, so each of the 12 buddies in the cast gets a different one.
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
+- The library runs in other people's apps: importing it must not touch the browser (server-side rendering), so wrap any top-level `document`/`window` use in a check, and anything a `Buddy` sets up gets undone in `destroy()`.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).
 - Look and Buddy controls change only the stage buddy, so using one opens the stage; picking a cast member does too. Reroll everyone leaves the view alone.
@@ -94,6 +98,8 @@ GitHub Actions secrets (repo settings → Secrets → Actions):
 
 ## Common Commands
 
-- Preview locally: `python3 -m http.server 8790 --directory public` or `npx wrangler dev` (modules don't load from `file://`)
-- Deploy manually: `npx wrangler deploy`
+- Install: `npm install` (also builds)
+- Preview locally: `npm run dev`, then http://localhost:8790
+- Build: `npm run build`
+- Deploy manually: `npm run build && npx wrangler deploy`
 - Upgrade the vendored CodeMirror: edit versions in `scripts/vendor-codemirror.sh`, then run it (needs npm)

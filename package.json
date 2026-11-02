@@ -1,0 +1,23 @@
+{
+  "name": "@aaronmaturen/buddies",
+  "version": "0.1.0",
+  "description": "Little canvas characters made of eyes, brows and a head, with moods, emotes and morphs.",
+  "type": "module",
+  "repository": { "type": "git", "url": "git+https://github.com/aaronmaturen/buddies.git" },
+  "homepage": "https://buddies.aaronmaturen.com",
+  "main": "./dist/buddies.js",
+  "module": "./dist/buddies.js",
+  "types": "./dist/buddies.d.ts",
+  "exports": {
+    ".": { "types": "./dist/buddies.d.ts", "default": "./dist/buddies.js" }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "dev": "node scripts/build.js --dev",
+    "prepare": "node scripts/build.js"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

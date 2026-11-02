@@ -1,4 +1,7 @@
 .DS_Store
 node_modules/
+dist/
+public/buddies.js
+public/buddies.js.map
 .wrangler/
 .dev.vars

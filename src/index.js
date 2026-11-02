@@ -1,12 +1,13 @@
 // Public entry point for the buddy library.
 //
-//   import { Buddy, fromConfig, randomConfig, animate } from "./buddy/index.js";
+//   import { Buddy, fromConfig, randomConfig, animate } from "@aaronmaturen/buddies";
 //   const b = new Buddy(canvas, fromConfig(randomConfig()));   // or fromConfig(a config from Copy config)
 //   animate(b);
 //   b.setMood("happy");
 //   b.emote("love");
 //   b.morphInto("ghost");
 //   b.vanish();   // gone until b.appear()
+//   b.destroy();  // when the canvas goes away
 
 export { Buddy } from "./buddy.js";
 export { EMOTE_NAMES } from "./emotes.js";

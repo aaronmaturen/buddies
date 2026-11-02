@@ -4,6 +4,7 @@ const STEP = 1 / 120;
 let running = false, last = 0;
 
 function frame(ms) {
+  if (!buddies.size) { running = false; return; }
   const now = ms / 1000, dt = Math.min(.1, now - last);
   last = now;
   for (const b of buddies) {

@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "buddies",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8790", "--directory", "public"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
       "port": 8790
     }
   ]

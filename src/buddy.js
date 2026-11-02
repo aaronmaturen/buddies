@@ -15,6 +15,7 @@ import { HEAD_STYLES } from "./styles/index.js";
 import { headColors } from "./colors.js";
 import { theme } from "./theme.js";
 import { pointer } from "./pointer.js";
+import { stopAnimating } from "./loop.js";
 
 const GLOVE = "#fbfbfd";
 const TURN_AWAY_CHANCE = .05;
@@ -48,8 +49,17 @@ export class Buddy {
     this.mouth = {}; for (const k in MOUTH_REST) this.mouth[k] = new Spring(MOUTH_REST[k]);
     this.mouthShow = new Spring(0);
     this.spec = spec;
-    new ResizeObserver(() => this.resize()).observe(canvas);
-    new IntersectionObserver(es => { this.visible = es[0].isIntersecting; }).observe(canvas);
+    this.resizeObserver = new ResizeObserver(() => this.resize());
+    this.resizeObserver.observe(canvas);
+    this.visibleObserver = new IntersectionObserver(es => { this.visible = es[0].isIntersecting; });
+    this.visibleObserver.observe(canvas);
+  }
+
+  // Stop animating and let go of the canvas, for when the app removes it.
+  destroy() {
+    stopAnimating(this);
+    this.resizeObserver.disconnect();
+    this.visibleObserver.disconnect();
   }
 
   setSpec(spec) { this.spec = spec; }

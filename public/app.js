@@ -3,7 +3,7 @@ import {
   TRAITS, setTrait, setEyeShape, EYE_SHAPES,
   MOOD_NAMES, EMOTE_NAMES, MORPHS, MORPH_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
   castShapes, spreadColors, spreadStyles, reducedMotion, configSchema,
-} from "./buddy/index.js";
+} from "./buddies.js";
 import { createConfigEditor } from "./config-editor.js";
 
 const CAST_SIZE = 12;

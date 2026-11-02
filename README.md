@@ -6,18 +6,26 @@ For detailed specifications, see CLAUDE.md.
 
 ## Run it
 
-Serve `public/` from any static server, for example `python3 -m http.server 8790 --directory public`, then open http://localhost:8790. Opening the file directly won't work because the page uses ES modules.
+```bash
+npm install
+npm run dev
+```
 
-The characters live in a small library under `public/buddy/`:
+Then open http://localhost:8790.
+
+## Use it in your app
 
 ```js
-import { Buddy, fromConfig, randomConfig, animate } from "./buddy/index.js";
+import { Buddy, fromConfig, randomConfig, animate } from "@aaronmaturen/buddies";
 const buddy = new Buddy(canvas, fromConfig(randomConfig()));
 animate(buddy);
 buddy.setMood("happy");
 buddy.emote("wave");
 buddy.morphInto("ghost");
+buddy.destroy(); // when the canvas goes away
 ```
+
+Give the canvas a size with CSS. Importing is safe during server-side rendering, but create buddies in the browser. For a page with no build step, `dist/buddies.global.js` works from a plain `<script>` and exposes `window.Buddies`.
 
 The copy button on the stage copies the featured buddy's config as JSON (name, head, eyes, brows, hands, personality). Paste it into **Load a config** in the Buddy section, which has autocomplete for every setting and flags invalid values, or rebuild it in code:
 
