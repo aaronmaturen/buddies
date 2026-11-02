@@ -27,23 +27,23 @@
 <div class="wrap">
   <header>
     <h1>Build a Buddy</h1>
-    <p>Pick an emote, or click the big buddy. Switch to Cast to watch everyone at once.</p>
+    <p>Pick an emote, or click the big buddy. The grid button shows the whole cast.</p>
   </header>
 
   <main class="studio">
     <div class="viewer-dock">
     <div class="viewer">
-      <div class="viewer-bar">
-        <div class="segmented" role="group" aria-label="Show">
-          <button class="chip" id="view-stage" aria-pressed="true">Stage</button>
-          <button class="chip" id="view-cast" aria-pressed="false">Cast</button>
-        </div>
-        <button class="chip stage-copy" id="copy-config" title="Copy this buddy's configuration as JSON">Copy config</button>
-        <span class="sr-only" id="copy-status" role="status"></span>
-      </div>
       <div class="view-body">
         <div class="stage" id="stage">
+          <button class="icon-btn stage-back" id="show-cast" aria-label="Back to the cast" title="Back to the cast">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>
+          </button>
           <canvas id="featured" role="button" tabindex="0"></canvas>
+          <button class="icon-btn stage-copy" id="copy-config" aria-label="Copy config" title="Copy this buddy's config as JSON">
+            <svg class="icon-copy" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg>
+            <svg class="icon-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            <svg class="icon-failed" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
           <div class="stage-meta">
             <span class="stage-name" id="stage-name"></span>
             <span class="stage-mood" id="stage-mood"></span>
@@ -51,6 +51,7 @@
         </div>
         <div class="cast" id="cast" role="group" aria-label="The cast. Pick one to bring it onto the stage." hidden></div>
       </div>
+      <span class="sr-only" id="copy-status" role="status"></span>
     </div>
     </div>
 

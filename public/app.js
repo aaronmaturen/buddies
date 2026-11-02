@@ -14,17 +14,13 @@ const shapesEl = $("shapes"), swatchesEl = $("swatches"), castEl = $("cast");
 let mood = "neutral";
 
 // ---------- viewer ----------
-// The viewer shows the stage buddy or the whole cast. Look and Buddy controls only change the stage buddy, so
-// using one switches back to the stage. The last view is remembered in this browser.
-const viewBtns = { stage: $("view-stage"), cast: $("view-cast") };
+// The viewer shows the whole cast or the stage buddy: a card opens the stage, the grid button goes back. Look and
+// Buddy controls only change the stage buddy, so using one opens the stage too. The last view is remembered here.
 function setView(view) {
-  for (const [key, btn] of Object.entries(viewBtns)) btn.setAttribute("aria-pressed", String(key === view));
   $("stage").hidden = view !== "stage";
   castEl.hidden = view !== "cast";
-  $("copy-config").hidden = view !== "stage";
   try { localStorage.setItem("buddies:view", view); } catch {}
 }
-for (const [key, btn] of Object.entries(viewBtns)) btn.addEventListener("click", () => setView(key));
 for (const id of ["sec-look", "sec-buddy"]) {
   for (const type of ["click", "input"]) {
     $(id).addEventListener(type, e => { if (e.target.closest("button:not(#reroll), input, textarea, summary, .cm-editor")) setView("stage"); });
@@ -66,6 +62,11 @@ const cast = startSpecs.map(spec => {
 });
 const all = [featured, ...cast];
 let onStage = cast[0];
+// The button hides itself, so focus moves to the card that was on the stage.
+$("show-cast").addEventListener("click", () => {
+  setView("cast");
+  onStage.card.focus();
+});
 
 // ---------- panel ----------
 function render() {
@@ -299,11 +300,10 @@ async function copyText(text) {
 }
 copyBtn.addEventListener("click", async () => {
   const ok = await copyText(JSON.stringify(toConfig(featured.spec), null, 2));
-  copyBtn.textContent = ok ? "Copied" : "Copy failed";
   $("copy-status").textContent = ok ? `${featured.spec.name}'s config copied` : "Copy failed";
-  copyBtn.dataset.state = ok ? "done" : "";
+  copyBtn.dataset.state = ok ? "done" : "failed";
   clearTimeout(copyBtn.timer);
-  copyBtn.timer = setTimeout(() => { copyBtn.textContent = "Copy config"; delete copyBtn.dataset.state; }, 1600);
+  copyBtn.timer = setTimeout(() => { delete copyBtn.dataset.state; }, 1600);
 });
 
 render();

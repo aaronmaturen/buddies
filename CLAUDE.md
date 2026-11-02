@@ -15,7 +15,7 @@ Buddies (page title "Build a Buddy") is a browser-only toy: characters made of e
 
 Native ES modules, no bundler. Every file stays small and does one thing.
 
-- `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: a sticky viewer on the left that shows either the stage buddy or the whole cast (Stage | Cast switch), and every control on the right in one scrolling column of sections (Emotes, Mood, Look, Buddy) with jump links. On phones the viewer pins to the top at most 40% of the screen tall while the controls scroll under it.
+- `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: a sticky viewer on the left that shows either the whole cast or the stage buddy (a card opens the stage, the grid icon goes back), and every control on the right in one scrolling column of sections (Emotes, Mood, Look, Buddy) with jump links. On phones the viewer pins to the top at most 40% of the screen tall while the controls scroll under it.
 - `public/styles.css` — page styles and theme tokens.
 - `public/og.png`, `favicon.png`, `favicon.ico`, `apple-touch-icon.png` — link preview (1200×630) and icons, all the same orange gumdrop buddy rendered from the library with headless Chrome. Re-render rather than hand-edit if the look changes.
 - `public/app.js` — page wiring: the featured buddy, the cast, and every control.
@@ -71,7 +71,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).
-- Look and Buddy controls change only the stage buddy, so using one switches the viewer to Stage; picking a cast member does too. Reroll everyone leaves the view alone.
+- Look and Buddy controls change only the stage buddy, so using one opens the stage; picking a cast member does too. Reroll everyone leaves the view alone.
 - `app.js` never touches springs or drawing; it only creates buddies, sets specs and moods. The stage shows one of the 12 cast members: its card is outlined and shares its spec with the stage buddy, so Shape, Head, Color and trait changes (and a loaded config) stay with that member.
 
 ## UI/UX Standards
@@ -79,7 +79,7 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Colors are CSS tokens on `:root` with light and dark variants; characters' own colors come from their spec.
 - Respect `prefers-reduced-motion` (less noise, no bob, mood cycling off).
 - Hold still (`buddy.still = true`) stops idle motion (glances, pointer following, drift, bob, blinks) while moods, emotes and morphs still play; the page's Hold still box sets it on every buddy and turns mood cycling off.
-- Accessibility: whatever is pinned at the top (jump links on desktop, the viewer on phones) is matched by `scroll-padding-top` on `html` so focused controls and anchors stop below it. Interactive borders use `--control-line` (3:1 against both backgrounds); `--line` is for dividers only. The stage buddy is a focusable button labelled with its name and mood. When a control hides itself (picking a cast member), move focus somewhere visible.
+- Accessibility: whatever is pinned at the top (jump links on desktop, the viewer on phones) is matched by `scroll-padding-top` on `html` so focused controls and anchors stop below it. Interactive borders use `--control-line` (3:1 against both backgrounds); `--line` is for dividers only. The stage buddy is a focusable button labelled with its name and mood. When a control hides itself (picking a cast member, the grid icon), move focus somewhere visible.
 - Must work at phone width with a 16px gutter.
 
 ## Deployment and Environment
