@@ -2,7 +2,7 @@ import {
   Buddy, animate, fromConfig, toConfig, randomConfig, randomNames, describe, setHeadShape, setHeadStyle, setColor,
   TRAITS, setTrait, setEyeShape, EYE_SHAPES,
   MOOD_NAMES, EMOTE_NAMES, MORPHS, MORPH_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
-  castShapes, spreadColors, spreadStyles, reducedMotion, configSchema,
+  castShapes, spreadColors, spreadStyles, reducedMotion, configSchema, Leader,
 } from "./buddies.js";
 import { createConfigEditor } from "./config-editor.js";
 
@@ -11,7 +11,7 @@ const $ = id => document.getElementById(id);
 
 const nameInput = $("buddy-name"), moodsEl = $("moods"), cycleEl = $("cycle");
 const shapesEl = $("shapes"), swatchesEl = $("swatches"), castEl = $("cast");
-let mood = "neutral";
+let mood = "neutral", leading = false;
 
 // ---------- viewer ----------
 // The viewer shows the whole cast or the stage buddy: a card opens the stage, the grid button goes back. Look and
@@ -51,10 +51,11 @@ const cast = startSpecs.map(spec => {
   castEl.append(btn);
   const b = new Buddy(btn.querySelector("canvas"), spec);
   b.card = btn;
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", e => {
     onStage = b;
     featured.setSpec(b.spec);
     render();
+    if (leading) return openLeaderMenu(btn, e);
     setView("stage");
     featured.canvas.focus();
   });
@@ -184,13 +185,17 @@ setInterval(() => {
 }, 3400);
 
 // ---------- emotes ----------
-// The featured buddy reacts right away; the cast follows a beat later, each on its own timing.
+// The stage buddy and its card react right away; the rest follow a beat later, each on its own timing.
+function everyone(act, wait, spread) {
+  act(featured);
+  for (const c of cast) setTimeout(() => act(c), c === onStage ? 0 : wait + Math.random() * spread);
+}
+
 const label = name => { const words = name.replace(/([A-Z])/g, " $1").toLowerCase(); return words[0].toUpperCase() + words.slice(1); };
 for (const name of EMOTE_NAMES) {
   const b = chip("chip", label(name));
   b.addEventListener("click", () => {
-    featured.emote(name);
-    for (const c of cast) setTimeout(() => c.emote(name), 120 + Math.random() * 350);
+    everyone(b => b.emote(name), 120, 350);
   });
   $("emotes").append(b);
 }
@@ -199,8 +204,7 @@ for (const name of EMOTE_NAMES) {
 for (const name of MORPH_NAMES) {
   const b = chip("chip", MORPHS[name].label);
   b.addEventListener("click", () => {
-    featured.morphInto(name);
-    for (const c of cast) setTimeout(() => c.morphInto(name), 150 + Math.random() * 500);
+    everyone(b => b.morphInto(name), 150, 500);
   });
   $("morphs").append(b);
 }
@@ -213,11 +217,42 @@ function setAway(on) {
   away = on;
   vanishBtn.textContent = on ? "Come back" : "Disappear";
   labelStage();
-  const act = b => on ? b.vanish() : b.appear();
-  act(featured);
-  for (const c of cast) setTimeout(() => act(c), 120 + Math.random() * 450);
+  everyone(b => on ? b.vanish() : b.appear(), 120, 450);
 }
 vanishBtn.addEventListener("click", () => setAway(!away));
+
+// ---------- leader ----------
+// In leader mode the Emotes and Mood buttons give way to a pie menu on whichever buddy is clicked. That buddy
+// leads and the rest follow; the page only listens for the commands the menu fires.
+const leader = new Leader();
+const leaderBtn = $("leader-mode");
+leader.addEventListener("command", e => {
+  const { kind, name } = e.detail;
+  if (kind === "emote") everyone(b => b.emote(name), 120, 350);
+  else if (kind === "morph") everyone(b => b.morphInto(name), 150, 500);
+  else if (kind === "mood") setMood(name);
+  else if (kind === "away") setAway(name === "vanish");
+});
+
+function openLeaderMenu(el, e) {
+  // A keyboard press has no pointer position, so the menu opens on the buddy.
+  const r = el.getBoundingClientRect();
+  const fromKeyboard = !e || e.detail === 0;
+  leader.open(fromKeyboard ? r.left + r.width / 2 : e.clientX, fromKeyboard ? r.top + r.height / 2 : e.clientY, { away });
+}
+
+leaderBtn.addEventListener("click", () => {
+  leading = !leading;
+  leaderBtn.setAttribute("aria-pressed", String(leading));
+  leaderBtn.textContent = leading ? "Stop leading" : "Lead the cast";
+  for (const el of document.querySelectorAll("[data-buttons-only]")) el.hidden = leading;
+  $("leader-hint").hidden = !leading;
+  if (leading) {
+    cycleEl.checked = false;
+    setView("cast");
+  }
+  labelStage();
+});
 
 // ---------- head style, name, reroll, load, boop ----------
 // Like shape and color, the head style only changes the buddy on the stage.
@@ -275,14 +310,15 @@ $("load-config").addEventListener("toggle", async e => {
 
 // The stage buddy is a button: Enter or Space boops it, or brings everyone back while they're away.
 function labelStage() {
-  featured.canvas.setAttribute("aria-label", away ? "Bring everyone back" : `Boop ${featured.spec.name} (${mood})`);
+  const name = featured.spec.name;
+  featured.canvas.setAttribute("aria-label", leading ? `Open ${name}'s leader menu` : away ? "Bring everyone back" : `Boop ${name} (${mood})`);
 }
-const pressStage = () => away ? setAway(false) : featured.boop();
+const pressStage = e => leading ? openLeaderMenu(featured.canvas, e) : away ? setAway(false) : featured.boop();
 featured.canvas.addEventListener("click", pressStage);
 featured.canvas.addEventListener("keydown", e => {
   if (e.key !== "Enter" && e.key !== " ") return;
   e.preventDefault();
-  pressStage();
+  pressStage(null);
 });
 
 // ---------- copy config ----------

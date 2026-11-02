@@ -57,13 +57,19 @@
 
     <div class="panel">
       <nav class="jump" aria-label="Controls">
-        <a href="#sec-emotes">Emotes</a>
+        <a href="#sec-emotes" data-buttons-only>Emotes</a>
         <a href="#sec-mood">Mood</a>
         <a href="#sec-look">Look</a>
         <a href="#sec-buddy">Buddy</a>
       </nav>
 
-      <section class="section" id="sec-emotes" aria-labelledby="h-emotes">
+      <section class="section" id="sec-leader" aria-labelledby="h-leader">
+        <h2 id="h-leader">Leader</h2>
+        <p class="hint" id="leader-hint" hidden>Click any buddy for the menu. It leads and the others follow.</p>
+        <div class="choices"><button class="chip" id="leader-mode" aria-pressed="false">Lead the cast</button></div>
+      </section>
+
+      <section class="section" id="sec-emotes" aria-labelledby="h-emotes" data-buttons-only>
         <h2 id="h-emotes">Emotes</h2>
         <div class="choices" id="emotes"></div>
         <div class="group">
@@ -78,8 +84,8 @@
 
       <section class="section" id="sec-mood" aria-labelledby="h-mood">
         <h2 id="h-mood">Mood</h2>
-        <div class="choices" id="moods"></div>
-        <label class="toggle"><input type="checkbox" id="cycle"> Cycle through moods</label>
+        <div class="choices" id="moods" data-buttons-only></div>
+        <label class="toggle" data-buttons-only><input type="checkbox" id="cycle"> Cycle through moods</label>
         <label class="toggle"><input type="checkbox" id="hold-still"> Hold still (no idle looking around, blinking or bobbing)</label>
       </section>
 

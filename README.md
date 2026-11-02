@@ -25,6 +25,17 @@ buddy.morphInto("ghost");
 buddy.destroy(); // when the canvas goes away
 ```
 
+To let one buddy lead the others, open the pie menu and listen for what it fires:
+
+```js
+import { Leader, follow } from "@aaronmaturen/buddies";
+const leader = new Leader();
+leader.addEventListener("command", e => followers.forEach(b => follow(b, e.detail)));
+canvas.addEventListener("click", e => leader.open(e.clientX, e.clientY));
+```
+
+Commands are plain JSON, like `{ "kind": "emote", "name": "wave" }`, so they can travel anywhere.
+
 Give the canvas a size with CSS. Importing is safe during server-side rendering, but create buddies in the browser. For a page with no build step, `dist/buddies.global.js` works from a plain `<script>` and exposes `window.Buddies`.
 
 The copy button on the stage copies the featured buddy's config as JSON (name, head, eyes, brows, hands, personality). Paste it into **Load a config** in the Buddy section, which has autocomplete for every setting and flags invalid values, or rebuild it in code:

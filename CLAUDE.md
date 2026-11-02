@@ -35,6 +35,8 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
   - `emotes.js` — emote table (data only): duration, borrowed mood, mouth, head motion, timed events.
   - `emote-player.js` — runs one emote per buddy: head motions, events, symbol lifetimes.
   - `mouth.js` — emote-only mouth presets and drawing.
+  - `leader.js` — `Leader` (opens the pie menu, fires `command` events), `follow(buddy, command)`, `leaderMenu`.
+  - `pie-menu.js` — `openPieMenu`: wedge buttons, paging, keyboard; injects its own styles and reads the host page's color tokens.
   - `presence.js` — `Presence`: vanish (squash, zip up thin, puff) and appear (pop back on wobbly springs); away has no time limit.
   - `morph.js` — `MorphPlayer`: outline matching and the melt-in, act, melt-out timeline.
   - `morphs/` — one file per morph object (balloon, rocket, ball, ghost, fish, star, cat, dog); `morphs/index.js` is the `MORPHS` table and documents the fields; `morphs/shared.js` has path and easing helpers.
@@ -65,6 +67,7 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 - Emotes are one-off reactions on top of the mood: `buddy.emote(name)`. To add one, add an entry to `EMOTES`; new head motions go in `MOTIONS` (emote-player.js), new marks in `KINDS`/`DRAW` (symbols.js), new mouths in `MOUTHS`.
 - Morphs: `buddy.morphInto(name)`. The head and object outlines are rings of 96 points aligned to start at the rightmost point with the same winding, blended on a spring; the ring is passed to styles as `head.points`, so every head style draws the object. To add a morph, add a file under `morphs/` and list it in `morphs/index.js`: an outline (static, or a function of time), eyes, duration, and either a `path` to follow nose-first or a `motion(u, now)` function, plus optional `events`, `behind` (parts drawn behind the shape, like tails) and `detail` (drawn over it).
 - Turning away: the head yaws past where the face sits on the sphere, so the features fade out and only the back of the head shows. The `lookAway` emote does it on purpose with a peek over the shoulder; idle buddies do it for one glance at random (`TURN_AWAY_CHANCE` in buddy.js), never with reduced motion or Hold still, or while following the pointer.
+- Leader: the menu never touches a buddy; each pick fires a plain JSON `command` event ({ kind, name }) and listeners decide who follows, with `follow()` for the usual case. New emotes, moods and morphs appear in the menu automatically; emotes group by their events (wear or holds → Props, hand → Hands, else React). The page's leader mode opens the menu on the clicked buddy and hides the Emotes and Mood buttons, leaving Hold still.
 - Away: `buddy.vanish()` / `buddy.appear()`, checked with `buddy.away`. While away, emotes, morphs and boops are ignored; vanishing cancels any emote, morph, hands and worn items. The page's Away button sends the whole cast, and clicking the empty stage brings everyone back.
 - Symbols anchor either to the head surface (turn with it) or float in screen space around it.
 - Hands are emote-only and float in screen space; `face: true` pins a hand to the eye line and follows the head's turn. New poses go in `POSES` (hands.js) as a palm plus round-capped finger strokes.

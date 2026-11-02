@@ -14,6 +14,8 @@ export { EMOTE_NAMES } from "./emotes.js";
 export { MORPHS, MORPH_NAMES } from "./morph.js";
 export { HEAD_STYLES } from "./styles/index.js";
 export { animate, stopAnimating } from "./loop.js";
+export { Leader, follow, leaderMenu } from "./leader.js";
+export { openPieMenu } from "./pie-menu.js";
 export { fromConfig, toConfig, randomConfig, randomNames, NAMES, LIMITS, describe, setHeadShape, setHeadStyle, setColor, TRAITS, setTrait, setEyeShape } from "./spec.js";
 export { configSchema } from "./schema.js";
 export { EYE_SHAPES } from "./face.js";

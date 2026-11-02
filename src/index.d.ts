@@ -44,6 +44,24 @@ export class Buddy {
   destroy(): void;
 }
 
+export type LeaderCommand =
+  | { kind: "emote" | "mood" | "morph"; name: string }
+  | { kind: "away"; name: "vanish" | "appear" };
+
+export interface PieItem<T = unknown> { label: string; value?: T; items?: PieItem<T>[] }
+
+/** Opens a pie menu and fires each pick as a "command" CustomEvent with a LeaderCommand as its detail. */
+export class Leader extends EventTarget {
+  /** x and y are viewport pixels. Pass away: true to offer Come back instead of Disappear. */
+  open(x: number, y: number, options?: { away?: boolean }): void;
+  close(): void;
+}
+/** Does a command on one buddy. */
+export function follow(buddy: Buddy, command: LeaderCommand): void;
+export function leaderMenu(options?: { away?: boolean }): PieItem<LeaderCommand>[];
+/** Opens a pie menu and returns a function that closes it. */
+export function openPieMenu<T>(x: number, y: number, items: PieItem<T>[], options?: { label?: string; onPick?: (value: T) => void }): () => void;
+
 export function animate(...buddies: Buddy[]): void;
 export function stopAnimating(...buddies: Buddy[]): void;
 
