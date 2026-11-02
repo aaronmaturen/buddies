@@ -67,12 +67,12 @@ Native ES modules, no bundler. Every file stays small and does one thing.
 - Accessories are emote-only. Worn items go in `WEARABLES` (wear.js) with a drawing in props.js; held items go in `HELD` (props.js) and are given to a hand with `holds` in an emote's hand event.
 - A buddy is its config. To add something new about a buddy, add it to `fromConfig` (with a default, so older configs still load), `toConfig`, `randomConfig` and `configSchema`. Number ranges live in `LIMITS` (spec.js) so clamping and the editor's checks agree.
 - `Buddy` — `think()` once per frame (targets, blinks), `integrate()` at 120 Hz substeps (springs), `draw()` → `render(ctx, px, style)`. Options: `scale`, `headMode` — `"mixed"` (default: each buddy draws its own `spec.headStyle`) or a `HEAD_STYLES` key to force one style; `styleKey` is the style actually drawn.
-- `RANDOM_STYLES` (styles/index.js) lists the styles random buddies get and the cast deals out; all 13 head-drawing styles are in it, so each of the 13 buddies on the page gets a different one.
+- `RANDOM_STYLES` (styles/index.js) lists the styles random buddies get and the cast deals out; all 13 head-drawing styles are in it, so each of the 12 buddies in the cast gets a different one.
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
 - Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).
 - Look and Buddy controls change only the stage buddy, so using one switches the viewer to Stage; picking a cast member does too. Reroll everyone leaves the view alone.
-- `app.js` never touches springs or drawing; it only creates buddies, sets specs and moods. The Shape, Head, Color and trait controls change only the stage buddy's spec, so a pick travels with that buddy if it's swapped into the cast.
+- `app.js` never touches springs or drawing; it only creates buddies, sets specs and moods. The stage shows one of the 12 cast members: its card is outlined and shares its spec with the stage buddy, so Shape, Head, Color and trait changes (and a loaded config) stay with that member.
 
 ## UI/UX Standards
 

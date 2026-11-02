@@ -41,7 +41,7 @@ Small, smoothly animated characters that feel alive in a browser, in the spirit 
 - The morph keeps the buddy's head style and colors, and its eyes ride along on the object.
 
 ### Page
-- One featured character with the cast of 12 beneath it, each with a unique head shape and well-spread colors.
+- A cast of 12, each with a unique head shape and well-spread colors; the stage shows one of them, picked from the Cast view.
 - Tunable traits for the stage buddy: eye shape, eye size, eye spacing, temper, attention, gaze and blink rate.
 - Controls: mood, emotes, head style for the stage buddy (invisible, ghost, or any of the 13 drawn styles), shape, color, name, reroll, load a config.
 - Light and dark themes, phone width, reduced motion.

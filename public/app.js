@@ -33,10 +33,11 @@ for (const id of ["sec-look", "sec-buddy"]) {
 try { if (localStorage.getItem("buddies:view") === "cast") setView("cast"); } catch {}
 
 // ---------- buddies ----------
-// The stage buddy and the cast are random configs: names from the list, every head shape different,
-// colors spread around the wheel and styles dealt out so neighbours differ.
+// The cast is random configs: names from the list, every head shape different, colors spread around the
+// wheel and styles dealt out so neighbours differ. The stage shows one of them: the stage buddy and that
+// card share a spec, so changes to one show on the other.
 function rollSpecs() {
-  const names = randomNames(CAST_SIZE + 1);
+  const names = randomNames(CAST_SIZE);
   const first = fromConfig(randomConfig({ name: names[0] }));
   const shapes = castShapes(first.headShape, Math.random);
   const specs = [first, ...names.slice(1).map((name, i) => fromConfig(randomConfig({ name, shape: shapes[i] })))];
@@ -47,7 +48,7 @@ function rollSpecs() {
 
 const startSpecs = rollSpecs();
 const featured = new Buddy($("featured"), startSpecs[0], { scale: .27 });
-const cast = startSpecs.slice(1).map(spec => {
+const cast = startSpecs.map(spec => {
   const btn = document.createElement("button");
   btn.className = "member";
   btn.innerHTML = `<canvas></canvas><strong></strong>`;
@@ -55,7 +56,8 @@ const cast = startSpecs.slice(1).map(spec => {
   const b = new Buddy(btn.querySelector("canvas"), spec);
   b.card = btn;
   btn.addEventListener("click", () => {
-    const a = featured.spec; featured.setSpec(b.spec); b.setSpec(a);
+    onStage = b;
+    featured.setSpec(b.spec);
     render();
     setView("stage");
     featured.canvas.focus();
@@ -63,6 +65,7 @@ const cast = startSpecs.slice(1).map(spec => {
   return b;
 });
 const all = [featured, ...cast];
+let onStage = cast[0];
 
 // ---------- panel ----------
 function render() {
@@ -74,7 +77,8 @@ function render() {
     const cd = describe(b.spec);
     b.card.querySelector("strong").textContent = b.spec.name;
     b.card.title = `${b.spec.name}: ${shapeLabel(b.spec.headShape).toLowerCase()}, ${cd.temper}, ${cd.attn}`;
-    b.card.setAttribute("aria-label", `Bring ${b.spec.name} onto the stage`);
+    b.card.setAttribute("aria-label", b.spec.name);
+    b.card.setAttribute("aria-pressed", String(b === onStage));
   }
   if (document.activeElement !== nameInput) nameInput.value = sp.name;
   for (const el of swatchesEl.children) el.setAttribute("aria-pressed", String(el.dataset.color === sp.color.name));
@@ -227,7 +231,8 @@ for (const [key, s] of Object.entries(HEAD_STYLES)) {
 nameInput.addEventListener("input", () => { featured.spec.name = nameInput.value.trim().slice(0, 24) || "Buddy"; render(); });
 
 $("reroll").addEventListener("click", () => {
-  rollSpecs().forEach((spec, i) => all[i].setSpec(spec));
+  rollSpecs().forEach((spec, i) => cast[i].setSpec(spec));
+  featured.setSpec(onStage.spec);
   render();
 });
 
@@ -239,7 +244,8 @@ const configText = () => configEditor ? configEditor.value : $("config-input").v
 function loadConfig() {
   const status = $("config-status");
   try {
-    featured.setSpec(fromConfig(JSON.parse(configText())));
+    onStage.setSpec(fromConfig(JSON.parse(configText())));
+    featured.setSpec(onStage.spec);
     status.textContent = `Loaded ${featured.spec.name}.`;
     render();
   } catch {
