@@ -2,6 +2,7 @@ import { EMOTES, EMOTE_NAMES } from "./emotes.js";
 import { MOOD_NAMES } from "./moods.js";
 import { MORPHS, MORPH_NAMES } from "./morph.js";
 import { openPieMenu } from "./pie-menu.js";
+import { words } from "./util.js";
 
 // A leader opens a pie menu and fires what was picked as a "command" event. Nothing happens to any buddy until
 // something listens, so the same command can drive buddies on this page, in another app or over a network:
@@ -11,7 +12,6 @@ import { openPieMenu } from "./pie-menu.js";
 //   canvas.addEventListener("click", e => leader.open(e.clientX, e.clientY, { away: buddy.away }));
 //
 // A command is plain JSON: { kind: "emote" | "mood" | "morph", name } or { kind: "away", name: "vanish" | "appear" }.
-const words = name => { const w = name.replace(/([A-Z])/g, " $1").toLowerCase(); return w[0].toUpperCase() + w.slice(1); };
 
 function emoteGroup(name) {
   const events = EMOTES[name].events || [];
@@ -48,8 +48,9 @@ export class Leader extends EventTarget {
     this.closeMenu = openPieMenu(x, y, leaderMenu({ away }), {
       label: "Leader commands",
       onPick: detail => this.dispatchEvent(new CustomEvent("command", { detail })),
+      onClose: () => { this.closeMenu = null; },
     });
   }
 
-  close() { this.closeMenu?.(); this.closeMenu = null; }
+  close() { this.closeMenu?.(); }
 }

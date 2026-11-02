@@ -1,10 +1,11 @@
 import {
   Buddy, animate, fromConfig, toConfig, randomConfig, randomNames, describe, setHeadShape, setHeadStyle, setColor,
-  TRAITS, setTrait, setEyeShape, EYE_SHAPES,
-  MOOD_NAMES, EMOTE_NAMES, MORPHS, MORPH_NAMES, HEAD_STYLES, HEADS, shapeLabel, EYE_LABELS, PALETTE,
-  castShapes, spreadColors, spreadStyles, reducedMotion, configSchema, Leader,
+  MOOD_NAMES, EMOTE_NAMES, MORPHS, MORPH_NAMES, HEAD_STYLES, HEADS, shapeLabel, PALETTE,
+  castShapes, spreadColors, spreadStyles, reducedMotion, configSchema, Leader, words,
 } from "./buddies.js";
 import { createConfigEditor } from "./config-editor.js";
+import { createTraits } from "./traits.js";
+import { copyText } from "./copy-text.js";
 
 const CAST_SIZE = 12;
 const $ = id => document.getElementById(id);
@@ -71,10 +72,10 @@ $("show-cast").addEventListener("click", () => {
 
 // ---------- panel ----------
 function render() {
-  const sp = featured.spec, d = describe(sp);
+  const sp = featured.spec;
   $("stage-name").textContent = sp.name;
   labelStage();
-  renderTraits(sp);
+  renderTraits();
   for (const b of cast) {
     const cd = describe(b.spec);
     b.card.querySelector("strong").textContent = b.spec.name;
@@ -88,49 +89,13 @@ function render() {
   for (const el of $("head-modes").children) el.setAttribute("aria-pressed", String(el.dataset.head === sp.headStyle));
 }
 
-// ---------- traits ----------
-// Plain-language readout for each slider, from describe() where it has words for it.
-function readout(key, sp) {
-  const d = describe(sp), v = sp[key];
-  return {
-    eyeSize: `${v < .22 ? "small" : v > .28 ? "big" : "medium"} · ${Math.round(v * 100)}`,
-    spacing: `${v < .3 ? "close-set" : v > .37 ? "wide-set" : "even"} · ${Math.round(v * 100)}`,
-    stiffness: `${d.temper} · spring ×${v.toFixed(2)}`,
-    attention: `${d.attn} · ${Math.round(v * 100)}% follows you`,
-    curiosity: `${d.look} · ×${v.toFixed(2)}`,
-    blinkRate: `${d.blink} · ×${v.toFixed(2)}`,
-  }[key];
-}
-
-const traitRows = {};
-for (const [key, T] of Object.entries(TRAITS)) {
-  const row = document.createElement("div");
-  row.className = "trait";
-  row.innerHTML = `<label for="trait-${key}">${T.label}</label><input type="range" id="trait-${key}" min="${T.min}" max="${T.max}" step="${T.step}"><output for="trait-${key}"></output>`;
-  const input = row.querySelector("input");
-  input.addEventListener("input", () => { setTrait(featured.spec, key, +input.value); renderTraits(featured.spec); });
-  traitRows[key] = { row, input, out: row.querySelector("output") };
-  $("trait-sliders").append(row);
-}
-for (const key of Object.keys(EYE_SHAPES)) {
-  const b = chip("chip", EYE_LABELS[key]);
-  b.dataset.eye = key;
-  b.addEventListener("click", () => { setEyeShape(featured.spec, key); renderTraits(featured.spec); });
-  $("eye-shapes").append(b);
-}
-function renderTraits(sp) {
-  for (const [key, { input, out }] of Object.entries(traitRows)) {
-    if (document.activeElement !== input) input.value = sp[key];
-    out.textContent = readout(key, sp);
-  }
-  for (const el of $("eye-shapes").children) el.setAttribute("aria-pressed", String(el.dataset.eye === sp.shape));
-}
-
 function chip(className, text) {
   const b = document.createElement("button");
   b.className = className; b.textContent = text;
   return b;
 }
+
+const renderTraits = createTraits($("trait-sliders"), $("eye-shapes"), () => featured.spec, chip);
 
 for (const key of Object.keys(HEADS)) {
   const b = chip("chip", shapeLabel(key));
@@ -191,9 +156,8 @@ function everyone(act, wait, spread) {
   for (const c of cast) setTimeout(() => act(c), c === onStage ? 0 : wait + Math.random() * spread);
 }
 
-const label = name => { const words = name.replace(/([A-Z])/g, " $1").toLowerCase(); return words[0].toUpperCase() + words.slice(1); };
 for (const name of EMOTE_NAMES) {
-  const b = chip("chip", label(name));
+  const b = chip("chip", words(name));
   b.addEventListener("click", () => {
     everyone(b => b.emote(name), 120, 350);
   });
@@ -272,8 +236,7 @@ $("reroll").addEventListener("click", () => {
   render();
 });
 
-// Paste or edit a config to put that buddy on the stage. Opening the box fills it with the stage buddy's
-// config and swaps the textarea for a schema-aware editor; if the editor can't load, the textarea stays.
+// Opening the box fills it with the stage buddy's config and swaps in a schema-aware editor, if it can load.
 let configEditor = null;
 const configText = () => configEditor ? configEditor.value : $("config-input").value;
 
@@ -324,16 +287,6 @@ featured.canvas.addEventListener("keydown", e => {
 // ---------- copy config ----------
 // The featured buddy's config as JSON; Load a config (or fromConfig in code) rebuilds it.
 const copyBtn = $("copy-config");
-async function copyText(text) {
-  try { await navigator.clipboard.writeText(text); return true; } catch {
-    const area = Object.assign(document.createElement("textarea"), { value: text });
-    area.style.position = "fixed"; area.style.opacity = "0";
-    document.body.append(area); area.select();
-    const ok = document.execCommand("copy");
-    area.remove();
-    return ok;
-  }
-}
 copyBtn.addEventListener("click", async () => {
   const ok = await copyText(JSON.stringify(toConfig(featured.spec), null, 2));
   $("copy-status").textContent = ok ? `${featured.spec.name}'s config copied` : "Copy failed";

@@ -32,7 +32,7 @@ export function spreadColors(specs, rand) {
   });
 }
 
-// Deal head styles out of shuffled rounds of every seeded style, so each appears about equally and
+// Deal head styles out of shuffled rounds of every random style, so each appears about equally and
 // neighbours rarely match.
 export function spreadStyles(specs, rand) {
   let deck = [];

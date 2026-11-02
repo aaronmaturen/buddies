@@ -19,12 +19,15 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 - `public/styles.css` — page styles and theme tokens.
 - `public/og.png`, `favicon.png`, `favicon.ico`, `apple-touch-icon.png` — link preview (1200×630) and icons, all the same orange gumdrop buddy rendered from the library with headless Chrome. Re-render rather than hand-edit if the look changes.
 - `public/app.js` — page wiring: the featured buddy, the cast, and every control. Imports the library from `./buddies.js`, a build output (gitignored).
+- `public/traits.js` — the eye shape buttons and trait sliders.
+- `public/copy-text.js` — clipboard copy with a fallback.
 - `public/config-editor.js` — the Load a config editor: CodeMirror with schema-driven autocomplete, checking and hover help. Loaded only when the box is opened; falls back to the plain textarea if it can't load.
 - `public/vendor/codemirror.js` — CodeMirror 6 bundled into one file by `scripts/vendor-codemirror.sh` (exact pinned versions, one copy of the core). Don't edit; rerun the script to upgrade.
 - `src/` — the buddy library; everything public goes through `index.js`.
   - `index.js` — public API (re-exports).
   - `index.d.ts` — hand-written types for the public API; update it when `index.js` or the config format changes.
-  - `buddy.js` — `Buddy` class: per-frame thinking, spring integration, drawing.
+  - `buddy.js` — `Buddy` class: per-frame thinking and spring integration.
+  - `buddy-render.js` — `renderBuddy`: one frame of a `Buddy`, its drawing half.
   - `loop.js` — one shared animation loop (`animate`, `stopAnimating`).
   - `schema.js` — `configSchema()`: JSON Schema for configs, built from `HEADS`, `HEAD_STYLES`, `EYE_SHAPES` and `LIMITS`, with descriptions for hover help.
   - `spec.js` — the config format (documented at the top): `fromConfig` (config → internal spec, with defaults and range clamping), `toConfig` (spec → full config), `randomConfig`, `NAMES`/`randomNames`, setters (`setHeadShape`, `setHeadStyle`, `setColor`, `setTrait`, `setEyeShape`), `TRAITS` slider ranges, `describe`.
@@ -51,8 +54,9 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 - `scripts/build.js` — esbuild build: `dist/buddies.js` (ES module), `dist/buddies.global.js` (script tag, `window.Buddies`), `dist/buddies.d.ts`, and `public/buddies.js` for the site. `--dev` watches and serves.
 - `package.json` — package metadata; only `dist/` is published.
 - `wrangler.jsonc` — Cloudflare Worker config: serves `public/`, binds the custom domain.
-- `.github/workflows/deploy.yml` — builds, then deploys on every push to `main`.
+- `.github/workflows/deploy.yml` — tests, builds, then deploys on every push to `main`.
 - `.claude/launch.json` — `npm run dev` for previews.
+- `test/` — `node:test` tests for what runs without a browser.
 - `docs/` — TODO log and product requirements.
 
 ## Project Documentation Index
@@ -77,7 +81,7 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 - `RANDOM_STYLES` (styles/index.js) lists the styles random buddies get and the cast deals out; all 13 head-drawing styles are in it, so each of the 12 buddies in the cast gets a different one.
 - To add a head style: write `styles/<name>.js` exporting a head drawing, add an entry to `HEAD_STYLES` with its label and face colors (`eye`, `brow`, `lid`, optional `eyeFill`, `pupil`, `glow`); the Head buttons are generated from the table.
 - The library runs in other people's apps: importing it must not touch the browser (server-side rendering), so wrap any top-level `document`/`window` use in a check, and anything a `Buddy` sets up gets undone in `destroy()`.
-- Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`.
+- Drawing functions take `ctx` plus a plain options object and never reach into a `Buddy`; buddy-render.js is the one exception, as the Buddy's own drawing.
 - The library reads `--fg` and `--surface` from the page for eyes and brows when there's no visible head (theme.js).
 - Look and Buddy controls change only the stage buddy, so using one opens the stage; picking a cast member does too. Reroll everyone leaves the view alone.
 - `app.js` never touches springs or drawing; it only creates buddies, sets specs and moods. The stage shows one of the 12 cast members: its card is outlined and shares its spec with the stage buddy, so Shape, Head, Color and trait changes (and a loaded config) stay with that member.
@@ -103,6 +107,7 @@ GitHub Actions secrets (repo settings → Secrets → Actions):
 
 - Install: `npm install` (also builds)
 - Preview locally: `npm run dev`, then http://localhost:8790
+- Test: `npm test`
 - Build: `npm run build`
 - Deploy manually: `npm run build && npx wrangler deploy`
 - Upgrade the vendored CodeMirror: edit versions in `scripts/vendor-codemirror.sh`, then run it (needs npm)

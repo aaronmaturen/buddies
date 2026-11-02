@@ -27,7 +27,7 @@ function stroke(ctx, [x1, y1, x2, y2], width, color) {
 }
 
 // Outline pass in ink, then the same parts slightly thinner in the fill color, so everything merges into one outline.
-export function drawHand(ctx, { pose, style, fill }) {
+function drawHand(ctx, { pose, style, fill }) {
   const P = POSES[style === "mitt" && pose === "open" ? "mittOpen" : pose];
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   if (style === "glove") {

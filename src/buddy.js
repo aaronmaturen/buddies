@@ -1,23 +1,18 @@
 import { TAU, clamp, reducedMotion } from "./util.js";
 import { Spring } from "./spring.js";
-import { rotation, surfaceFrame } from "./sphere.js";
 import { BASE, MOODS } from "./moods.js";
-import { drawShadow } from "./heads.js";
-import { drawEye, drawBrow, browOffset } from "./face.js";
-import { MOUTHS, MOUTH_REST, drawMouth } from "./mouth.js";
+import { MOUTHS, MOUTH_REST } from "./mouth.js";
+import { renderBuddy } from "./buddy-render.js";
 import { EmotePlayer } from "./emote-player.js";
-import { drawSymbols, spawnSymbol } from "./symbols.js";
+import { spawnSymbol } from "./symbols.js";
 import { MorphPlayer } from "./morph.js";
 import { Presence } from "./presence.js";
 import { HandRig } from "./hands.js";
 import { WearRig } from "./wear.js";
 import { HEAD_STYLES } from "./styles/index.js";
-import { headColors } from "./colors.js";
-import { theme } from "./theme.js";
 import { pointer } from "./pointer.js";
 import { stopAnimating } from "./loop.js";
 
-const GLOVE = "#fbfbfd";
 const TURN_AWAY_CHANCE = .05;
 
 // One animated buddy drawn into one canvas.
@@ -89,13 +84,18 @@ export class Buddy {
   // Play a one-off reaction from EMOTES on top of the current mood. Ignored while morphed or away.
   emote(name) { if (!this.morph.busy && !this.away) this.emotes.play(name, this.now, this); }
 
+  // Hands and worn things go away on their springs.
+  clearProps() { this.hands.hide(); this.wear.removeAll(); }
+
+  cancelEmote() { this.emotes.active = null; this.override = null; this.clearProps(); }
+
   // Away from vanish() until appear(), with no time limit. Emotes, morphs and boops are ignored meanwhile.
   get away() { return this.presence.away; }
 
   vanish() {
     if (!this.presence.vanish(this.now)) return;
-    this.morph.stop(); this.emotes.active = null; this.emotes.symbols.length = 0;
-    this.hands.hide(); this.wear.removeAll(); this.override = null;
+    this.morph.stop(); this.emotes.symbols.length = 0;
+    this.cancelEmote();
   }
 
   appear() {
@@ -129,7 +129,7 @@ export class Buddy {
   // Turn into an object from MORPHS for a while, then back. Cancels any emote.
   morphInto(name) {
     if (this.away || !this.morph.start(name, this.now)) return;
-    this.emotes.active = null; this.hands.hide(); this.wear.removeAll(); this.override = null;
+    this.cancelEmote();
   }
 
   boop() {
@@ -145,13 +145,9 @@ export class Buddy {
     this.blinkDur = this.currentMood(this.now) === "sleepy" ? .34 : .15;
   }
 
-  // Once per frame: pick where to look and what the head should do.
-  think(now, dt) {
-    const sp = this.spec, mood = this.currentMood(now), S = this.p;
-    this.now = now;
-    for (const k in BASE) S[k].t = MOODS[mood][k];
-    const E = S.energy.x;
-
+  // Where to look this frame, plus how far the head should turn away from the camera.
+  pickGaze(now, mood, E) {
+    const sp = this.spec;
     let ty = this.gYaw.t, tp = this.gPitch.t, away = 0;
     if (this.still) {
       this.glance = [0, 0]; this.nextGlance = now; this.turnAway = 0;
@@ -177,6 +173,34 @@ export class Buddy {
       [ty, tp] = this.glance;
       away = this.turnAway;
     }
+    return [ty, tp, away];
+  }
+
+  // Blinks: fast close, slower open, sometimes a double.
+  updateBlink(now, dt, mood) {
+    const sp = this.spec;
+    if (this.blinkT < 0 && now >= this.nextBlink && !this.still) { this.blinkNow(); this.queued = Math.random() < .18; }
+    if (this.blinkT >= 0) {
+      this.blinkT += dt;
+      const ph = this.blinkT / this.blinkDur;
+      if (ph >= 1) {
+        this.blinkT = -1; this.open = 1;
+        if (this.queued) { this.queued = false; this.nextBlink = now + .09; }
+        else this.nextBlink = now + (1.6 + Math.random() * 4.2) / sp.blinkRate * (mood === "sleepy" ? 1.6 : 1);
+      } else {
+        this.open = ph < .4 ? 1 - ph / .4 : (ph - .4) / .6;
+      }
+    }
+  }
+
+  // Once per frame: pick where to look and what the head should do.
+  think(now, dt) {
+    const sp = this.spec, mood = this.currentMood(now), S = this.p;
+    this.now = now;
+    for (const k in BASE) S[k].t = MOODS[mood][k];
+    const E = S.energy.x;
+
+    let [ty, tp, away] = this.pickGaze(now, mood, E);
     ty += S.gazeYaw.x; tp += S.gazePitch.x;
     if (!this.still && Math.hypot(ty - this.gYaw.t, tp - this.gPitch.t) > .5 && Math.random() < .4) this.blinkNow();
     this.gYaw.t = ty; this.gPitch.t = tp;
@@ -203,19 +227,7 @@ export class Buddy {
     this.hands.update(now, { yaw: this.hYaw.x, pitch: this.hPitch.x, faceY: Math.sin(sp.eyeLat + (head.faceY || 0)) * head.sy, sx: head.sx });
     this.bobY = reducedMotion || this.still ? 0 : S.bob.x * .018 * Math.sin(now * (1.4 + E * 1.2) + this.phase[4]);
 
-    // Blinks: fast close, slower open, sometimes a double.
-    if (this.blinkT < 0 && now >= this.nextBlink && !this.still) { this.blinkNow(); this.queued = Math.random() < .18; }
-    if (this.blinkT >= 0) {
-      this.blinkT += dt;
-      const ph = this.blinkT / this.blinkDur;
-      if (ph >= 1) {
-        this.blinkT = -1; this.open = 1;
-        if (this.queued) { this.queued = false; this.nextBlink = now + .09; }
-        else this.nextBlink = now + (1.6 + Math.random() * 4.2) / sp.blinkRate * (mood === "sleepy" ? 1.6 : 1);
-      } else {
-        this.open = ph < .4 ? 1 - ph / .4 : (ph - .4) / .6;
-      }
-    }
+    this.updateBlink(now, dt, mood);
   }
 
   // Many times per frame: advance every spring. Eyes are stiff, the head softer, so the eyes lead.
@@ -254,123 +266,5 @@ export class Buddy {
   }
 
   // px is device pixels per CSS pixel for this target (dpr on screen, smaller for the pixel pass).
-  render(ctx, px, style) {
-    const { w: W, h: H, spec } = this;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    const base = new DOMMatrix([px, 0, 0, px, 0, 0]);
-    const head = spec.head;
-    const R = Math.min(W, H) * this.scale * this.lean.x / (head.fit || Math.max(1, head.sy, head.sx * .9));
-    const lift = this.bobY + this.jump.x;
-    const cx = W / 2, cy = H * .48 - lift * R;
-
-    // While morphed, the object flies around its resting spot, scaled down to fit small canvases.
-    const mo = this.morphState;
-    const fit = this.flightFit = clamp(Math.min((W / 2 - R * 1.2) / (R * 2.2), (H * .48 - R * 1.1) / (R * 1.05)), 0, 1);
-    const mx = mo ? cx + mo.flight.x * R * fit : cx, my = mo ? cy + mo.flight.y * R * fit : cy;
-
-    // While gone only the puff is left; while going or coming back the whole buddy scales about its feet.
-    if (this.presence.gone) {
-      drawSymbols(ctx, this.emotes.symbols, { base, cx, cy, R, place: () => {}, layer: "over" });
-      ctx.globalAlpha = 1;
-      return;
-    }
-    const [psx, psy] = this.presence.scale;
-
-    drawShadow(ctx, base.translate(cx, 0).scale(psx, 1).translate(-cx, 0), { cx: mx, groundY: H * .48, R, head, lift: lift + (mo ? Math.max(0, -mo.flight.y * fit) * .35 : 0), color: theme.fg });
-
-    // Squash and stretch about the bottom of the head.
-    const sq = this.squash.x;
-    const m = base.translate(cx, cy + R).scale((2 - sq) * psx, sq * psy).translate(-cx, -(cy + R));
-    const colors = headColors(spec.color, theme.dark);
-    let objectSpace = null;
-    if (mo) {
-      const f = mo.flight;
-      // Squash and stretch about the bottom of the object, then its turn, facing and size.
-      objectSpace = m.translate(mx, my + R * .8).scale(f.sx, f.sy).translate(0, -R * .8)
-        .rotate(f.rot * 180 / Math.PI).scale(f.flip ? -1 : 1, 1).scale(f.scale).translate(-mx, -my);
-      // Parts like tails go behind the shape, the rest of the details over it; both fade in as the shape forms.
-      const extras = { ...f, now: this.now, k: mo.k, colors };
-      const layer = draw => {
-        if (!draw) return;
-        ctx.setTransform(objectSpace.translate(mx, my).scale(R));
-        ctx.globalAlpha = clamp((mo.k - .6) / .4, 0, 1);
-        draw(ctx, extras);
-        ctx.globalAlpha = 1;
-      };
-      layer(mo.def.behind);
-      style.head?.(ctx, objectSpace, { cx: mx, cy: my, R, head: { ...head, points: mo.points }, colors, color: spec.color, roll: 0, now: this.now, px });
-      layer(mo.def.detail);
-    } else {
-      style.head?.(ctx, m, { cx, cy, R, head, colors, color: spec.color, roll: this.hRoll.x * 180 / Math.PI, now: this.now, px });
-    }
-    // The face fades as the head becomes the object; eyes then reappear riding on the object.
-    const faceA = mo ? clamp(1 - mo.k * 1.8, 0, 1) : 1;
-
-    const face = style.face(colors, spec.color);
-    const eyeInk = face.eye, browInk = face.brow, lidFill = face.lid;
-    const M = rotation(this.hYaw.x, this.hPitch.x, this.hRoll.x);
-    const dy = clamp(this.gYaw.x - this.hYaw.x, -.4, .4);
-    const dp = clamp(this.gPitch.x - this.hPitch.x, -.35, .35);
-    const slide = .2;
-    const P = {}; for (const k in this.p) P[k] = this.p[k].x;
-
-    const place = (lon, lat) => {
-      const f = surfaceFrame(M, lon, lat, head);
-      ctx.setTransform(m.multiply(new DOMMatrix([R * f.e[0], R * f.e[1], R * f.s[0], R * f.s[1], cx + R * f.p[0], cy + R * f.p[1]])));
-      ctx.globalAlpha = clamp((f.p[2] - .05) / .25, 0, 1) * faceA;
-    };
-
-    const faceLat = spec.eyeLat + (head.faceY || 0) - dp * slide;
-    const symbols = this.emotes.symbols, fx = { base, cx, cy, R, place };
-    // Glowing styles put a blurred halo around every face line.
-    const glow = on => { ctx.shadowColor = face.glow || "transparent"; ctx.shadowBlur = on && face.glow ? R * .15 * px : 0; };
-    if (this.wear.visible && !mo) this.wear.drawTop(ctx, base, { cx, cy, R, head, yaw: this.hYaw.x, pitch: this.hPitch.x, roll: this.hRoll.x });
-    drawSymbols(ctx, symbols, { ...fx, layer: "under" });
-
-    glow(true);
-    const eyes = [];
-    for (const s of [-1, 1]) {
-      const lon = s * spec.spacing + dy * slide;
-      // The eye behind the magnifying glass grows; brows stay where they are.
-      const boost = s === this.boostSide ? this.boost.x : 1;
-      const Pe = boost === 1 ? P : { ...P, eyeScale: P.eyeScale * boost };
-      place(lon, faceLat);
-      drawEye(ctx, { s, spec, P: Pe, open: this.open, dy, dp, ink: eyeInk, lidFill, fill: face.eyeFill, pupil: face.pupil });
-      place(lon, faceLat + browOffset(s, spec, P));
-      drawBrow(ctx, { s, spec, P, ink: browInk });
-      eyes.push({ lon, lat: faceLat, w: spec.eyeW * P.eyeScale, h: spec.eyeH * P.eyeScale });
-    }
-    if (this.wear.visible) this.wear.drawFace(ctx, { place, eyes, faceLat });
-
-    if (mo && mo.k > .55) {
-      const E = mo.def.eyes;
-      for (const s of [-1, 1]) {
-        ctx.setTransform(objectSpace.translate(mx + (E.x + s * E.gap / 2) * R, my + E.y * R).scale(R * E.size));
-        ctx.globalAlpha = clamp((mo.k - .55) / .3, 0, 1);
-        drawEye(ctx, { s, spec, P, open: this.open, dy, dp, ink: eyeInk, lidFill, fill: face.eyeFill, pupil: face.pupil });
-      }
-      ctx.globalAlpha = 1;
-    }
-
-    // Where the mouth is on screen (head units from the head's center), so things like bubbles can come out of it.
-    const mouthLon = dy * slide, mouthLat = faceLat + spec.eyeH * .5 + .17;
-    const mf = surfaceFrame(M, mouthLon, mouthLat, head);
-    this.mouthPoint = [mf.p[0], mf.p[1]];
-
-    if (this.mouthShow.x > .02) {
-      const mouth = {}; for (const k in this.mouth) mouth[k] = this.mouth[k].x;
-      place(mouthLon, mouthLat);
-      drawMouth(ctx, { m: mouth, show: this.mouthShow.x, ink: eyeInk });
-    }
-
-    glow(false);
-    if (this.hands.visible) {
-      const hand = spec.handStyle || "glove";
-      this.hands.draw(ctx, base, { cx, cy, R, style: hand, fill: hand === "glove" ? GLOVE : colors.lit, now: this.now });
-    }
-
-    drawSymbols(ctx, symbols, { ...fx, layer: "over" });
-    ctx.globalAlpha = 1;
-  }
+  render(ctx, px, style) { renderBuddy(this, ctx, px, style); }
 }

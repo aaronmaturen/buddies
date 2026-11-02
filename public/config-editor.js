@@ -80,21 +80,19 @@ function validate(value, node, path = [], out = []) {
   return out;
 }
 
-// onSubmit runs on Cmd/Ctrl+Enter. Throws if CodeMirror can't load, so the caller can keep the plain textarea.
-export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
-  const { basicSetup, EditorView, hoverTooltip, keymap, json, jsonLanguage, jsonParseLinter, startCompletion,
-    linter, lintGutter, syntaxTree, syntaxHighlighting, HighlightStyle, tags: t } = await import("./vendor/codemirror.js");
+// Insert text, put the cursor `back` characters before its end, and reopen the list for the next step.
+// Completions filter on what's typed after an opening quote, so the replacement reaches back over it too.
+const inserter = startCompletion => (text, back = 0, reopen = false) => (view, _c, start, to) => {
+  const from = view.state.sliceDoc(start - 1, start) === '"' ? start - 1 : start;
+  const after = view.state.sliceDoc(to, to + 1) === '"' ? to + 1 : to;
+  view.dispatch({ changes: { from, to: after, insert: text }, selection: { anchor: from + text.length - back } });
+  if (reopen) setTimeout(() => startCompletion(view));
+};
 
-  // Insert text, put the cursor `back` characters before its end, and reopen the list for the next step.
-  // Completions filter on what's typed after an opening quote, so the replacement reaches back over it too.
-  const insert = (text, back = 0, reopen = false) => (view, _c, start, to) => {
-    const from = view.state.sliceDoc(start - 1, start) === '"' ? start - 1 : start;
-    const after = view.state.sliceDoc(to, to + 1) === '"' ? to + 1 : to;
-    view.dispatch({ changes: { from, to: after, insert: text }, selection: { anchor: from + text.length - back } });
-    if (reopen) setTimeout(() => startCompletion(view));
-  };
-
-  function complete(ctx) {
+// Suggests keys and values from the schema at the cursor.
+function completionSource(schema, { syntaxTree, startCompletion }) {
+  const insert = inserter(startCompletion);
+  return ctx => {
     const word = ctx.matchBefore(/"?[\w-]*/);
     if (!word || (word.from === word.to && !ctx.explicit && !/[{,:]\s*$/.test(ctx.state.sliceDoc(0, ctx.pos)))) return null;
     const before = ctx.state.sliceDoc(0, word.from).trimEnd(), last = before.at(-1);
@@ -127,10 +125,13 @@ export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
       return { from, options, validFor: /^[\w-]*$/ };
     }
     return null;
-  }
+  };
+}
 
+// Syntax errors first, then the schema's checks.
+function schemaLinter(schema, { linter, jsonParseLinter, syntaxTree }) {
   const parseLint = jsonParseLinter();
-  const schemaLint = linter(view => {
+  return linter(view => {
     const syntax = parseLint(view);
     if (syntax.length) return syntax;
     let data;
@@ -142,8 +143,10 @@ export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
       return { from: node ? node.from : 0, to: node ? node.to : Math.min(1, view.state.doc.length), severity: p.severity, message: p.message };
     });
   });
+}
 
-  const hover = hoverTooltip((view, pos, side) => {
+function hoverHelp(schema, { hoverTooltip, syntaxTree }) {
+  return hoverTooltip((view, pos, side) => {
     const tree = syntaxTree(view.state);
     let n = tree.resolveInner(pos, side);
     while (n && n.name !== "PropertyName") n = n.parent;
@@ -162,7 +165,9 @@ export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
       },
     };
   });
+}
 
+function editorLook({ EditorView, syntaxHighlighting, HighlightStyle, tags: t }) {
   const highlight = HighlightStyle.define([
     { tag: t.propertyName, color: "var(--code-key)" },
     { tag: t.string, color: "var(--code-string)" },
@@ -170,7 +175,6 @@ export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
     { tag: [t.bool, t.null], color: "var(--code-number)" },
     { tag: [t.brace, t.squareBracket, t.separator, t.punctuation], color: "var(--muted)" },
   ]);
-
   const theme = EditorView.theme({
     "&": { backgroundColor: "var(--surface)", color: "var(--fg)", border: "1px solid var(--control-line)", borderRadius: "10px", fontSize: "12px" },
     "&.cm-focused": { outline: "2px solid var(--accent)", outlineOffset: "2px" },
@@ -184,6 +188,13 @@ export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
     ".cm-schema-hint": { display: "grid", gap: "2px", padding: "6px 10px", maxWidth: "320px", fontFamily: "var(--font-body)", fontSize: "13px" },
     ".cm-schema-hint span": { color: "var(--muted)" },
   });
+  return [syntaxHighlighting(highlight), theme];
+}
+
+// onSubmit runs on Cmd/Ctrl+Enter. Throws if CodeMirror can't load, so the caller can keep the plain textarea.
+export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
+  const cm = await import("./vendor/codemirror.js");
+  const { basicSetup, EditorView, keymap, json, jsonLanguage, lintGutter } = cm;
 
   const host = document.createElement("div");
   host.className = "config-editor";
@@ -192,8 +203,8 @@ export async function createConfigEditor(textarea, schema, { onSubmit } = {}) {
     parent: host,
     doc: textarea.value,
     extensions: [
-      basicSetup, json(), jsonLanguage.data.of({ autocomplete: complete }),
-      schemaLint, lintGutter(), hover, syntaxHighlighting(highlight), theme, EditorView.lineWrapping,
+      basicSetup, json(), jsonLanguage.data.of({ autocomplete: completionSource(schema, cm) }),
+      schemaLinter(schema, cm), lintGutter(), hoverHelp(schema, cm), ...editorLook(cm), EditorView.lineWrapping,
       keymap.of([{ key: "Mod-Enter", run: () => { onSubmit?.(); return true; } }]),
       // An explicit tabindex lets checkers see the scroll area has a focusable child (it is already focusable).
       EditorView.contentAttributes.of({ "aria-label": textarea.getAttribute("aria-label") || "Config", tabindex: "0" }),

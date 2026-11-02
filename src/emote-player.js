@@ -35,8 +35,7 @@ export class EmotePlayer {
     const def = EMOTES[name];
     if (!def) return;
     this.active = { def, start: now, fired: 0, handsOut: false, magnify: null, side: Math.random() < .5 ? -1 : 1 };
-    buddy.hands.hide();
-    buddy.wear.removeAll();
+    buddy.clearProps();
     if (def.mood) buddy.override = { mood: def.mood, until: now + def.duration };
   }
 
@@ -46,7 +45,7 @@ export class EmotePlayer {
     const a = this.active;
     if (!a) return { motion: STILL, mouth: null, magnify: null };
     const t = now - a.start, d = a.def.duration;
-    if (t >= d) { this.active = null; buddy.hands.hide(); buddy.wear.removeAll(); return { motion: STILL, mouth: null, magnify: null }; }
+    if (t >= d) { this.active = null; buddy.clearProps(); return { motion: STILL, mouth: null, magnify: null }; }
 
     const events = a.def.events || [];
     while (a.fired < events.length && events[a.fired].at <= t) {
@@ -62,7 +61,7 @@ export class EmotePlayer {
       else if (sides) buddy.hands.set(sides, ev);
     }
     // Hands start leaving a beat before the emote ends so they're gone as the face settles.
-    if (!a.handsOut && t >= d - .35) { a.handsOut = true; a.magnify = null; buddy.hands.hide(); buddy.wear.removeAll(); }
+    if (!a.handsOut && t >= d - .35) { a.handsOut = true; a.magnify = null; buddy.clearProps(); }
 
     const ease = clamp(Math.min(t / .15, (d - t) / .3), 0, 1) * (reducedMotion ? .4 : 1);
     const motion = { ...STILL, ...MOTIONS[a.def.motion]?.(t, ease, a.side) };

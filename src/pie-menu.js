@@ -38,59 +38,74 @@ function fit(items) {
   return [...items.slice(0, MAX_WEDGES - 1), { label: "More", items: items.slice(MAX_WEDGES - 1) }];
 }
 
-// items: [{ label, value } or { label, items }]. onPick gets the value. Returns a function that closes the menu.
-export function openPieMenu(x, y, items, { label = "Menu", onPick } = {}) {
-  addStyles();
-  const opener = document.activeElement;
-  const size = Math.min(SIZE, innerWidth - 2 * GUTTER, innerHeight - 2 * GUTTER), c = size / 2, hole = size * HOLE;
+function createShell(x, y, size, label) {
   const scrim = Object.assign(document.createElement("div"), { className: "buddy-pie-scrim" });
   // The menu is added to the end of the page, outside the host's landmarks, so it's announced as its own dialog.
   scrim.setAttribute("role", "dialog"); scrim.setAttribute("aria-modal", "true"); scrim.setAttribute("aria-label", label);
   const pie = Object.assign(document.createElement("div"), { className: "buddy-pie" });
   pie.setAttribute("role", "menu"); pie.setAttribute("aria-label", label);
+  const c = size / 2;
   pie.style.cssText = `width:${size}px;height:${size}px;left:${Math.min(innerWidth - size - GUTTER, Math.max(GUTTER, x - c))}px;top:${Math.min(innerHeight - size - GUTTER, Math.max(GUTTER, y - c))}px`;
   scrim.append(pie);
+  return scrim;
+}
 
+function wedgeButton(item, mid, step, { c, hole }, onPress) {
+  const b = document.createElement("button");
+  b.dataset.wedge = ""; b.setAttribute("role", "menuitem"); b.setAttribute("aria-label", item.label);
+  if (item.items) b.setAttribute("aria-haspopup", "menu");
+  b.style.clipPath = `path("${wedgePath(c, c - 1, hole, mid - step / 2 + GAP, mid + step / 2 - GAP)}")`;
+  const text = document.createElement("span"), r = (c + hole) / 2;
+  text.textContent = item.label;
+  text.style.left = `${c + r * Math.cos(mid)}px`; text.style.top = `${c + r * Math.sin(mid)}px`;
+  b.append(text);
+  b.addEventListener("click", e => { e.stopPropagation(); onPress(); });
+  return b;
+}
+
+function centerButton(text, { c, hole }, onPress) {
+  const b = Object.assign(document.createElement("button"), { className: "buddy-pie-center", textContent: text });
+  b.style.cssText = `left:${c - hole + 3}px;top:${c - hole + 3}px;width:${2 * hole - 6}px;height:${2 * hole - 6}px`;
+  b.setAttribute("role", "menuitem");
+  b.addEventListener("click", e => { e.stopPropagation(); onPress(); });
+  return b;
+}
+
+// items: [{ label, value } or { label, items }]. onPick gets the value; onClose runs once when the menu goes away,
+// however that happens. Returns a function that closes the menu, safe to call again.
+export function openPieMenu(x, y, items, { label = "Menu", onPick, onClose } = {}) {
+  addStyles();
+  const opener = document.activeElement;
+  const size = Math.min(SIZE, innerWidth - 2 * GUTTER, innerHeight - 2 * GUTTER);
+  const scrim = createShell(x, y, size, label), pie = scrim.firstChild, geometry = { c: size / 2, hole: size * HOLE };
   const stack = [];
+  let open = true;
+
   const close = () => {
+    if (!open) return;
+    open = false;
     scrim.remove();
     document.removeEventListener("keydown", onKey, true);
     opener?.focus?.();
+    onClose?.();
   };
   const back = () => { stack.pop(); if (stack.length) show(); else close(); };
   const go = list => { stack.push(fit(list)); show(); };
-  const wedges = () => [...pie.querySelectorAll("[data-wedge]")];
 
   function show() {
     pie.replaceChildren(Object.assign(document.createElement("div"), { className: "buddy-pie-ring" }));
     const list = stack.at(-1), step = 2 * Math.PI / list.length;
-    list.forEach((item, i) => {
-      const mid = -Math.PI / 2 + i * step, b = document.createElement("button");
-      b.dataset.wedge = ""; b.setAttribute("role", "menuitem"); b.setAttribute("aria-label", item.label);
-      if (item.items) b.setAttribute("aria-haspopup", "menu");
-      b.style.clipPath = `path("${wedgePath(c, c - 1, hole, mid - step / 2 + GAP, mid + step / 2 - GAP)}")`;
-      const text = document.createElement("span"), r = (c + hole) / 2;
-      text.textContent = item.label;
-      text.style.left = `${c + r * Math.cos(mid)}px`; text.style.top = `${c + r * Math.sin(mid)}px`;
-      b.append(text);
-      b.addEventListener("click", e => {
-        e.stopPropagation();
-        if (item.items) return go(item.items);
-        close();
-        onPick?.(item.value);
-      });
-      pie.append(b);
-    });
-    const center = Object.assign(document.createElement("button"), { className: "buddy-pie-center", textContent: stack.length > 1 ? "Back" : "Close" });
-    center.style.cssText = `left:${c - hole + 3}px;top:${c - hole + 3}px;width:${2 * hole - 6}px;height:${2 * hole - 6}px`;
-    center.setAttribute("role", "menuitem");
-    center.addEventListener("click", e => { e.stopPropagation(); back(); });
-    pie.append(center);
-    wedges()[0].focus();
+    list.forEach((item, i) => pie.append(wedgeButton(item, -Math.PI / 2 + i * step, step, geometry, () => {
+      if (item.items) return go(item.items);
+      close();
+      onPick?.(item.value);
+    })));
+    pie.append(centerButton(stack.length > 1 ? "Back" : "Close", geometry, back));
+    pie.querySelector("[data-wedge]").focus();
   }
 
   function onKey(e) {
-    const list = wedges(), i = list.indexOf(document.activeElement);
+    const list = [...pie.querySelectorAll("[data-wedge]")], i = list.indexOf(document.activeElement);
     if (e.key === "Escape") back();
     else if (e.key === "Tab") close();
     else if (e.key === "ArrowRight" || e.key === "ArrowDown") list[(i + 1) % list.length].focus();

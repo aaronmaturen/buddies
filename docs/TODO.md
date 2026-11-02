@@ -7,14 +7,19 @@
 
 ### Upcoming
 - [ ] Optional page-wide overlay so morphs can fly beyond their own canvas
-- [ ] Advanced traits: brow length/thickness, eye height on the face, resting tilt
-- [ ] Paste or load a copied config back into the stage
+- [ ] Sliders for the advanced traits: configs already take brow length/thickness, eye height and resting tilt, but the page has no controls for them
+- [ ] Before publishing to npm: add a LICENSE (none yet), confirm the package name and public access
+- [ ] Try the library in a real React/Next.js app, including `destroy()` on unmount
+- [ ] Pie menu: press, drag and release to pick
+- [ ] Decide whether mood cycling comes back after leader mode (it stays off today)
 - [ ] Hands and props don't adapt to Neon yet (white gloves on a neon buddy)
-- [ ] Move off Node 20 actions (`actions/checkout@v4`, `cloudflare/wrangler-action@v3`) once Node 24 versions are available
 - [ ] Idle emotes picked by personality (twitchy → nervous, aloof → snooze)
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Audit cleanup: `npm test` with 10 tests, run before deploy; split `Buddy.render` into buddy-render.js and `think`, `drawEye`, `openPieMenu` and `createConfigEditor` into smaller functions; traits.js and copy-text.js moved out of app.js; repeated cancel steps and label helper merged (2026-11-02)
+- [x] Fixed leader menu focus returning to the wrong buddy, old page wording, and the product requirements (2026-11-02)
+- [x] Deploy workflow moved to current action versions to clear the Node 20 warning (2026-11-02)
 - [x] Leader mode: a pie menu on a clicked buddy fires command events that the others follow; Leader, follow and openPieMenu are in the library (2026-11-02)
 - [x] Library moved to src/ and built with esbuild as @aaronmaturen/buddies: ES module, script tag build, types; safe to import on a server; Buddy.destroy() (2026-11-02)
 - [x] Buddies can turn away from the camera: Look away emote with a peek back, and an occasional idle turn (2026-11-02)
@@ -62,15 +67,19 @@
 - No paper airplane morph: a plane needs to bank and loop in three dimensions, and spinning flat on screen read as a cutout. Morphs that naturally move flat (balloon, ball, ghost) work in 2D. The fish also read badly on a path, so it swims in place; turning is a horizontal squash through zero, like a fish seen side-on (2026-10-29).
 - 2D canvas over WebGL: with only eyes, brows and a head, the invisible-sphere projection gives the 3D turn without WebGL's context limits (2026-10-29).
 - Expressions reshape the eye outline; only blink (squash) and sleepy/bored/smug (head-colored lid) cover the eye. Clipping lids erased short eyes (2026-10-29).
-- Native ES modules with no bundler: Cloudflare serves them as static files and each module stays small (2026-10-29).
+- Native ES modules with no bundler: Cloudflare serves them as static files and each module stays small (2026-10-29). Superseded: esbuild now bundles `src/` so other apps can import the library (2026-11-02).
+- The site uses the same bundle as other apps, so anything that breaks the package breaks the site first (2026-11-02).
+- Leader commands are plain JSON events and the menu never touches a buddy, so they can drive buddies anywhere (2026-11-02).
 - Hosting on Cloudflare Workers static assets with `custom_domain: true`, so the domain is declared in `wrangler.jsonc` instead of set up by hand (2026-10-29).
 
 ### Technical Debt
-- No automated tests; `makeSpec` deserves a snapshot test now that it's importable on its own.
+- Code audit done 2026-11-02 (6,631 lines added over the project's history). `npm audit`: 0 vulnerabilities in production packages; every public export is typed; no unused CSS; no debug output left in the library.
+- Tests only cover what runs without a browser; drawing, the pie menu and the page are still checked by hand. `public/app.js` sits right at the 300-line limit.
 
 ### Recurring Issues & Solutions
 - Dark styles vanish on the dark-mode stage: INK (#16181e) is nearly the dark surface (#181b23). Give ink-outlined styles a light rim outside the ink (see inked.js).
 - Local preview served old ES modules from cache after edits (a new file loaded fresh while a changed one didn't) → refetch modules with `fetch(url, { cache: 'reload' })` or hard-reload before judging a change.
 - Browser-pane screenshots: when the pane is hidden or the Claude window is out of focus (as low as 1 fps) the browser throttles requestAnimationFrame, so captures freeze; simulate emotes in Node with EmotePlayer instead. The first capture in a batch can also be stale; check canvas pixels or capture twice before assuming a draw failed.
+- Headless Chrome's `--virtual-time-budget` is unreliable for animation: eyes stuck mid-blink, moods not applied, the frame loop stalling once nothing is drawn. Step `think`/`integrate`/`draw` by hand in a test page, or use stubbed animation frames in Node.
 - Cast looked all green/gray → tones were equally weighted and earthy only picked orange/green; fixed with tone weights and `spreadColors()`.
 - A Claude Code auto-update rewrote `~/.claude.json` and dropped a just-added MCP server → re-add it with `claude mcp add`.

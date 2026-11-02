@@ -15,6 +15,7 @@
   "scripts": {
     "build": "node scripts/build.js",
     "dev": "node scripts/build.js --dev",
+    "test": "node --test",
     "prepare": "node scripts/build.js"
   },
   "devDependencies": {

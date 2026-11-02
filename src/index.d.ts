@@ -97,3 +97,5 @@ export const NAMES: string[];
 export const TRAITS: Record<string, { label: string; min: number; max: number; step: number }>;
 export const LIMITS: Record<string, Record<string, [number, number]>>;
 export const reducedMotion: boolean;
+/** "thumbsUp" → "Thumbs up", for showing names from the tables. */
+export function words(name: string): string;

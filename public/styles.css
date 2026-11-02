@@ -185,7 +185,7 @@ button, input[type="text"] { font: inherit; color: inherit; }
 .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--fg); }
 .toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
 
-.seed-row input {
+.name-row input {
   flex: 1 1 140px; min-width: 0;
   background: var(--surface); border: 1px solid var(--control-line); border-radius: 10px;
   padding: 9px 12px; font-family: var(--font-mono); font-size: 14px;

@@ -25,4 +25,4 @@ export { EYE_LABELS } from "./face.js";
 export { PALETTE } from "./colors.js";
 export { castShapes, spreadColors, spreadStyles } from "./variety.js";
 export { mulberry32 } from "./random.js";
-export { reducedMotion } from "./util.js";
+export { reducedMotion, words } from "./util.js";

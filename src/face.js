@@ -15,7 +15,8 @@ export const EYE_LABELS = { round: "round", pill: "wide pill", tall: "tall oval"
 // Blinks squash the shape; only lid > 0 draws a real lid in the head's color.
 // s: -1 left eye, 1 right. P: current mood values. open: 1 open, 0 shut. dy/dp: how far the gaze leads the head.
 // fill and pupil default to white and ink; styles like neon swap them.
-export function drawEye(ctx, { s, spec, P, open: openness, dy, dp, ink, lidFill, fill = WHITE, pupil = INK }) {
+// The eye's size and outline for this frame. Expressions cut into a superellipse from the top and bottom.
+function eyeShape({ s, spec, P, openness }) {
   const k = P.eyeScale * (1 + P.eyeAsym * s), w = spec.eyeW * k;
   let tc = P.topCut + (s < 0 ? P.lidAsym : 0), bcut = P.botCut, bc = P.botCurve, tilt = P.tilt;
   const cover0 = Math.max(0, tc) + bcut + bc * .8;
@@ -42,9 +43,26 @@ export function drawEye(ctx, { s, spec, P, open: openness, dy, dp, ink, lidFill,
     y = Math.min(Math.max(y, top(x)), bottom(x));
     pts.push([x, squash(y)]);
   }
+  return { k, w, h, open, squash, pts, centerY: squash((Math.max(-h / 2, top(0)) + bottom(0)) / 2) };
+}
+
+// A head-colored lid dropped over the eye, with an inked edge.
+function drawLid(ctx, { L, w, h, squash, lidFill, ink }) {
+  const lidY = x => squash(-h / 2 + h * L * .9 + h * .12 * L * (1 - (2 * x / w) ** 2));
+  ctx.beginPath(); ctx.moveTo(-w, -h * 2); ctx.lineTo(-w, lidY(-w / 2));
+  for (let i = 0; i <= 16; i++) { const x = -w / 2 + w * i / 16; ctx.lineTo(x, lidY(x)); }
+  ctx.lineTo(w, lidY(w / 2)); ctx.lineTo(w, -h * 2); ctx.closePath();
+  ctx.fillStyle = lidFill; ctx.fill();
+  ctx.beginPath();
+  for (let i = 0; i <= 16; i++) { const x = -w / 2 + w * i / 16; i ? ctx.lineTo(x, lidY(x)) : ctx.moveTo(x, lidY(x)); }
+  ctx.lineWidth = EYE_LINE; ctx.lineCap = "round"; ctx.strokeStyle = ink; ctx.stroke();
+}
+
+export function drawEye(ctx, { s, spec, P, open: openness, dy, dp, ink, lidFill, fill = WHITE, pupil = INK }) {
+  const { k, w, h, open, squash, pts, centerY } = eyeShape({ s, spec, P, openness });
   const outline = () => {
     ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i < N; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
     ctx.closePath();
   };
 
@@ -52,23 +70,11 @@ export function drawEye(ctx, { s, spec, P, open: openness, dy, dp, ink, lidFill,
   ctx.save();
   outline(); ctx.clip();
   const pr = Math.min(w, spec.eyeH * k);
-  const openCenter = squash((Math.max(-h / 2, top(0)) + bottom(0)) / 2);
   const px = clamp(dy * 1.1, -.45, .45) * w * .5;
-  const py = openCenter + clamp(-dp * 1.1, -.4, .4) * h * .25 * open;
+  const py = centerY + clamp(-dp * 1.1, -.4, .4) * h * .25 * open;
   ctx.beginPath(); ctx.arc(px, py, pr * .3 * P.pupil, 0, TAU); ctx.fillStyle = pupil; ctx.fill();
   ctx.beginPath(); ctx.arc(px - pr * .1, py - pr * .11, pr * .08, 0, TAU); ctx.fillStyle = WHITE; ctx.fill();
-
-  const L = P.lid;
-  if (L > .01) {
-    const lidY = x => squash(-h / 2 + h * L * .9 + h * .12 * L * (1 - (2 * x / w) ** 2));
-    ctx.beginPath(); ctx.moveTo(-w, -h * 2); ctx.lineTo(-w, lidY(-w / 2));
-    for (let i = 0; i <= 16; i++) { const x = -w / 2 + w * i / 16; ctx.lineTo(x, lidY(x)); }
-    ctx.lineTo(w, lidY(w / 2)); ctx.lineTo(w, -h * 2); ctx.closePath();
-    ctx.fillStyle = lidFill; ctx.fill();
-    ctx.beginPath();
-    for (let i = 0; i <= 16; i++) { const x = -w / 2 + w * i / 16; i ? ctx.lineTo(x, lidY(x)) : ctx.moveTo(x, lidY(x)); }
-    ctx.lineWidth = EYE_LINE; ctx.lineCap = "round"; ctx.strokeStyle = ink; ctx.stroke();
-  }
+  if (P.lid > .01) drawLid(ctx, { L: P.lid, w, h, squash, lidFill, ink });
   ctx.restore();
 
   outline(); ctx.lineWidth = EYE_LINE; ctx.lineJoin = "round"; ctx.strokeStyle = ink; ctx.stroke();
