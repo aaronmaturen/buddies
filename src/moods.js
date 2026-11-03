@@ -22,6 +22,8 @@ const PRESETS = {
   bored: { lid: .38, browRaise: -.02, browCurve: 0, gazeYaw: .35, pitch: -.08, roll: -.15, pupil: .9, follow: .2, bob: .3, energy: .4 },
   confused: { eyeAsym: .15, browAsym: .14, browTilt: .3, eyeScale: 1.05, pupil: .85, roll: -.28, energy: .9 },
   worried: { topCut: .12, tilt: -.5, eyeScale: 1.05, pupil: .75, browTilt: 1, browRaise: .06, pitch: -.06, lean: .96, energy: 1.2 },
+  asleep: { lid: 1, browRaise: -.05, browCurve: .1, pitch: -.2, gazePitch: -.2, roll: .06, follow: 0, bob: .5, energy: .2 },
+  sick: { topCut: .18, tilt: -.6, eyeScale: .9, pupil: .8, browTilt: .7, browCurve: 0, pitch: -.18, roll: -.12, follow: .25, bob: .2, energy: .35 },
   smug: { lid: .3, botCut: .15, botCurve: .3, browAsym: .1, browTilt: -.1, pitch: .15, roll: .1, yawBias: .12, follow: .5, energy: .6 },
 };
 

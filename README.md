@@ -47,6 +47,14 @@ buddy.setMood(config.mood);
 animate(buddy);
 ```
 
+## Desktop pet (Mac)
+
+`desktop/` is a Mac app that puts one buddy on your desktop as a 90s-style virtual pet: it hatches, gets hungry, poops, sleeps at night and grows up depending on how you look after it. Right-click it, or use the menu bar icon, to care for it.
+
+```bash
+desktop/build.sh && open desktop/build/Buddies.app
+```
+
 ## Deploy
 
 Every push to `main` deploys to Cloudflare through `.github/workflows/deploy.yml`. The workflow needs two repository secrets, `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`; see CLAUDE.md for the token permissions.

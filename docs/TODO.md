@@ -3,6 +3,11 @@
 ## Tasks
 
 ### Current
+- [ ] Desktop pet: try the pie and menu bar care, sound and Open at Login by hand (the agent can't click in the app)
+- [ ] Desktop pet: measure energy use over a day
+- [ ] Live with the game pace for a few days and tune `PACE` in src/pet.js
+- [ ] Before sharing the app: Apple Developer account, Developer ID signing and notarization, an app icon
+- [ ] Before any App Store submission: find a public replacement for `drawsBackground` in main.swift, or accept the review risk
 - [ ] Tune the polygon head shapes in a real browser (corner rounding, face height, eye size on small heads)
 
 ### Upcoming
@@ -17,6 +22,8 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Desktop pet game: `src/pet.js` rules (egg, baby, child, adult, death; hunger, happiness, poop, sickness, sleep, calls, care mistakes, discipline, catch-up on real time) with tests; egg and grave held morphs, asleep and sick moods, X eyes, `mark`, `look`, poop, eat/medicine/sulk emotes; the Mac app saves the pet, shows hearts in the menu bar, beeps when called, and opens a care pie on right-click; all 13 head styles checked in WebKit (2026-11-03)
+- [x] First Mac app in `desktop/`: a sandboxed, see-through Swift window with one buddy that follows the cursor, drags and boops, with Small, Medium and Large sizes in the menu bar (the default is picked from the screen height); library gained `setPointer`, `setFrameRate`, `hitTest` and `floor` (2026-11-02)
 - [x] Audit cleanup: `npm test` with 10 tests, run before deploy; split `Buddy.render` into buddy-render.js and `think`, `drawEye`, `openPieMenu` and `createConfigEditor` into smaller functions; traits.js and copy-text.js moved out of app.js; repeated cancel steps and label helper merged (2026-11-02)
 - [x] Fixed leader menu focus returning to the wrong buddy, old page wording, and the product requirements (2026-11-02)
 - [x] Deploy workflow moved to current action versions to clear the Node 20 warning (2026-11-02)
@@ -62,6 +69,10 @@
 ## Notes
 
 ### Development Decisions
+- Desktop app is a thin Swift window around the library, Mac only. No Electron (user's call), Tauri's transparency blocks the App Store, Flutter would mean rewriting `src/` in Dart. Ship a notarized download first and keep to App Store rules (2026-11-02).
+- The pet is a dumb 90s Tamagotchi: no AI, no learning, no chat, and it can die for good. "A pet that can't die is a screensaver with chores." The app never says outright that buddies die (2026-11-02).
+- Desktop transparency uses the private `drawsBackground` key on the web view: the public `underPageBackgroundColor` left a white square. Fine for a notarized download, a review risk for the App Store (2026-11-02).
+- Sandboxed WKWebView needs `com.apple.security.network.client` even for bundled local files; without it the page never loads. The app makes no network requests (2026-11-02).
 - CodeMirror is vendored, not loaded from a CDN: esm.sh failed to build the package set (server out of disk) and jsDelivr links each package to different core versions, which breaks CodeMirror. `codemirror-json-schema` was skipped because it pulls in Shiki and a markdown renderer; the schema-aware completion and checks are ~150 lines in config-editor.js (2026-10-30).
 - Configs instead of seeds: once Copy config produced full JSON, seeds were a second way to describe a buddy that had to stay byte-stable forever. A buddy is now just its config (2026-10-30).
 - No paper airplane morph: a plane needs to bank and loop in three dimensions, and spinning flat on screen read as a cutout. Morphs that naturally move flat (balloon, ball, ghost) work in 2D. The fish also read badly on a path, so it swims in place; turning is a horizontal squash through zero, like a fish seen side-on (2026-10-29).

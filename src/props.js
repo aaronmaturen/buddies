@@ -55,9 +55,39 @@ export const HATS = {
   },
 };
 
+// ---------- on the floor ----------
+
+// A cartoon swirl with stink lines, in its own units (about 1 across, sitting on y = 1).
+export function drawPoop(ctx, m, now) {
+  ctx.setTransform(m);
+  ctx.beginPath();
+  ctx.ellipse(0, .78, .5, .22, 0, 0, TAU); ctx.ellipse(0, .46, .36, .18, 0, 0, TAU); ctx.ellipse(.02, .2, .22, .14, 0, 0, TAU);
+  ctx.moveTo(.08, .08); ctx.quadraticCurveTo(.16, -.08, .02, -.14);
+  outlined(ctx, "#9a6a43", .06);
+  ctx.lineCap = "round"; ctx.lineWidth = .05; ctx.strokeStyle = "rgba(120, 160, 90, .8)";
+  for (const x of [-.32, .32]) {
+    ctx.beginPath();
+    for (let i = 0; i <= 8; i++) { const y = -.05 - i * .07, px = x + .06 * Math.sin(now * 4 + i * .9 + x * 7); i ? ctx.lineTo(px, y) : ctx.moveTo(px, y); }
+    ctx.stroke();
+  }
+}
+
 // ---------- held ----------
 
 export const HELD = {
+  food: { draw(ctx) {
+    // A rice ball with a band of seaweed.
+    ctx.beginPath(); ctx.moveTo(-.12, -1.35); ctx.quadraticCurveTo(.08, -1.4, .38, -.7);
+    ctx.quadraticCurveTo(.42, -.5, .2, -.5); ctx.lineTo(-.45, -.5); ctx.quadraticCurveTo(-.66, -.5, -.6, -.7);
+    ctx.quadraticCurveTo(-.32, -1.4, -.12, -1.35); outlined(ctx, "#f7f7f2");
+    ctx.beginPath(); ctx.roundRect(-.3, -.82, .36, .32, .04); outlined(ctx, "#24342b", LINE * .6);
+  } },
+  pill: { draw(ctx) {
+    ctx.save(); ctx.translate(-.1, -.95); ctx.rotate(-.6);
+    ctx.beginPath(); ctx.roundRect(-.2, -.45, .4, .9, .2); outlined(ctx, "#f4f5fb");
+    ctx.beginPath(); ctx.roundRect(-.2, -.45, .4, .45, [.2, .2, 0, 0]); outlined(ctx, "#ff6b6b");
+    ctx.restore();
+  } },
   mug: { behind: true, draw(ctx, now) {
     // The handle sits under the fist; the cup is on the side toward the head.
     ctx.beginPath(); ctx.arc(-.32, -.16, .2, -Math.PI / 2, Math.PI / 2);

@@ -6,12 +6,16 @@ import { fish } from "./fish.js";
 import { star } from "./star.js";
 import { cat } from "./cat.js";
 import { dog } from "./dog.js";
+import { egg } from "./egg.js";
+import { grave } from "./grave.js";
 
 // Each morph is an object the buddy can turn into. Fields:
 //   label     button text
 //   outline   polygon in head units, or a function of time for shapes that move (ghost hem, fish tail).
 //             Front toward +x for path-following morphs; upright ones can face any way.
-//   scale     size while transformed; eyes { x, y, gap, size } where the eyes ride, in the object's own frame
+//   held      only for morphInto(name, { hold: true }), like the pet's egg and grave; left out of MORPH_NAMES
+//   scale     size while transformed; eyes { x, y, gap, size } where the eyes ride, in the object's own frame,
+//             or null for an object with no face
 //   duration  seconds of acting between the melt in and melt out
 //   path      waypoints the object follows nose-first (it flips to face its direction, except inside `loop`)
 //   motion    alternatively, (u, now) => { x, y, rot, sx, sy, ... } for its own movement; extra fields go to detail
@@ -21,4 +25,4 @@ import { dog } from "./dog.js";
 //   behind    (ctx, same args as detail) draws parts behind the shape, like tails
 //   detail    (ctx, { ...flight, now, k, colors }) draws extras over the shape in the object's frame;
 //             colors are the head's cel tones (lit, shade, glow) so parts like paws and tails match
-export const MORPHS = { balloon, rocket, ball, ghost, fish, star, cat, dog };
+export const MORPHS = { balloon, rocket, ball, ghost, fish, star, cat, dog, egg, grave };

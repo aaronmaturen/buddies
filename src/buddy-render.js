@@ -6,6 +6,7 @@ import { drawMouth } from "./mouth.js";
 import { drawSymbols } from "./symbols.js";
 import { headColors } from "./colors.js";
 import { theme } from "./theme.js";
+import { drawPoop } from "./props.js";
 
 // One frame of a Buddy. This is the drawing half of the Buddy class, so unlike the drawing helpers it reads a Buddy
 // directly. `view` holds what's worked out once per frame: where the head is, its size, and any morph.
@@ -43,7 +44,8 @@ export function renderBuddy(b, ctx, px, style) {
 // The floor shadow and the head, or the object while morphed.
 function drawBody(b, view) {
   const { ctx, px, style, base, head, R, lift, cx, cy, H, mo, fit, mx, psx, psy } = view, { spec } = b;
-  drawShadow(ctx, base.translate(cx, 0).scale(psx, 1).translate(-cx, 0), { cx: mx, groundY: H * .48, R, head, lift: lift + (mo ? Math.max(0, -mo.flight.y * fit) * .35 : 0), color: theme.fg });
+  for (let i = 0; i < b.messes; i++) drawPoop(ctx, base.translate(cx + R * (1.55 + i * .75), cy + R * .78).scale(R * .42), b.now + i);
+  if (b.floor) drawShadow(ctx, base.translate(cx, 0).scale(psx, 1).translate(-cx, 0), { cx: mx, groundY: H * .48, R, head, lift: lift + (mo ? Math.max(0, -mo.flight.y * fit) * .35 : 0), color: theme.fg });
 
   // Squash and stretch about the bottom of the head.
   const sq = b.squash.x;
@@ -121,7 +123,7 @@ function drawEyes(b, ctx, { P, dy, dp, face, faceLat, place }) {
   const boost = s === b.boostSide ? b.boost.x : 1;
   const Pe = boost === 1 ? P : { ...P, eyeScale: P.eyeScale * boost };
   place(lon, faceLat);
-    drawEye(ctx, { s, spec, P: Pe, open: b.open, dy, dp, ink: face.eye, lidFill: face.lid, fill: face.eyeFill, pupil: face.pupil });
+    drawEye(ctx, { s, spec, P: Pe, open: b.open, dy, dp, ink: face.eye, lidFill: face.lid, fill: face.eyeFill, pupil: face.pupil, cross: b.xEyes });
     place(lon, faceLat + browOffset(s, spec, P));
     drawBrow(ctx, { s, spec, P, ink: face.brow });
   eyes.push({ lon, lat: faceLat, w: spec.eyeW * P.eyeScale, h: spec.eyeH * P.eyeScale });
@@ -132,6 +134,7 @@ function drawEyes(b, ctx, { P, dy, dp, face, faceLat, place }) {
 // Eyes riding on the object once the head has melted into it.
 function drawObjectEyes(b, { ctx, R, mo, mx, my }, objectSpace, { P, dy, dp, face }) {
   const { spec } = b, E = mo.def.eyes;
+  if (!E) return;
   for (const s of [-1, 1]) {
     ctx.setTransform(objectSpace.translate(mx + (E.x + s * E.gap / 2) * R, my + E.y * R).scale(R * E.size));
     ctx.globalAlpha = clamp((mo.k - .55) / .3, 0, 1);

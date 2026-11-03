@@ -58,8 +58,10 @@ function drawLid(ctx, { L, w, h, squash, lidFill, ink }) {
   ctx.lineWidth = EYE_LINE; ctx.lineCap = "round"; ctx.strokeStyle = ink; ctx.stroke();
 }
 
-export function drawEye(ctx, { s, spec, P, open: openness, dy, dp, ink, lidFill, fill = WHITE, pupil = INK }) {
+// cross: a cartoon X instead of an eye, for a buddy that's knocked out or gone.
+export function drawEye(ctx, { s, spec, P, open: openness, dy, dp, ink, lidFill, fill = WHITE, pupil = INK, cross = false }) {
   const { k, w, h, open, squash, pts, centerY } = eyeShape({ s, spec, P, openness });
+  if (cross) { drawCross(ctx, Math.max(w, h) * .45, ink); return; }
   const outline = () => {
     ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
     for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
@@ -78,6 +80,11 @@ export function drawEye(ctx, { s, spec, P, open: openness, dy, dp, ink, lidFill,
   ctx.restore();
 
   outline(); ctx.lineWidth = EYE_LINE; ctx.lineJoin = "round"; ctx.strokeStyle = ink; ctx.stroke();
+}
+
+function drawCross(ctx, r, ink) {
+  ctx.beginPath(); ctx.moveTo(-r, -r); ctx.lineTo(r, r); ctx.moveTo(r, -r); ctx.lineTo(-r, r);
+  ctx.lineWidth = EYE_LINE * 2.4; ctx.lineCap = "round"; ctx.strokeStyle = ink; ctx.stroke();
 }
 
 export function drawBrow(ctx, { s, spec, P, ink }) {

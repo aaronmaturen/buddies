@@ -5,7 +5,7 @@ import { MORPHS } from "./morphs/index.js";
 import { catmull, smooth } from "./morphs/shared.js";
 
 export { MORPHS };
-export const MORPH_NAMES = Object.keys(MORPHS);
+export const MORPH_NAMES = Object.keys(MORPHS).filter(name => !MORPHS[name].held);
 
 // Morphs: the head melts into an object, the object does its thing, then melts back.
 // Both outlines are rings of N points in head units, started at the rightmost point and running the same way
@@ -58,13 +58,24 @@ export class MorphPlayer {
 
   get busy() { return !!this.active; }
 
-  start(name, now) {
+  // hold: stay as the object until release(), instead of melting back after the act.
+  start(name, now, { hold = false } = {}) {
     const def = MORPHS[name];
     if (!def || this.active) return false;
-    this.active = { def, start: now, puffedIn: false, puffedOut: false, fired: 0, last: null };
+    this.active = { def, start: now, hold, puffedIn: false, puffedOut: false, fired: 0, last: null };
     this.k.t = 1;
     return true;
   }
+
+  // Melt back now from a held morph.
+  release(now) {
+    const a = this.active;
+    if (!a?.hold) return;
+    a.hold = false;
+    a.start = Math.min(a.start, now - IN - a.def.duration);
+  }
+
+  get holding() { return this.active?.hold ? this.active.def : null; }
 
   // Drop the current morph at once (used when the buddy vanishes).
   stop() { this.active = null; this.k.x = this.k.t = this.k.v = 0; }
@@ -77,7 +88,7 @@ export class MorphPlayer {
   update(now, head) {
     const a = this.active;
     if (!a) return null;
-    const { def } = a, t = now - a.start, end = IN + def.duration;
+    const { def } = a, t = now - a.start, end = a.hold ? Infinity : IN + def.duration;
     const puff = [], spawn = [];
     if (!a.puffedIn) { a.puffedIn = true; puff.push("in"); }
     if (t >= end) {

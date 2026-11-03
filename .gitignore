@@ -5,3 +5,5 @@ public/buddies.js
 public/buddies.js.map
 .wrangler/
 .dev.vars
+desktop/.build/
+desktop/build/

@@ -1,11 +1,17 @@
 // One requestAnimationFrame loop for every buddy. Springs step at 120 Hz so motion stays smooth at any frame rate.
 const buddies = new Set();
 const STEP = 1 / 120;
-let running = false, last = 0;
+const FRAME_SLACK = .002;
+let running = false, last = 0, minFrame = 0;
+
+// Most frames per second to draw, for hosts that run all day on a battery. 0 means every animation frame.
+export function setFrameRate(fps) { minFrame = fps > 0 ? 1 / fps : 0; }
 
 function frame(ms) {
   if (!buddies.size) { running = false; return; }
-  const now = ms / 1000, dt = Math.min(.1, now - last);
+  const now = ms / 1000;
+  if (now - last < minFrame - FRAME_SLACK) { requestAnimationFrame(frame); return; }
+  const dt = Math.min(.1, now - last);
   last = now;
   for (const b of buddies) {
     if (!b.visible) continue;

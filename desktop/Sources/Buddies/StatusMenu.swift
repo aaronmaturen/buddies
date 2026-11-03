@@ -1,0 +1,135 @@
+import AppKit
+import ServiceManagement
+
+// The menu bar icon and its menu: how the pet is doing, the same care as the pie menu, and the app's settings.
+// The icon changes when the pet needs you, and a call can play a sound.
+final class StatusMenu: NSObject, NSMenuDelegate {
+  var onCare: ((String, String?) -> Void)?
+  var onNewEgg: (() -> Void)?
+  var onSize: ((CGFloat) -> Void)?
+  var side: CGFloat
+
+  private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+  private let menu = NSMenu()
+  private var status: [String: Any] = [:]
+  private var soundOn: Bool {
+    get { UserDefaults.standard.object(forKey: "Sound") as? Bool ?? true }
+    set { UserDefaults.standard.set(newValue, forKey: "Sound") }
+  }
+
+  init(side: CGFloat) {
+    self.side = side
+    super.init()
+    menu.delegate = self
+    item.menu = menu
+    setIcon("face.smiling")
+  }
+
+  func update(_ next: [String: Any]) {
+    let was = status["calling"] as? String
+    status = next
+    let calling = next["calling"] as? String
+    if calling != nil, calling != was, soundOn { NSSound(named: "Tink")?.play() }
+    let stage = next["stage"] as? String
+    setIcon(stage == "dead" ? "leaf" : calling != nil ? "exclamationmark.bubble.fill"
+      : next["asleep"] as? Bool == true ? "moon.zzz.fill" : "face.smiling")
+  }
+
+  private func setIcon(_ symbol: String) {
+    item.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: "Buddies")
+  }
+
+  private static func hearts(_ n: Any?) -> String {
+    let full = n as? Int ?? 0
+    return String(repeating: "♥", count: full) + String(repeating: "♡", count: max(0, 4 - full))
+  }
+
+  private static let calls = ["hungry": "is hungry", "sad": "is sad", "sick": "is sick",
+    "lights": "wants the lights off", "naughty": "is acting up"]
+
+  func menuNeedsUpdate(_ menu: NSMenu) {
+    menu.removeAllItems()
+    let name = status["name"] as? String ?? "Buddy", stage = status["stage"] as? String ?? "egg"
+    let alive = stage != "egg" && stage != "dead"
+    if stage == "dead" {
+      info("\(name) died of \(status["cause"] as? String ?? "something")")
+    } else {
+      info("\(name) · \(stage) · day \((status["age"] as? Int ?? 0) + 1)")
+      if alive {
+        info("Hunger \(Self.hearts(status["hunger"]))")
+        info("Happy \(Self.hearts(status["happy"]))")
+      }
+      if let why = status["calling"] as? String { info("\(name) \(Self.calls[why] ?? "needs you")") }
+    }
+    menu.addItem(.separator())
+    if alive { addCare() }
+    menu.addItem(submenu("Size", sizes.enumerated().map { i, size in
+      action(size.name, #selector(pickSize(_:)), tag: i, on: size.side == side)
+    }))
+    menu.addItem(action("Sound", #selector(toggleSound), on: soundOn))
+    menu.addItem(action("Open at Login", #selector(toggleLogin), on: SMAppService.mainApp.status == .enabled))
+    menu.addItem(action(stage == "dead" ? "New Egg" : "New Egg…", #selector(newEgg)))
+    menu.addItem(.separator())
+    menu.addItem(withTitle: "Quit Buddies", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+  }
+
+  private func addCare() {
+    menu.addItem(action("Feed", #selector(care(_:)), id: "feed"))
+    menu.addItem(submenu("Play", [action("Left", #selector(care(_:)), id: "play left"), action("Right", #selector(care(_:)), id: "play right")]))
+    menu.addItem(action("Clean", #selector(care(_:)), id: "clean"))
+    menu.addItem(action("Medicine", #selector(care(_:)), id: "medicine"))
+    menu.addItem(action(status["lightsOff"] as? Bool == true ? "Lights On" : "Lights Off", #selector(care(_:)), id: "lights"))
+    menu.addItem(action("Scold", #selector(care(_:)), id: "scold"))
+    menu.addItem(.separator())
+  }
+
+  private func info(_ title: String) {
+    let item = menu.addItem(withTitle: title, action: nil, keyEquivalent: "")
+    item.isEnabled = false
+  }
+
+  private func action(_ title: String, _ selector: Selector, tag: Int = 0, id: String? = nil, on: Bool = false) -> NSMenuItem {
+    let item = NSMenuItem(title: title, action: selector, keyEquivalent: "")
+    item.target = self; item.tag = tag; item.representedObject = id; item.state = on ? .on : .off
+    return item
+  }
+
+  private func submenu(_ title: String, _ items: [NSMenuItem]) -> NSMenuItem {
+    let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+    item.submenu = NSMenu(title: title)
+    items.forEach { item.submenu?.addItem($0) }
+    return item
+  }
+
+  @objc private func care(_ item: NSMenuItem) {
+    let parts = (item.representedObject as? String ?? "").split(separator: " ").map(String.init)
+    onCare?(parts[0], parts.count > 1 ? parts[1] : nil)
+  }
+
+  @objc private func pickSize(_ item: NSMenuItem) {
+    side = sizes[item.tag].side
+    UserDefaults.standard.set(Double(side), forKey: sizeKey)
+    onSize?(side)
+  }
+
+  @objc private func toggleSound() { soundOn.toggle() }
+
+  @objc private func toggleLogin() {
+    let service = SMAppService.mainApp
+    try? service.status == .enabled ? service.unregister() : service.register()
+  }
+
+  // Starting over is final, so it asks first unless the pet has already died.
+  @objc private func newEgg() {
+    if status["stage"] as? String != "dead" {
+      NSApp.activate(ignoringOtherApps: true)
+      let alert = NSAlert()
+      alert.messageText = "Start over with a new egg?"
+      alert.informativeText = "\(status["name"] as? String ?? "Your buddy") will be gone for good."
+      alert.addButton(withTitle: "New Egg")
+      alert.addButton(withTitle: "Cancel")
+      guard alert.runModal() == .alertFirstButtonReturn else { return }
+    }
+    onNewEgg?()
+  }
+}

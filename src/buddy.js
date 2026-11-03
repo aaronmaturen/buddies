@@ -14,18 +14,23 @@ import { pointer } from "./pointer.js";
 import { stopAnimating } from "./loop.js";
 
 const TURN_AWAY_CHANCE = .05;
+const HIT_SLOP = 3, HIT_ALPHA = 24;
 
 // One animated buddy drawn into one canvas.
 // headMode: "mixed" (each buddy uses its own spec.headStyle) or any key of HEAD_STYLES (styles/index.js)
 // to force one style, e.g. "solid", "ghost", "none", "sketch", "pixel".
 // scale: head radius as a fraction of the canvas's shorter side.
+// floor: draw the floor shadow. Off for a buddy with no floor under it, like one on the desktop.
+// readable: keep the canvas where hitTest can read it cheaply, for hosts that call hitTest many times a second.
 export class Buddy {
-  constructor(canvas, spec, { scale = .3, headMode = "mixed" } = {}) {
-    this.canvas = canvas; this.ctx = canvas.getContext("2d");
-    this.scale = scale; this.headMode = headMode;
+  constructor(canvas, spec, { scale = .3, headMode = "mixed", floor = true, readable = false } = {}) {
+    this.canvas = canvas; this.ctx = canvas.getContext("2d", { willReadFrequently: readable });
+    this.scale = scale; this.headMode = headMode; this.floor = floor;
     this.visible = true; this.w = 0; this.h = 0;
     // still: no idle motion (glancing, following the pointer, drift, bob, blinks). Moods, emotes and morphs still play.
     this.still = false;
+    // For hosts like the pet game: X eyes, and how many messes sit beside the buddy.
+    this.xEyes = false; this.messes = 0;
     this.p = {}; for (const k in BASE) this.p[k] = new Spring(BASE[k]);
     this.gYaw = new Spring(); this.gPitch = new Spring();
     this.hYaw = new Spring(); this.hPitch = new Spring(); this.hRoll = new Spring();
@@ -127,10 +132,24 @@ export class Buddy {
   }
 
   // Turn into an object from MORPHS for a while, then back. Cancels any emote.
-  morphInto(name) {
-    if (this.away || !this.morph.start(name, this.now)) return;
+  // hold: stay as the object until unmorph(), for things like the pet's egg and grave.
+  morphInto(name, { hold = false } = {}) {
+    if (this.away || !this.morph.start(name, this.now, { hold })) return;
     this.cancelEmote();
   }
+
+  unmorph() { this.morph.release(this.now); }
+
+  // The held morph showing now, if any.
+  get holding() { return this.morph.holding; }
+
+  // Glance one way for a while: x and y from -1 to 1, like the pet game's left-or-right guess.
+  look(x, y = 0, seconds = 1.5) {
+    this.glance = [x * .75, y * .45]; this.turnAway = 0; this.attending = false; this.nextGlance = this.now + seconds;
+  }
+
+  // A cartoon mark from symbols.js (heart, bang, z, sweat, ...) without a whole emote.
+  mark(kind) { if (!this.away) spawnSymbol(this.emotes.symbols, kind, this.spec, { mouth: this.mouthPoint }); }
 
   boop() {
     if (this.away) return;
@@ -247,6 +266,14 @@ export class Buddy {
     this.presence.integrate(dt);
     this.wear.integrate(dt);
     this.boost.step(dt, 160, .55);
+  }
+
+  // Whether anything is drawn near x, y (canvas pixels from its top left), so it works for every style and morph.
+  hitTest(x, y) {
+    const d = this.dpr || 1, size = Math.ceil(HIT_SLOP * 2 * d);
+    const { data } = this.ctx.getImageData(Math.round((x - HIT_SLOP) * d), Math.round((y - HIT_SLOP) * d), size, size);
+    for (let i = 3; i < data.length; i += 4) if (data[i] > HIT_ALPHA) return true;
+    return false;
   }
 
   // Pixel style draws the whole buddy into a small canvas, then scales it up without smoothing.

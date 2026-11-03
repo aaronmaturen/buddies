@@ -40,6 +40,7 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
   - `mouth.js` — emote-only mouth presets and drawing.
   - `leader.js` — `Leader` (opens the pie menu, fires `command` events), `follow(buddy, command)`, `leaderMenu`.
   - `pie-menu.js` — `openPieMenu`: wedge buttons, paging, keyboard; injects its own styles and reads the host page's color tokens.
+  - `pet.js` — the pet game's rules: `newPet`, `advance` (catches up on real time a minute at a time), `care`, `petView`, `petConfig`, with the pace in `PACE`. No drawing.
   - `presence.js` — `Presence`: vanish (squash, zip up thin, puff) and appear (pop back on wobbly springs); away has no time limit.
   - `morph.js` — `MorphPlayer`: outline matching and the melt-in, act, melt-out timeline.
   - `morphs/` — one file per morph object (balloon, rocket, ball, ghost, fish, star, cat, dog); `morphs/index.js` is the `MORPHS` table and documents the fields; `morphs/shared.js` has path and easing helpers.
@@ -58,6 +59,12 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 - `.claude/launch.json` — `npm run dev` for previews.
 - `test/` — `node:test` tests for what runs without a browser.
 - `docs/` — TODO log and product requirements.
+- `desktop/` — the Mac app: a pet buddy on the desktop, a thin Swift shell around the library with no buddy or game logic of its own. Sandboxed, so it stays eligible for the App Store; `build.sh` makes `desktop/build/Buddies.app`.
+  - `Sources/Buddies/main.swift` — the see-through window, cursor polling for click-through, and the bridge to the page (`desktop.*` calls in, `pet` messages out).
+  - `BuddyView.swift` — mouse handling: drag moves the window, click boops, right-click opens the care menu.
+  - `StatusMenu.swift` — the menu bar icon and menu: hearts, care, size, sound, Open at Login, New Egg.
+  - `PetStore.swift` — the saved pet, one JSON file in the app's container.
+  - `web/` — the page inside the window: `pet.js` runs the game with the library and shows it; uses the script tag build because modules don't load from `file://`.
 
 ## Project Documentation Index
 
@@ -73,6 +80,8 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 - Turning away: the head yaws past where the face sits on the sphere, so the features fade out and only the back of the head shows. The `lookAway` emote does it on purpose with a peek over the shoulder; idle buddies do it for one glance at random (`TURN_AWAY_CHANCE` in buddy.js), never with reduced motion or Hold still, or while following the pointer.
 - Leader: the menu never touches a buddy; each pick fires a plain JSON `command` event ({ kind, name }) and listeners decide who follows, with `follow()` for the usual case. New emotes, moods and morphs appear in the menu automatically; emotes group by their events (wear or holds → Props, hand → Hands, else React). The page's leader mode opens the menu on the clicked buddy and hides the Emotes and Mood buttons, leaving Hold still.
 - Away: `buddy.vanish()` / `buddy.appear()`, checked with `buddy.away`. While away, emotes, morphs and boops are ignored; vanishing cancels any emote, morph, hands and worn items. The page's Away button sends the whole cast, and clicking the empty stage brings everyone back.
+- The pet is a dumb 90s virtual pet: no AI, no learning, no chat, and it dies for good (never said outright; "A pet that can't die is a screensaver with chores"). Its rules live in `src/pet.js` over plain JSON state with a seeded dice counter, so the same care gives the same kind of buddy and tests can run days in milliseconds. Stages: egg → baby → child → adult → dead; care mistakes and discipline pick the child and adult heads (`FORMS`). The host shows `petView()` with held morphs (`egg`, `grave`), the `asleep` and `sick` moods, `buddy.mark()`, `buddy.messes` and `buddy.xEyes`, and turns care replies into emotes (eat, medicine, sulk).
+- Held morphs: `buddy.morphInto(name, { hold: true })` stays as the object until `buddy.unmorph()`. Morphs marked `held` (egg, grave) only work this way and stay out of `MORPH_NAMES`, so the site and leader menu don't offer them.
 - Symbols anchor either to the head surface (turn with it) or float in screen space around it.
 - Hands are emote-only and float in screen space; `face: true` pins a hand to the eye line and follows the head's turn. New poses go in `POSES` (hands.js) as a palm plus round-capped finger strokes.
 - Accessories are emote-only. Worn items go in `WEARABLES` (wear.js) with a drawing in props.js; held items go in `HELD` (props.js) and are given to a hand with `holds` in an emote's hand event.
@@ -110,4 +119,5 @@ GitHub Actions secrets (repo settings → Secrets → Actions):
 - Test: `npm test`
 - Build: `npm run build`
 - Deploy manually: `npm run build && npx wrangler deploy`
+- Build and run the Mac app: `desktop/build.sh && open desktop/build/Buddies.app`
 - Upgrade the vendored CodeMirror: edit versions in `scripts/vendor-codemirror.sh`, then run it (needs npm)
