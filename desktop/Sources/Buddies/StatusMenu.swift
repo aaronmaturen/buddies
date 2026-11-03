@@ -1,7 +1,8 @@
 import AppKit
 import ServiceManagement
 
-// The menu bar icon and its menu: how the pet is doing, the same care as the pie menu, and the app's settings.
+// The menu bar icon and its menu: how the pet is doing, care, and the app's settings. The same status and care
+// items make the right-click menu on the buddy.
 // The icon changes when the pet needs you, and a call can play a sound.
 final class StatusMenu: NSObject, NSMenuDelegate {
   var onCare: ((String, String?) -> Void)?
@@ -47,22 +48,13 @@ final class StatusMenu: NSObject, NSMenuDelegate {
   private static let calls = ["hungry": "is hungry", "sad": "is sad", "sick": "is sick",
     "lights": "wants the lights off", "naughty": "is acting up"]
 
+  private var stage: String { status["stage"] as? String ?? "egg" }
+  private var alive: Bool { stage != "egg" && stage != "dead" }
+
   func menuNeedsUpdate(_ menu: NSMenu) {
     menu.removeAllItems()
-    let name = status["name"] as? String ?? "Buddy", stage = status["stage"] as? String ?? "egg"
-    let alive = stage != "egg" && stage != "dead"
-    if stage == "dead" {
-      info("\(name) died of \(status["cause"] as? String ?? "something")")
-    } else {
-      info("\(name) · \(stage) · day \((status["age"] as? Int ?? 0) + 1)")
-      if alive {
-        info("Hunger \(Self.hearts(status["hunger"]))")
-        info("Happy \(Self.hearts(status["happy"]))")
-      }
-      if let why = status["calling"] as? String { info("\(name) \(Self.calls[why] ?? "needs you")") }
-    }
-    menu.addItem(.separator())
-    if alive { addCare() }
+    addStatus(to: menu)
+    if alive { addCare(to: menu) }
     menu.addItem(submenu("Size", sizes.enumerated().map { i, size in
       action(size.name, #selector(pickSize(_:)), tag: i, on: size.side == side)
     }))
@@ -73,7 +65,32 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     menu.addItem(withTitle: "Quit Buddies", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
   }
 
-  private func addCare() {
+  // The right-click menu on the buddy: how it's doing and the care actions, or a new egg once it's gone.
+  // Nil for an egg, which has nothing to care for yet.
+  func contextMenu() -> NSMenu? {
+    guard stage != "egg" else { return nil }
+    let menu = NSMenu()
+    addStatus(to: menu)
+    if alive { addCare(to: menu) } else { menu.addItem(action("New Egg", #selector(newEgg))) }
+    return menu
+  }
+
+  private func addStatus(to menu: NSMenu) {
+    let name = status["name"] as? String ?? "Buddy"
+    if stage == "dead" {
+      info("\(name) died of \(status["cause"] as? String ?? "something")", in: menu)
+    } else {
+      info("\(name) · \(stage) · day \((status["age"] as? Int ?? 0) + 1)", in: menu)
+      if alive {
+        info("Hunger \(Self.hearts(status["hunger"]))", in: menu)
+        info("Happy \(Self.hearts(status["happy"]))", in: menu)
+      }
+      if let why = status["calling"] as? String { info("\(name) \(Self.calls[why] ?? "needs you")", in: menu) }
+    }
+    menu.addItem(.separator())
+  }
+
+  private func addCare(to menu: NSMenu) {
     menu.addItem(action("Feed", #selector(care(_:)), id: "feed"))
     menu.addItem(submenu("Play", [action("Left", #selector(care(_:)), id: "play left"), action("Right", #selector(care(_:)), id: "play right")]))
     menu.addItem(action("Clean", #selector(care(_:)), id: "clean"))
@@ -83,7 +100,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     menu.addItem(.separator())
   }
 
-  private func info(_ title: String) {
+  private func info(_ title: String, in menu: NSMenu) {
     let item = menu.addItem(withTitle: title, action: nil, keyEquivalent: "")
     item.isEnabled = false
   }

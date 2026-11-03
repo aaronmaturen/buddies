@@ -1,13 +1,13 @@
 // The page inside the Mac window: one pet buddy. The rules are the library's (newPet, advance, care); this file
 // shows them and talks to the Swift side. window.desktop is what Swift calls; messages go back on "pet".
-const { Buddy, fromConfig, animate, setFrameRate, setPointer, newPet, advance, care, petView, petConfig, openPieMenu } = Buddies;
+const { Buddy, fromConfig, animate, setFrameRate, setPointer, newPet, advance, care, petView, petConfig } = Buddies;
 
 const SCALE = .16, GAME_TICK = 5000, MARK_EVERY = 2500, SAVE_EVERY = 30000, DYING = 3000, REGROW = 900;
 const post = message => window.webkit?.messageHandlers?.pet?.postMessage(message);
 
 let pet = window.savedPet?.version === 1 ? window.savedPet : newPet(Date.now());
 const buddy = new Buddy(document.getElementById("buddy"), fromConfig(petConfig(pet)), { scale: SCALE, floor: false, readable: true });
-let view = null, menuOpen = false, dying = false, lastSave = 0;
+let view = null, dying = false, lastSave = 0;
 
 setFrameRate(30);
 animate(buddy);
@@ -76,39 +76,18 @@ function newEgg() {
   save();
 }
 
-function careItems() {
-  if (view.stage === "dead") return [{ label: "New egg", value: { newEgg: true } }];
-  return [
-    { label: "Feed", value: { action: "feed" } },
-    { label: "Play", items: [{ label: "Left", value: { action: "play", guess: "left" } }, { label: "Right", value: { action: "play", guess: "right" } }] },
-    { label: "Clean", value: { action: "clean" } },
-    { label: "Medicine", value: { action: "medicine" } },
-    { label: view.lightsOff ? "Lights on" : "Lights off", value: { action: "lights" } },
-    { label: "Scold", value: { action: "scold" } },
-  ];
-}
-
+// Care itself comes from the app's native menus, which call desktop.care.
 window.desktop = {
   // x, y are window pixels from the top left. Returns whether the window should take the mouse.
   tick(x, y, moved) {
     if (moved) setPointer(x, y);
-    return menuOpen || buddy.hitTest(x, y);
+    return buddy.hitTest(x, y);
   },
   boop() {
     if (view.stage === "egg" || (view.mood !== "asleep" && view.stage !== "dead")) buddy.boop();
   },
-  menu(x, y) {
-    // An egg has nothing to care for yet, so it just rocks to show it heard.
-    if (view.stage === "egg") { buddy.boop(); buddy.mark("question"); return; }
-    if (menuOpen || dying) return;
-    menuOpen = true;
-    post({ type: "menu", open: true });
-    openPieMenu(x, y, careItems(), {
-      label: `Care for ${pet.config.name}`,
-      onPick: pick => (pick.newEgg ? newEgg() : doCare(pick.action, pick.guess)),
-      onClose: () => { menuOpen = false; post({ type: "menu", open: false }); },
-    });
-  },
+  // A right-click on an egg, which has no menu yet: it rocks to show it heard.
+  nudge() { buddy.boop(); buddy.mark("question"); },
   care: doCare,
   newEgg,
 };

@@ -62,7 +62,7 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 - `desktop/` — the Mac app: a pet buddy on the desktop, a thin Swift shell around the library with no buddy or game logic of its own. Sandboxed, so it stays eligible for the App Store; `build.sh` makes `desktop/build/Buddies.app`.
   - `Sources/Buddies/main.swift` — the see-through window, cursor polling for click-through, and the bridge to the page (`desktop.*` calls in, `pet` messages out).
   - `BuddyView.swift` — mouse handling: drag moves the window, click boops, right-click opens the care menu.
-  - `StatusMenu.swift` — the menu bar icon and menu: hearts, care, size, sound, Open at Login, New Egg.
+  - `StatusMenu.swift` — the menu bar icon and menu (hearts, care, size, sound, Open at Login, New Egg), and the native right-click menu on the buddy built from the same status and care items.
   - `PetStore.swift` — the saved pet, one JSON file in the app's container.
   - `web/` — the page inside the window: `pet.js` runs the game with the library and shows it; uses the script tag build because modules don't load from `file://`.
 

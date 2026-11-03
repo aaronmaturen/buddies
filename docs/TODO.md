@@ -3,7 +3,7 @@
 ## Tasks
 
 ### Current
-- [ ] Desktop pet: try the pie and menu bar care, sound and Open at Login by hand (the agent can't click in the app)
+- [ ] Desktop pet: try the care actions, sound and Open at Login by hand
 - [ ] Desktop pet: measure energy use over a day
 - [ ] Live with the game pace for a few days and tune `PACE` in src/pet.js
 - [ ] Before sharing the app: Apple Developer account, Developer ID signing and notarization, an app icon
@@ -22,6 +22,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Desktop pet: right-click opens a native Mac context menu (status, hearts and care) instead of the web pie; the pie stays in the library for the site and other apps (2026-11-03)
 - [x] Desktop pet game: `src/pet.js` rules (egg, baby, child, adult, death; hunger, happiness, poop, sickness, sleep, calls, care mistakes, discipline, catch-up on real time) with tests; egg and grave held morphs, asleep and sick moods, X eyes, `mark`, `look`, poop, eat/medicine/sulk emotes; the Mac app saves the pet, shows hearts in the menu bar, beeps when called, and opens a care pie on right-click; all 13 head styles checked in WebKit (2026-11-03)
 - [x] First Mac app in `desktop/`: a sandboxed, see-through Swift window with one buddy that follows the cursor, drags and boops, with Small, Medium and Large sizes in the menu bar (the default is picked from the screen height); library gained `setPointer`, `setFrameRate`, `hitTest` and `floor` (2026-11-02)
 - [x] Audit cleanup: `npm test` with 10 tests, run before deploy; split `Buddy.render` into buddy-render.js and `think`, `drawEye`, `openPieMenu` and `createConfigEditor` into smaller functions; traits.js and copy-text.js moved out of app.js; repeated cancel steps and label helper merged (2026-11-02)
@@ -69,6 +70,7 @@
 ## Notes
 
 ### Development Decisions
+- Desktop care uses a native NSMenu on right-click rather than a pie. A web pie can't get the Mac's blurred menu material over a see-through window, and a hand-drawn native pie was weighed and dropped: the plain menu felt more at home (2026-11-03).
 - Desktop app is a thin Swift window around the library, Mac only. No Electron (user's call), Tauri's transparency blocks the App Store, Flutter would mean rewriting `src/` in Dart. Ship a notarized download first and keep to App Store rules (2026-11-02).
 - The pet is a dumb 90s Tamagotchi: no AI, no learning, no chat, and it can die for good. "A pet that can't die is a screensaver with chores." The app never says outright that buddies die (2026-11-02).
 - Desktop transparency uses the private `drawsBackground` key on the web view: the public `underPageBackgroundColor` left a white square. Fine for a notarized download, a review risk for the App Store (2026-11-02).

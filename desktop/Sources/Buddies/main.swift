@@ -15,7 +15,7 @@ func defaultSide() -> CGFloat {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler {
-  private var window: BuddyWindow!
+  private var window: NSWindow!
   private var view: BuddyView!
   private var menu: StatusMenu!
   private var lastMouse = NSPoint(x: -1, y: -1)
@@ -42,9 +42,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     // Not public API, and the one thing here that could fail App Review. underPageBackgroundColor left it white.
     view.setValue(false, forKey: "drawsBackground")
     view.onClick = { [weak self] in self?.run("desktop.boop()") }
-    view.onRightClick = { [weak self] p in self?.openCareMenu(at: p) }
+    view.onRightClick = { [weak self] event in self?.openCareMenu(for: event) }
 
-    window = BuddyWindow(contentRect: view.frame, styleMask: .borderless, backing: .buffered, defer: false)
+    window = NSWindow(contentRect: view.frame, styleMask: .borderless, backing: .buffered, defer: false)
     window.isOpaque = false
     window.backgroundColor = .clear
     window.hasShadow = false
@@ -85,12 +85,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
 
   private func run(_ script: String) { view.evaluateJavaScript(script) }
 
-  // The pie menu takes keys, so the app comes forward while it's open.
-  private func openCareMenu(at p: NSPoint) {
-    NSApp.activate(ignoringOtherApps: true)
-    window.makeKeyAndOrderFront(nil)
-    window.makeFirstResponder(view)
-    run("desktop.menu(\(p.x), \(p.y))")
+  // A native context menu at the mouse. An egg has no menu yet; it rocks to show it heard.
+  private func openCareMenu(for event: NSEvent) {
+    guard let care = menu.contextMenu() else { return run("desktop.nudge()") }
+    NSMenu.popUpContextMenu(care, with: event, for: view)
   }
 
   private func center(at point: NSPoint) {
@@ -102,7 +100,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     switch body["type"] as? String {
     case "save": if let pet = body["pet"] as? String { PetStore.save(pet) }
     case "status": menu.update(body)
-    case "menu": view.menuOpen = body["open"] as? Bool ?? false
     default: break
     }
   }
