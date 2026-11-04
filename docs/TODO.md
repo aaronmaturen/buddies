@@ -6,7 +6,7 @@
 - [ ] Desktop pet: try the care actions, sound and Open at Login by hand
 - [ ] Desktop pet: measure energy use over a day
 - [ ] Live with the game pace for a few days and tune `PACE` in src/pet.js
-- [ ] Before sharing the app: Apple Developer account, Developer ID signing and notarization
+- [ ] Submit Fussbuddy to the Mac App Store: certificates, App ID, profile and App Store Connect record, then `desktop/store.sh` and Transporter (steps in `docs/20261104_app_store.md`)
 - [ ] Before any App Store submission: find a public replacement for `drawsBackground` in main.swift, or accept the review risk
 - [ ] Tune the polygon head shapes in a real browser (corner rounding, face height, eye size on small heads)
 
@@ -23,6 +23,8 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] App Store screenshots: four 2880×1800 scenes rendered from the library in `desktop/screenshots/` (2026-11-04)
+- [x] App Store prep: universal build, `store.sh` signs and packages for upload, store keys in Info.plist (version 1.0.0), privacy and support pages on the site (2026-11-04)
 - [x] Medicine when the pet isn't sick: it shakes its head at the pill instead of a barely visible "?" (2026-11-04)
 - [x] Gift care action: a heart of happiness right away, once every 4 hours; sooner gets a shrug (2026-11-04)
 - [x] Play is a game of "which hand?": five rounds of clicking the fist with the gift, sparkles or a tease each round, a party for 3+ and two hearts for 5/5; buddies look sick in the last 6 hours before starving, sickness or old age would end them (2026-11-04)

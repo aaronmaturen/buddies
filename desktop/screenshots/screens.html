@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- App Store screenshots: the pet on a clean desktop, drawn by the library, with the app's menus drawn to match.
+     render.sh opens this once per scene (#hello, #care, #play, #calling) at 1440×900, 2× scale. -->
+<style>
+  :root {
+    --ink: #1d1f24; --ink-soft: #4a4f5a; --menu: rgba(246, 246, 248, .86); --menu-line: rgba(0, 0, 0, .1);
+    --menu-dim: rgba(0, 0, 0, .38); --pick: #2f6fe4; --bar: rgba(255, 255, 255, .34);
+  }
+  html, body { margin: 0; width: 1440px; height: 900px; overflow: hidden; background: #9fd0ee; font-family: system-ui, -apple-system, sans-serif; color: var(--ink); }
+  .wall { position: absolute; inset: 0; }
+  .bar { position: absolute; inset: 0 0 auto; height: 28px; background: var(--bar); backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: space-between; padding-inline: 18px; font-size: 13px; font-weight: 500; }
+  .bar .left { display: flex; gap: 20px; } .bar .left b { font-weight: 700; }
+  .bar .right { display: flex; gap: 16px; align-items: center; }
+  .bar .icon { display: grid; place-items: center; width: 26px; height: 22px; border-radius: 5px; }
+  .bar .icon.open { background: rgba(0, 0, 0, .12); }
+  .caption { position: absolute; left: 96px; top: 150px; width: 560px; display: flex; flex-direction: column; gap: 18px; }
+  .caption h1 { margin: 0; font-size: 60px; line-height: 1.04; letter-spacing: -.025em; font-weight: 800; text-wrap: balance; }
+  .caption p { margin: 0; font-size: 24px; line-height: 1.4; color: var(--ink-soft); text-wrap: pretty; }
+  canvas#buddy { position: absolute; width: 560px; height: 560px; }
+  .menu { position: absolute; min-width: 230px; padding: 5px; border-radius: 11px; background: var(--menu);
+    backdrop-filter: blur(24px) saturate(1.6); box-shadow: 0 0 0 .5px rgba(0, 0, 0, .18), 0 12px 36px rgba(0, 0, 0, .22);
+    font-size: 13.5px; display: flex; flex-direction: column; }
+  .menu[hidden] { display: none; }
+  .menu div { padding: 4px 12px; border-radius: 6px; line-height: 1.35; white-space: nowrap; }
+  .menu .dim { color: var(--menu-dim); }
+  .menu .pick { background: var(--pick); color: #fff; }
+  .menu .tick::before { content: "✓"; position: absolute; margin-left: -12px; font-size: 12px; }
+  .menu .tick, .menu .untick { padding-left: 24px; }
+  .menu .tick::before { margin-left: -14px; }
+  .menu .more { display: flex; justify-content: space-between; gap: 24px; } .menu .more::after { content: "›"; color: var(--menu-dim); }
+  .menu hr { border: 0; border-top: 1px solid var(--menu-line); margin: 5px 10px; }
+</style>
+</head>
+<body>
+<svg class="wall" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe3f6"/><stop offset="1" stop-color="#f4e6d6"/></linearGradient>
+    <linearGradient id="far" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9cf9f"/><stop offset="1" stop-color="#93bf8c"/></linearGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb378"/><stop offset="1" stop-color="#5f9a62"/></linearGradient>
+  </defs>
+  <rect width="1440" height="900" fill="url(#sky)"/>
+  <circle cx="900" cy="200" r="70" fill="#fff6d8" opacity=".85"/>
+  <path d="M0 640 C 240 560, 420 600, 640 610 S 1080 540, 1440 600 L1440 900 L0 900 Z" fill="url(#far)"/>
+  <path d="M0 760 C 300 680, 560 740, 820 720 S 1240 660, 1440 700 L1440 900 L0 900 Z" fill="url(#near)"/>
+</svg>
+
+<div class="bar">
+  <div class="left"><b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span></div>
+  <div class="right">
+    <span class="icon" id="tray"></span>
+    <span>Wed Nov 4&nbsp;&nbsp;9:41 AM</span>
+  </div>
+</div>
+
+<div class="caption"><h1 id="title"></h1><p id="sub"></p></div>
+<canvas id="buddy"></canvas>
+<div class="menu" id="menu" hidden></div>
+
+<script src="buddies.global.js"></script>
+<script>
+  const { Buddy, fromConfig } = Buddies;
+  const SMILE = `<svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="#1d1f24" stroke-width="1.5"><circle cx="8.5" cy="8.5" r="7"/><path d="M5.5 10.2c1.6 1.8 4.4 1.8 6 0" stroke-linecap="round"/><circle cx="6" cy="7" r=".6" fill="#1d1f24"/><circle cx="11" cy="7" r=".6" fill="#1d1f24"/></svg>`;
+  const CALL = `<svg width="18" height="17" viewBox="0 0 18 17"><path d="M3 1.5h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8l-4 3.2V12.5H3a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" fill="#1d1f24"/><path d="M9 4v4.2" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><circle cx="9" cy="10.4" r="1" fill="#fff"/></svg>`;
+  const hearts = n => "♥".repeat(n) + "♡".repeat(4 - n);
+  const status = (hunger, happy, extra = []) => [`dim:Fuss · adult · day 6`, `dim:Hunger ${hearts(hunger)}`, `dim:Happy ${hearts(happy)}`, ...extra, "hr"];
+  const CARE = ["Feed", "Play", "Gift", "Clean", "Medicine", "Lights Off", "Scold"];
+  const SETTINGS = ["hr", "more:Size", "tick:Sound", "tick:Open at Login", "New Egg…", "hr", "Quit Fussbuddy"];
+
+  // Each scene: caption, what the buddy is doing, and which menu is open where. pick highlights one item.
+  const SCENES = {
+    hello: { title: "A little pet that lives on your desktop.", sub: "It watches your cursor, wobbles when you boop it, and hangs out in the corner while you work.",
+      mood: "happy", emote: "wave", at: .9, menu: { from: "tray", items: [...status(4, 4), ...CARE, ...SETTINGS] } },
+    care: { title: "Feed it, play with it, keep it clean.", sub: "Right-click your buddy for everything it needs: food, games, a gift, medicine, and lights out at bedtime.",
+      mood: "happy", menu: { from: "buddy", items: [...status(3, 3), ...CARE], pick: "Feed" } },
+    play: { title: "Which hand has the gift?", sub: "Play a quick guessing game. Find the gift three times out of five and it earns a happy heart.",
+      mood: "excited", emote: "pickHand", at: 1.1 },
+    calling: { title: "It calls when it needs you.", sub: "Look after it well and it grows into a happy grown-up. Leave it waiting, and it won't wait forever.",
+      mood: "worried", mark: "bang", shift: -170, messes: 2, tray: CALL, menu: { from: "tray", items: [...status(1, 2, ["dim:Fuss is hungry"]), ...CARE, ...SETTINGS], pick: "Feed" } },
+  };
+  const scene = SCENES[location.hash.slice(1)] || SCENES.hello;
+
+  document.getElementById("title").textContent = scene.title;
+  document.getElementById("sub").textContent = scene.sub;
+  const tray = document.getElementById("tray");
+  tray.innerHTML = scene.tray || SMILE;
+
+  const canvas = document.getElementById("buddy");
+  const BUDDY = { x: 860, y: 300 };
+  // The right-click menu opens to the buddy's right, so the buddy sits further left to leave room for it;
+  // shift moves it out from under an open status menu.
+  const buddyX = BUDDY.x + (scene.shift ?? (scene.menu?.from === "buddy" ? -190 : 0));
+  Object.assign(canvas.style, { left: `${buddyX}px`, top: `${BUDDY.y}px` });
+
+  if (scene.menu) {
+    const menu = document.getElementById("menu");
+    for (const entry of scene.menu.items) {
+      if (entry === "hr") { menu.append(document.createElement("hr")); continue; }
+      const [kind, text] = entry.includes(":") ? entry.split(/:(.*)/) : ["", entry];
+      const row = document.createElement("div");
+      row.textContent = text;
+      if (kind) row.className = kind === "tick" ? "tick" : kind;
+      if (text === scene.menu.pick) row.className = "pick";
+      menu.append(row);
+    }
+    menu.hidden = false;
+    if (scene.menu.from === "tray") {
+      tray.classList.add("open");
+      const r = tray.getBoundingClientRect();
+      // Like a real status menu: under its icon, nudged left to stay on screen.
+      Object.assign(menu.style, { left: `${Math.min(r.left - 4, innerWidth - 8 - menu.offsetWidth)}px`, top: "32px" });
+    } else Object.assign(menu.style, { left: `${buddyX + 390}px`, top: `${BUDDY.y + 170}px`, minWidth: "200px" });
+  }
+
+  const spec = fromConfig({ name: "Fuss", head: { shape: "gumdrop", style: "solid", color: { h: 24, s: 85, l: 64 } },
+    eyes: { shape: "round", size: 1.1 }, personality: { tilt: 0 } });
+  const buddy = new Buddy(canvas, spec, { scale: .2, floor: false });
+  buddy.still = true;
+  buddy.messes = scene.messes || 0;
+  buddy.setMood(scene.mood);
+  // Stepped by hand so it renders headless; a late resize would clear the canvas after the draw.
+  buddy.resizeObserver.disconnect();
+  buddy.resize();
+  const step = (from, to) => { for (let now = from; now < to; now += 1 / 60) { buddy.think(now, 1 / 60); buddy.integrate(1 / 120); buddy.integrate(1 / 120); } };
+  step(1, 5);
+  if (scene.emote) buddy.emote(scene.emote);
+  step(5, 5 + (scene.at ?? .6));
+  if (scene.mark) { buddy.mark(scene.mark); step(6, 6.35); }
+  buddy.draw();
+</script>
+</body>
+</html>

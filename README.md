@@ -63,3 +63,4 @@ Every push to `main` deploys to Cloudflare through `.github/workflows/deploy.yml
 
 - `docs/TODO.md` — development log and task tracker
 - `docs/20261029_product_requirements.md` — product requirements
+- `docs/20261104_app_store.md` — submitting Fussbuddy to the Mac App Store

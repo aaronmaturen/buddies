@@ -17,6 +17,7 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 
 - `public/index.html` — page markup only; loads `styles.css` and `app.js`. Layout: a sticky viewer on the left that shows either the whole cast or the stage buddy (a card opens the stage, the grid icon goes back), and every control on the right in one scrolling column of sections (Emotes, Mood, Look, Buddy) with jump links. On phones the viewer pins to the top at most 40% of the screen tall while the controls scroll under it.
 - `public/styles.css` — page styles and theme tokens.
+- `public/privacy.html`, `support.html` — the Fussbuddy privacy policy and support page the App Store listing links to; they use `styles.css` tokens.
 - `public/og.png`, `favicon.png`, `favicon.ico`, `apple-touch-icon.png` — link preview (1200×630) and icons, all the same orange gumdrop buddy rendered from the library with headless Chrome. Re-render rather than hand-edit if the look changes.
 - `public/app.js` — page wiring: the featured buddy, the cast, and every control. Imports the library from `./buddies.js`, a build output (gitignored).
 - `public/traits.js` — the eye shape buttons and trait sliders.
@@ -59,18 +60,20 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 - `.claude/launch.json` — `npm run dev` for previews.
 - `test/` — `node:test` tests for what runs without a browser.
 - `docs/` — TODO log and product requirements.
-- `desktop/` — Fussbuddy, the Mac app: a pet buddy on the desktop, a thin Swift shell around the library with no buddy or game logic of its own. Sandboxed, so it stays eligible for the App Store; `build.sh` makes `desktop/build/Fussbuddy.app`. The bundle ID stays `com.aaronmaturen.buddies` so saved pets and settings carry over.
+- `desktop/` — Fussbuddy, the Mac app: a pet buddy on the desktop, a thin Swift shell around the library with no buddy or game logic of its own. Sandboxed, so it stays eligible for the App Store; `build.sh` makes `desktop/build/Fussbuddy.app` (`--universal` for Apple silicon and Intel); `store.sh <profile>` makes the signed `build/Fussbuddy.pkg` for App Store upload. The bundle ID stays `com.aaronmaturen.buddies` so saved pets and settings carry over.
   - `Sources/Fussbuddy/main.swift` — the see-through window, cursor polling for click-through, and the bridge to the page (`desktop.*` calls in, `pet` messages out).
   - `BuddyView.swift` — mouse handling: drag moves the window, click boops, right-click opens the care menu.
   - `StatusMenu.swift` — the menu bar icon and menu (hearts, care, size, sound, Open at Login, New Egg), and the native right-click menu on the buddy built from the same status and care items.
   - `PetStore.swift` — the saved pet, one JSON file in the app's container (moved from the old `Buddies/` folder on first load).
   - `icon/` — `AppIcon.png`, rendered from the library by `render.sh` (headless Chrome) from `icon.html`: the orange gumdrop on a sky tile drawn on Apple's icon grid, so macOS doesn't put it on a gray tile. `build.sh` turns it into `AppIcon.icns`. Re-render rather than hand-edit.
+  - `screenshots/` — App Store screenshots (2880×1800), rendered by `render.sh` from `screens.html`: the library's buddy on a drawn desktop with the app's menus drawn to match. Re-render rather than hand-edit.
   - `web/` — the page inside the window: `pet.js` runs the game with the library and shows it; uses the script tag build because modules don't load from `file://`.
 
 ## Project Documentation Index
 
 - `docs/TODO.md` — development log and task tracker
 - `docs/20261029_product_requirements.md` — product requirements
+- `docs/20261104_app_store.md` — App Store setup, release steps, listing text and review risks
 
 ## Code Organization Patterns
 
@@ -121,4 +124,5 @@ GitHub Actions secrets (repo settings → Secrets → Actions):
 - Build: `npm run build`
 - Deploy manually: `npm run build && npx wrangler deploy`
 - Build and run the Mac app: `desktop/build.sh && open desktop/build/Fussbuddy.app`
+- Package the Mac app for the App Store: `desktop/store.sh path/to/Fussbuddy.provisionprofile`
 - Upgrade the vendored CodeMirror: edit versions in `scripts/vendor-codemirror.sh`, then run it (needs npm)

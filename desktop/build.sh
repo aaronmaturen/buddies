@@ -1,16 +1,19 @@
 #!/bin/sh
 # Builds desktop/build/Fussbuddy.app from the library and the Swift window. Signed ad hoc, for this Mac only.
+# --universal builds for Apple silicon and Intel, as store.sh does for the App Store.
 set -e
 cd "$(dirname "$0")"
 
+archs=""
+[ "$1" = "--universal" ] && archs="--arch arm64 --arch x86_64"
 (cd .. && npm run build)
-swift build -c release
+swift build -c release $archs
 
 app=build/Fussbuddy.app
 rm -rf "$app" build/AppIcon.iconset
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" build/AppIcon.iconset
 cp Info.plist "$app/Contents/"
-cp "$(swift build -c release --show-bin-path)/Fussbuddy" "$app/Contents/MacOS/"
+cp "$(swift build -c release $archs --show-bin-path)/Fussbuddy" "$app/Contents/MacOS/"
 cp -R web "$app/Contents/Resources/web"
 cp ../dist/buddies.global.js "$app/Contents/Resources/web/"
 
