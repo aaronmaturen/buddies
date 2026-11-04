@@ -22,6 +22,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] New Egg no longer flashes the next buddy or the dead one: held morphs can start formed, and a held egg or grave vanishes as itself; a hatching egg melts into the round baby (2026-11-04)
 - [x] Desktop pet: right-click opens a native Mac context menu (status, hearts and care) instead of the web pie; the pie stays in the library for the site and other apps (2026-11-03)
 - [x] Desktop pet game: `src/pet.js` rules (egg, baby, child, adult, death; hunger, happiness, poop, sickness, sleep, calls, care mistakes, discipline, catch-up on real time) with tests; egg and grave held morphs, asleep and sick moods, X eyes, `mark`, `look`, poop, eat/medicine/sulk emotes; the Mac app saves the pet, shows hearts in the menu bar, beeps when called, and opens a care pie on right-click; all 13 head styles checked in WebKit (2026-11-03)
 - [x] First Mac app in `desktop/`: a sandboxed, see-through Swift window with one buddy that follows the cursor, drags and boops, with Small, Medium and Large sizes in the menu bar (the default is picked from the screen height); library gained `setPointer`, `setFrameRate`, `hitTest` and `floor` (2026-11-02)

@@ -97,10 +97,11 @@ export class Buddy {
   // Away from vanish() until appear(), with no time limit. Emotes, morphs and boops are ignored meanwhile.
   get away() { return this.presence.away; }
 
+  // A held morph (a pet's egg or grave) goes away as itself; any other morph stops at once.
   vanish() {
     if (!this.presence.vanish(this.now)) return;
-    this.morph.stop(); this.emotes.symbols.length = 0;
-    this.cancelEmote();
+    if (!this.morph.holding) this.morph.stop();
+    this.emotes.symbols.length = 0; this.cancelEmote();
   }
 
   appear() {
@@ -133,8 +134,9 @@ export class Buddy {
 
   // Turn into an object from MORPHS for a while, then back. Cancels any emote.
   // hold: stay as the object until unmorph(), for things like the pet's egg and grave.
-  morphInto(name, { hold = false } = {}) {
-    if (this.away || !this.morph.start(name, this.now, { hold })) return;
+  // formed: show the object at once instead of melting the head into it.
+  morphInto(name, { hold = false, formed = false } = {}) {
+    if (this.away || !this.morph.start(name, this.now, { hold, formed })) return;
     this.cancelEmote();
   }
 
@@ -236,6 +238,7 @@ export class Buddy {
     this.morphState = this.morph.update(now, sp.head);
     this.spawnMorphSymbols(sp);
     if (this.presence.update(now)) spawnSymbol(this.emotes.symbols, "puff", sp, { offset: [0, 0] });
+    if (this.presence.gone && this.morph.busy) this.morph.stop();
     this.hYaw.t += em.motion.yaw; this.hPitch.t += em.motion.pitch; this.hRoll.t += em.motion.roll;
     // Keep the last mouth shape while it shrinks away.
     this.mouthShow.t = em.mouth ? 1 : 0;

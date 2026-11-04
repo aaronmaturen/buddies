@@ -59,11 +59,13 @@ export class MorphPlayer {
   get busy() { return !!this.active; }
 
   // hold: stay as the object until release(), instead of melting back after the act.
-  start(name, now, { hold = false } = {}) {
+  // formed: start as the object already, with no melt in, so the head never shows (like a pet's egg).
+  start(name, now, { hold = false, formed = false } = {}) {
     const def = MORPHS[name];
     if (!def || this.active) return false;
-    this.active = { def, start: now, hold, puffedIn: false, puffedOut: false, fired: 0, last: null };
+    this.active = { def, start: formed ? now - IN : now, hold, puffedIn: formed, puffedOut: false, fired: 0, last: null };
     this.k.t = 1;
+    if (formed) { this.k.x = 1; this.k.v = 0; }
     return true;
   }
 

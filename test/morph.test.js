@@ -28,3 +28,11 @@ test("held-only morphs stay out of the morph list", () => {
   assert.ok(!MORPH_NAMES.includes("grave"));
   assert.ok(MORPH_NAMES.includes("rocket"));
 });
+
+test("a formed morph starts as the object, with no melt from the head", () => {
+  const player = new MorphPlayer();
+  player.start("egg", 0, { hold: true, formed: true });
+  const first = player.update(0, HEADS.round);
+  assert.equal(first.k, 1);
+  assert.deepEqual(first.puff, []);
+});

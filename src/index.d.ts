@@ -44,8 +44,9 @@ export class Buddy {
   /** How many messes sit beside the buddy, for the pet game. */
   messes: number;
   emote(name: string): void;
-  /** hold: stay as the object until unmorph(). Held-only morphs like "egg" and "grave" need it. */
-  morphInto(name: string, options?: { hold?: boolean }): void;
+  /** hold: stay as the object until unmorph(); held-only morphs like "egg" and "grave" need it.
+   *  formed: show the object at once, without melting the head into it. */
+  morphInto(name: string, options?: { hold?: boolean; formed?: boolean }): void;
   /** Melts back from a held morph. */
   unmorph(): void;
   /** The held morph's definition while one is showing. */

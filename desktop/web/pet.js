@@ -7,7 +7,7 @@ const post = message => window.webkit?.messageHandlers?.pet?.postMessage(message
 
 let pet = window.savedPet?.version === 1 ? window.savedPet : newPet(Date.now());
 const buddy = new Buddy(document.getElementById("buddy"), fromConfig(petConfig(pet)), { scale: SCALE, floor: false, readable: true });
-let view = null, dying = false, lastSave = 0;
+let view = null, dying = false, shown = false, lastSave = 0;
 
 setFrameRate(30);
 animate(buddy);
@@ -26,7 +26,10 @@ function show() {
   buddy.messes = view.messes;
   buddy.still = view.stage !== "baby" && view.stage !== "child" && view.stage !== "adult" || view.mood === "asleep";
   document.body.classList.toggle("lights-off", view.lightsOff && view.stage !== "dead");
-  if (view.morph && !buddy.holding && !dying) buddy.morphInto(view.morph, { hold: true });
+  // An egg is never seen melting out of a head, and neither is anything already there when the app opens;
+  // only a buddy that dies while you watch melts into its grave.
+  if (view.morph && !buddy.holding && !dying) buddy.morphInto(view.morph, { hold: true, formed: !shown || view.morph === "egg" });
+  shown = true;
   if (!view.morph && buddy.holding) buddy.unmorph();
   if (!view.morph) buddy.setMood(view.mood);
   status();
@@ -37,8 +40,10 @@ function regrow() {
   setTimeout(() => { buddy.setSpec(fromConfig(petConfig(pet))); buddy.appear(); }, REGROW);
 }
 
-// Life events get a moment of their own: X eyes before the grave, a puff when it grows up.
+// Life events get a moment of their own: the egg melts into the baby, X eyes before the grave, a puff when it
+// grows up.
 function react(events) {
+  if (events.includes("hatch")) buddy.setSpec(fromConfig(petConfig(pet)));
   if (events.includes("grow")) regrow();
   if (events.includes("sick")) buddy.mark("sweat");
   if (events.includes("die")) {
@@ -67,12 +72,17 @@ function doCare(action, guess) {
   save();
 }
 
+// The grave puffs away and the new egg pops in already an egg, so the new buddy stays a surprise until it hatches.
 function newEgg() {
   pet = newPet(Date.now());
   buddy.xEyes = false; dying = false;
-  if (buddy.holding) buddy.unmorph();
-  regrow();
-  show();
+  buddy.vanish();
+  setTimeout(() => {
+    buddy.setSpec(fromConfig(petConfig(pet)));
+    buddy.appear();
+    buddy.morphInto("egg", { hold: true, formed: true });
+    show();
+  }, REGROW);
   save();
 }
 
