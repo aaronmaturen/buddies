@@ -37,7 +37,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
   }
 
   private func setIcon(_ symbol: String) {
-    item.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: "Buddies")
+    item.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: "Fussbuddy")
   }
 
   private static func hearts(_ n: Any?) -> String {
@@ -62,7 +62,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     menu.addItem(action("Open at Login", #selector(toggleLogin), on: SMAppService.mainApp.status == .enabled))
     menu.addItem(action(stage == "dead" ? "New Egg" : "New Egg…", #selector(newEgg)))
     menu.addItem(.separator())
-    menu.addItem(withTitle: "Quit Buddies", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+    menu.addItem(withTitle: "Quit Fussbuddy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
   }
 
   // The right-click menu on the buddy: how it's doing and the care actions, or a new egg once it's gone.

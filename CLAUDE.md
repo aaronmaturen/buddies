@@ -59,11 +59,12 @@ Native ES modules bundled by esbuild. Every file stays small and does one thing.
 - `.claude/launch.json` — `npm run dev` for previews.
 - `test/` — `node:test` tests for what runs without a browser.
 - `docs/` — TODO log and product requirements.
-- `desktop/` — the Mac app: a pet buddy on the desktop, a thin Swift shell around the library with no buddy or game logic of its own. Sandboxed, so it stays eligible for the App Store; `build.sh` makes `desktop/build/Buddies.app`.
-  - `Sources/Buddies/main.swift` — the see-through window, cursor polling for click-through, and the bridge to the page (`desktop.*` calls in, `pet` messages out).
+- `desktop/` — Fussbuddy, the Mac app: a pet buddy on the desktop, a thin Swift shell around the library with no buddy or game logic of its own. Sandboxed, so it stays eligible for the App Store; `build.sh` makes `desktop/build/Fussbuddy.app`. The bundle ID stays `com.aaronmaturen.buddies` so saved pets and settings carry over.
+  - `Sources/Fussbuddy/main.swift` — the see-through window, cursor polling for click-through, and the bridge to the page (`desktop.*` calls in, `pet` messages out).
   - `BuddyView.swift` — mouse handling: drag moves the window, click boops, right-click opens the care menu.
   - `StatusMenu.swift` — the menu bar icon and menu (hearts, care, size, sound, Open at Login, New Egg), and the native right-click menu on the buddy built from the same status and care items.
-  - `PetStore.swift` — the saved pet, one JSON file in the app's container.
+  - `PetStore.swift` — the saved pet, one JSON file in the app's container (moved from the old `Buddies/` folder on first load).
+  - `icon/` — `AppIcon.png`, rendered from the library by `render.sh` (headless Chrome) from `icon.html`: the orange gumdrop on a sky tile drawn on Apple's icon grid, so macOS doesn't put it on a gray tile. `build.sh` turns it into `AppIcon.icns`. Re-render rather than hand-edit.
   - `web/` — the page inside the window: `pet.js` runs the game with the library and shows it; uses the script tag build because modules don't load from `file://`.
 
 ## Project Documentation Index
@@ -119,5 +120,5 @@ GitHub Actions secrets (repo settings → Secrets → Actions):
 - Test: `npm test`
 - Build: `npm run build`
 - Deploy manually: `npm run build && npx wrangler deploy`
-- Build and run the Mac app: `desktop/build.sh && open desktop/build/Buddies.app`
+- Build and run the Mac app: `desktop/build.sh && open desktop/build/Fussbuddy.app`
 - Upgrade the vendored CodeMirror: edit versions in `scripts/vendor-codemirror.sh`, then run it (needs npm)

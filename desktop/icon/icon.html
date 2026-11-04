@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>html, body { margin: 0; background: transparent } canvas { position: absolute; inset: 0; width: 1024px; height: 1024px }</style>
+</head>
+<body>
+  <canvas id="tile" width="1024" height="1024"></canvas>
+  <canvas id="buddy"></canvas>
+  <script src="buddies.global.js"></script>
+  <script>
+    // The app icon: an excited orange gumdrop on a sky tile, still, looking straight out. Stepped by hand so it renders headless.
+    // The tile sits on Apple's icon grid (824 of 1024, corner 185) so macOS doesn't put the icon on its own gray tile.
+    const tile = document.getElementById("tile").getContext("2d");
+    const sky = tile.createLinearGradient(0, 100, 0, 924);
+    sky.addColorStop(0, "hsl(195 75% 82%)");
+    sky.addColorStop(1, "hsl(205 65% 64%)");
+    tile.fillStyle = sky;
+    tile.beginPath(); tile.roundRect(100, 100, 824, 824, 185); tile.fill();
+
+    const { Buddy, fromConfig } = Buddies;
+    const spec = fromConfig({ name: "Fuss", head: { shape: "gumdrop", style: "solid", color: { h: 24, s: 85, l: 64 } },
+      eyes: { shape: "round", size: 1.1 }, personality: { tilt: 0 } });
+    const buddy = new Buddy(document.getElementById("buddy"), spec, { scale: .25 });
+    buddy.still = true;
+    buddy.setMood("excited");
+    // A late resize would clear the canvas after the draw.
+    buddy.resizeObserver.disconnect();
+    buddy.resize();
+    for (let now = 1; now < 7; now += 1 / 60) { buddy.think(now, 1 / 60); buddy.integrate(1 / 120); buddy.integrate(1 / 120); }
+    buddy.draw();
+  </script>
+</body>
+</html>

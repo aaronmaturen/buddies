@@ -49,10 +49,10 @@ animate(buddy);
 
 ## Desktop pet (Mac)
 
-`desktop/` is a Mac app that puts one buddy on your desktop as a 90s-style virtual pet: it hatches, gets hungry, poops, sleeps at night and grows up depending on how you look after it. Right-click it, or use the menu bar icon, to care for it.
+`desktop/` is Fussbuddy, a Mac app that puts one buddy on your desktop as a 90s-style virtual pet: it hatches, gets hungry, poops, sleeps at night and grows up depending on how you look after it. Right-click it, or use the menu bar icon, to care for it.
 
 ```bash
-desktop/build.sh && open desktop/build/Buddies.app
+desktop/build.sh && open desktop/build/Fussbuddy.app
 ```
 
 ## Deploy

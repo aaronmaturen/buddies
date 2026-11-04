@@ -6,7 +6,7 @@
 - [ ] Desktop pet: try the care actions, sound and Open at Login by hand
 - [ ] Desktop pet: measure energy use over a day
 - [ ] Live with the game pace for a few days and tune `PACE` in src/pet.js
-- [ ] Before sharing the app: Apple Developer account, Developer ID signing and notarization, an app icon
+- [ ] Before sharing the app: Apple Developer account, Developer ID signing and notarization
 - [ ] Before any App Store submission: find a public replacement for `drawsBackground` in main.swift, or accept the review risk
 - [ ] Tune the polygon head shapes in a real browser (corner rounding, face height, eye size on small heads)
 
@@ -22,6 +22,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] The Mac app is now Fussbuddy, with an app icon rendered from the library (orange gumdrop on a sky tile); the saved pet moves to the new folder on first launch (2026-11-04)
 - [x] New Egg no longer flashes the next buddy or the dead one: held morphs can start formed, and a held egg or grave vanishes as itself; a hatching egg melts into the round baby (2026-11-04)
 - [x] Desktop pet: right-click opens a native Mac context menu (status, hearts and care) instead of the web pie; the pie stays in the library for the site and other apps (2026-11-03)
 - [x] Desktop pet game: `src/pet.js` rules (egg, baby, child, adult, death; hunger, happiness, poop, sickness, sleep, calls, care mistakes, discipline, catch-up on real time) with tests; egg and grave held morphs, asleep and sick moods, X eyes, `mark`, `look`, poop, eat/medicine/sulk emotes; the Mac app saves the pet, shows hearts in the menu bar, beeps when called, and opens a care pie on right-click; all 13 head styles checked in WebKit (2026-11-03)
@@ -71,6 +72,8 @@
 ## Notes
 
 ### Development Decisions
+- The Mac app is called Fussbuddy (fussbudget + buddy); the library and site stay Buddies. The bundle ID stays `com.aaronmaturen.buddies` so the container, saved pet and settings carry over (2026-11-04).
+- The app icon is drawn on its own tile on Apple's 824/1024 grid: macOS 26 puts icons that aren't rounded squares on a gray tile (2026-11-04).
 - Desktop care uses a native NSMenu on right-click rather than a pie. A web pie can't get the Mac's blurred menu material over a see-through window, and a hand-drawn native pie was weighed and dropped: the plain menu felt more at home (2026-11-03).
 - Desktop app is a thin Swift window around the library, Mac only. No Electron (user's call), Tauri's transparency blocks the App Store, Flutter would mean rewriting `src/` in Dart. Ship a notarized download first and keep to App Store rules (2026-11-02).
 - The pet is a dumb 90s Tamagotchi: no AI, no learning, no chat, and it can die for good. "A pet that can't die is a screensaver with chores." The app never says outright that buddies die (2026-11-02).
