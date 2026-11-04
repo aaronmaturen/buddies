@@ -6,6 +6,7 @@ import { randomConfig } from "./spec.js";
 //   let pet = newPet(Date.now());
 //   const events = advance(pet, Date.now());   // catches up on real time, even days; ["hatch", "poop", ...]
 //   care(pet, "feed", Date.now());             // "eat", "full", "asleep", ...
+//   care(pet, "play", Date.now());             // starts a game of "which hand?"; then care(pet, "guess", now, "left")
 //   petView(pet);                              // what to show: morph, mood, marks, messes, size
 //   petConfig(pet);                            // the buddy config for its current life stage
 
@@ -24,6 +25,9 @@ export const PACE = {
   lifespan: { good: 12 * DAY, ok: 9 * DAY, bad: 6 * DAY },
   bedtime: 21, wake: 8,
   naughty: 3 * HOUR,         // about how often a grown buddy calls for no reason
+  warning: 6 * HOUR,         // it looks sick this long before starving, sickness or old age would end it
+  rounds: 5, toWin: 3,       // a game of "which hand?": win toWin of rounds for a heart, all of them for two
+  guessWait: 2 * MIN,        // a game left this long without a guess is over
 };
 
 export const HEARTS = 4;
@@ -47,7 +51,7 @@ function roll(pet) {
 export function newPet(now, { config, seed = Math.floor(Math.random() * 2 ** 31) } = {}) {
   const pet = { version: 1, rng: seed, stage: "egg", form: "any", born: now, stageAt: now, t: now,
     hunger: HEARTS, happy: HEARTS, discipline: 0, mistakes: 0, poops: 0, messSince: null, nextPoop: now + PACE.poop,
-    sick: false, sickSince: null, asleep: false, lightsOff: false, call: null, naughty: false,
+    sick: false, sickSince: null, asleep: false, lightsOff: false, call: null, naughty: false, game: null, lastGame: null,
     hungerAt: now, happyAt: now, starvingSince: null, lifespan: null, diedAt: null, cause: null };
   pet.config = config || randomConfig({ rand: () => roll(pet) });
   return pet;
@@ -104,6 +108,7 @@ function calls(pet, now) {
 }
 
 function step(pet, now, events) {
+  if (pet.game && (now - pet.game.at > PACE.guessWait || !alive(pet) || pet.asleep)) pet.game = null;
   if (pet.stage === "dead") return;
   if (pet.stage === "egg") {
     if (now - pet.born >= PACE.hatch) {
@@ -133,11 +138,37 @@ export function advance(pet, now) {
   return events;
 }
 
+// How soon starving, sickness or old age would end it, if nothing changes.
+function timeLeft(pet, now) {
+  const left = [Infinity];
+  if (pet.starvingSince !== null) left.push(pet.starvingSince + PACE.deadly - now);
+  if (pet.sick) left.push(pet.sickSince + PACE.deadly - now);
+  if (pet.stage === "adult" && pet.lifespan) left.push(pet.stageAt + pet.lifespan - now);
+  return Math.min(...left);
+}
+
+// One guess in a game of "which hand?". The game ends after PACE.rounds guesses, with hearts for a good score.
+function guessHand(pet, now, guess) {
+  if (!pet.game || now - pet.game.at > PACE.guessWait) pet.game = { round: 0, wins: 0, at: now };
+  const side = roll(pet) < .5 ? "left" : "right", won = side === guess, game = pet.game;
+  game.round++; game.wins += won; game.at = now;
+  if (game.round >= PACE.rounds) {
+    const hearts = game.wins === PACE.rounds ? 2 : game.wins >= PACE.toWin ? 1 : 0;
+    pet.happy = Math.min(HEARTS, pet.happy + hearts);
+    pet.lastGame = { wins: game.wins, hearts };
+    pet.game = null;
+    calls(pet, now);
+  }
+  return `${won ? "won" : "lost"}-${side}`;
+}
+
 // Does one care action. Returns how the buddy takes it, for the host to show.
-// play takes a guess, "left" or "right": the buddy turns one way, and a right guess cheers it up.
+// play starts a game of "which hand?" ("play"); each guess, "left" or "right", returns "won-left", "lost-right"
+// and so on. After the last round pet.game is null and pet.lastGame has the score and the hearts it earned.
 export function care(pet, action, now, guess) {
   advance(pet, now);
   if (action === "lights") { pet.lightsOff = !pet.lightsOff; calls(pet, now); return "lights"; }
+  if (action === "quit") { pet.game = null; return "no"; }
   if (!alive(pet)) return "no";
   if (action === "clean") { const had = pet.poops; pet.poops = 0; pet.messSince = null; return had ? "clean" : "no"; }
   if (pet.asleep) return "asleep";
@@ -145,10 +176,10 @@ export function care(pet, action, now, guess) {
     if (pet.hunger >= HEARTS) return "full";
     pet.hunger++; pet.hungerAt = now; pet.starvingSince = null;
   } else if (action === "play") {
-    const side = roll(pet) < .5 ? "left" : "right";
-    if (side === guess) pet.happy = Math.min(HEARTS, pet.happy + 1);
-    calls(pet, now);
-    return side === guess ? `won-${side}` : `lost-${side}`;
+    pet.game = { round: 0, wins: 0, at: now };
+    return "play";
+  } else if (action === "guess") {
+    return guessHand(pet, now, guess);
   } else if (action === "medicine") {
     if (!pet.sick) return "no";
     pet.sick = false; pet.sickSince = null;
@@ -163,13 +194,15 @@ export function care(pet, action, now, guess) {
 // What to show for the pet right now. size is relative to a grown buddy.
 export function petView(pet) {
   const stage = pet.stage, why = pet.call?.why;
-  const mood = !alive(pet) ? "neutral" : pet.asleep ? "asleep" : pet.sick ? "sick" : why === "naughty" ? "skeptical"
+  const fading = alive(pet) && timeLeft(pet, pet.t) <= PACE.warning;
+  const mood = !alive(pet) ? "neutral" : pet.asleep ? "asleep" : pet.sick || fading ? "sick" : why === "naughty" ? "skeptical"
     : pet.hunger === 0 || pet.happy === 0 ? "sad" : pet.hunger <= 1 ? "worried"
     : pet.hunger >= 3 && pet.happy >= 3 ? "happy" : "neutral";
-  const mark = !alive(pet) ? null : pet.asleep ? (why === "lights" ? "bang" : "z") : why ? "bang" : null;
+  const mark = !alive(pet) ? null : pet.asleep ? (why === "lights" ? "bang" : "z") : why ? "bang" : fading ? "sweat" : null;
   return { stage, morph: stage === "egg" ? "egg" : stage === "dead" ? "grave" : null, mood, mark, calling: why || null,
     messes: alive(pet) ? pet.poops : 0, size: SIZE[stage], lightsOff: pet.lightsOff, hunger: pet.hunger, happy: pet.happy,
-    discipline: pet.discipline, age: Math.floor((pet.t - pet.born) / DAY) };
+    discipline: pet.discipline, age: Math.floor((pet.t - pet.born) / DAY), fading,
+    game: pet.game ? { round: pet.game.round, wins: pet.game.wins, rounds: PACE.rounds } : null };
 }
 
 // The buddy config for the pet's current stage: its own colors and personality, with the stage's head.

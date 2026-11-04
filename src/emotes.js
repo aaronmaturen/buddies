@@ -11,6 +11,7 @@
 //               wiggle { rot, freq }, bob { x, y, freq } and clap { x, freq } add rhythm,
 //             { hand, hide: true } sends those hands away; a hand event's holds puts a prop in it (HELD in props.js),
 //             { wear } puts on an accessory (WEARABLES in wear.js), { magnify: 1 | -1, zoom } enlarges one eye
+//   game      true for emotes made for a host's game (the pet's "which hand?"); they stay out of EMOTE_NAMES
 export const EMOTES = {
   love: { duration: 1.8, mood: "happy", mouth: "smile", motion: "sway",
     events: [{ at: 0, jump: 2.2 }, { at: 0, symbol: "heart" }, { at: .25, symbol: "heart" }, { at: .5, symbol: "heart" }] },
@@ -99,6 +100,24 @@ export const EMOTES = {
     events: [{ at: .2, symbol: "sweat" }] },
   inspect: { duration: 2.6, mood: "curious", mouth: "o",
     events: [{ at: 0, hand: "right", pose: "fist", holds: "magnifier", x: .3, y: .52, rot: 0, face: true }, { at: .25, magnify: 1, zoom: 1.7 }] },
+
+  // The pet's "which hand?" game: two fists out until the host cancels the emote, then the gift in one hand.
+  pickHand: { duration: 120, mood: "excited", mouth: "grin", motion: "sway", game: true,
+    events: [
+      { at: 0, hand: "both", pose: "fist", x: 1.35, y: .4, rot: .25, size: 1.3, bob: { y: .07, freq: 2.4 }, jump: 1.6 },
+      { at: .2, symbol: "question" },
+    ] },
+  ...Object.fromEntries(["left", "right"].flatMap(side => {
+    const Side = side[0].toUpperCase() + side.slice(1);
+    const gift = { at: 0, hand: side, pose: "open", holds: "gift", x: 1.3, y: .3, rot: .3, size: 1.2, bob: { y: .04, freq: 2 } };
+    return [
+      // You picked the hand with the gift.
+      [`found${Side}`, { duration: 1.9, mood: "excited", mouth: "grin", motion: "giggle", game: true,
+        events: [{ ...gift, jump: 2.4 }, { at: .1, symbol: "sparkle" }, { at: .3, symbol: "sparkle" }, { at: .55, symbol: "sparkle" }] }],
+      // You picked the other one: it shows where the gift was and sticks its tongue out.
+      [`tease${Side}`, { duration: 1.9, mood: "smug", mouth: "tongue", motion: "wiggle", game: true, events: [gift] }],
+    ];
+  })),
 };
 
-export const EMOTE_NAMES = Object.keys(EMOTES);
+export const EMOTE_NAMES = Object.keys(EMOTES).filter(name => !EMOTES[name].game);

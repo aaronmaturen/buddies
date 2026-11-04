@@ -11,6 +11,7 @@
 - [ ] Tune the polygon head shapes in a real browser (corner rounding, face height, eye size on small heads)
 
 ### Upcoming
+- [ ] Desktop pet: keep the window's buddy fully on screen (a buddy parked in the corner can have a hand off the edge during the game)
 - [ ] Optional page-wide overlay so morphs can fly beyond their own canvas
 - [ ] Sliders for the advanced traits: configs already take brow length/thickness, eye height and resting tilt, but the page has no controls for them
 - [ ] Before publishing to npm: add a LICENSE (none yet), confirm the package name and public access
@@ -22,6 +23,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Play is a game of "which hand?": five rounds of clicking the fist with the gift, sparkles or a tease each round, a party for 3+ and two hearts for 5/5; buddies look sick in the last 6 hours before starving, sickness or old age would end them (2026-11-04)
 - [x] The Mac app is now Fussbuddy, with an app icon rendered from the library (orange gumdrop on a sky tile); the saved pet moves to the new folder on first launch (2026-11-04)
 - [x] New Egg no longer flashes the next buddy or the dead one: held morphs can start formed, and a held egg or grave vanishes as itself; a hatching egg melts into the round baby (2026-11-04)
 - [x] Desktop pet: right-click opens a native Mac context menu (status, hearts and care) instead of the web pie; the pie stays in the library for the site and other apps (2026-11-03)

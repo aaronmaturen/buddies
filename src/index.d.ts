@@ -44,6 +44,8 @@ export class Buddy {
   /** How many messes sit beside the buddy, for the pet game. */
   messes: number;
   emote(name: string): void;
+  /** Stops the current emote at once; its hands and worn things go away. */
+  cancelEmote(): void;
   /** hold: stay as the object until unmorph(); held-only morphs like "egg" and "grave" need it.
    *  formed: show the object at once, without melting the head into it. */
   morphInto(name: string, options?: { hold?: boolean; formed?: boolean }): void;
@@ -91,16 +93,22 @@ export function setPointer(x: number, y: number): void;
 
 /** A pet's saved state: plain JSON, safe to store and load. */
 export interface Pet { version: number; stage: "egg" | "baby" | "child" | "adult" | "dead"; config: BuddyConfig; [key: string]: unknown }
-export type CareAction = "feed" | "play" | "clean" | "medicine" | "lights" | "scold";
+/** play starts a game of "which hand?"; guess picks a hand in it; quit ends it with no score. */
+export type CareAction = "feed" | "play" | "guess" | "clean" | "medicine" | "lights" | "scold" | "quit";
 export interface PetView {
   stage: Pet["stage"]; morph: "egg" | "grave" | null; mood: string; mark: string | null;
   calling: "hungry" | "sad" | "sick" | "lights" | "naughty" | null;
   messes: number; size: number; lightsOff: boolean; hunger: number; happy: number; discipline: number; age: number;
+  /** Close enough to the end (starving, sick or old) that it looks sick. */
+  fading: boolean;
+  /** The which-hand game going on now: guesses made so far and gifts found. */
+  game: { round: number; wins: number; rounds: number } | null;
 }
 export function newPet(now: number, options?: { config?: BuddyConfig; seed?: number }): Pet;
 /** Catches the pet up to now, a minute at a time. Returns what happened: "hatch", "grow", "poop", "sick", "die", ... */
 export function advance(pet: Pet, now: number): string[];
-/** play takes a guess, "left" or "right". Returns how the buddy takes it, like "eat", "full", "won-left" or "sulk". */
+/** guess takes a hand, "left" or "right". Returns how the buddy takes it, like "eat", "full", "play", "won-left" or "sulk".
+ *  After a game's last guess, pet.game is null and pet.lastGame holds { wins, hearts }. */
 export function care(pet: Pet, action: CareAction, now: number, guess?: "left" | "right"): string;
 export function petView(pet: Pet): PetView;
 /** The buddy config for the pet's current life stage. */

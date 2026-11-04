@@ -90,3 +90,42 @@ test("scolding only works when it's being naughty", () => {
   assert.equal(care(pet, "scold", pet.t), "scolded");
   assert.equal(pet.discipline, 1);
 });
+
+test("a game of which hand lasts five guesses and pays out for a good score", () => {
+  for (let seed = 1; seed < 40; seed++) {
+    const pet = newPet(NOON, { seed }); advance(pet, NOON + PACE.hatch);
+    pet.happy = 0;
+    const now = pet.t;
+    assert.equal(care(pet, "play", now), "play");
+    let wins = 0;
+    for (let round = 1; round <= PACE.rounds; round++) {
+      assert.equal(petView(pet).game.round, round - 1);
+      const reply = care(pet, "guess", now, "left");
+      assert.match(reply, /^(won|lost)-(left|right)$/);
+      wins += reply.startsWith("won");
+    }
+    assert.equal(pet.game, null);
+    assert.equal(pet.lastGame.wins, wins);
+    assert.equal(pet.happy, wins === PACE.rounds ? 2 : wins >= PACE.toWin ? 1 : 0);
+  }
+});
+
+test("a game nobody finishes is dropped", () => {
+  const pet = hatched();
+  care(pet, "play", pet.t);
+  care(pet, "guess", pet.t, "right");
+  advance(pet, pet.t + PACE.guessWait + 2 * MIN);
+  assert.equal(petView(pet).game, null);
+});
+
+test("it looks sick when it's close to the end", () => {
+  const pet = hatched();
+  pet.hunger = 0; pet.hungerAt = pet.happyAt = pet.t;
+  advance(pet, pet.t + PACE.deadly - PACE.warning - 10 * MIN);
+  assert.equal(petView(pet).fading, false);
+  advance(pet, pet.t + 20 * MIN);
+  assert.equal(petView(pet).fading, true);
+  assert.equal(petView(pet).mood, "sick");
+  care(pet, "feed", pet.t);
+  assert.equal(petView(pet).fading, false);
+});

@@ -86,13 +86,22 @@ final class StatusMenu: NSObject, NSMenuDelegate {
         info("Happy \(Self.hearts(status["happy"]))", in: menu)
       }
       if let why = status["calling"] as? String { info("\(name) \(Self.calls[why] ?? "needs you")", in: menu) }
+      else if status["fading"] as? Bool == true { info("\(name) doesn't look well", in: menu) }
+      if let round = status["round"] as? Int, round > 0 {
+        info("Which hand? Round \(round) of \(status["rounds"] as? Int ?? 5) · \(status["wins"] as? Int ?? 0) found", in: menu)
+      }
     }
     menu.addItem(.separator())
   }
 
   private func addCare(to menu: NSMenu) {
     menu.addItem(action("Feed", #selector(care(_:)), id: "feed"))
-    menu.addItem(submenu("Play", [action("Left", #selector(care(_:)), id: "play left"), action("Right", #selector(care(_:)), id: "play right")]))
+    if status["round"] as? Int ?? 0 > 0 {
+      menu.addItem(action("Left Hand", #selector(care(_:)), id: "guess left"))
+      menu.addItem(action("Right Hand", #selector(care(_:)), id: "guess right"))
+    } else {
+      menu.addItem(action("Play", #selector(care(_:)), id: "play"))
+    }
     menu.addItem(action("Clean", #selector(care(_:)), id: "clean"))
     menu.addItem(action("Medicine", #selector(care(_:)), id: "medicine"))
     menu.addItem(action(status["lightsOff"] as? Bool == true ? "Lights On" : "Lights Off", #selector(care(_:)), id: "lights"))

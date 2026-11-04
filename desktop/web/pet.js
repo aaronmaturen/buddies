@@ -3,11 +3,15 @@
 const { Buddy, fromConfig, animate, setFrameRate, setPointer, newPet, advance, care, petView, petConfig } = Buddies;
 
 const SCALE = .16, GAME_TICK = 5000, MARK_EVERY = 2500, SAVE_EVERY = 30000, DYING = 3000, REGROW = 900;
+// The which-hand game: how long it waits for a pick, and how long each reveal plays before the next round.
+const PICK_WAIT = 20000, REVEAL = 2000;
 const post = message => window.webkit?.messageHandlers?.pet?.postMessage(message);
 
 let pet = window.savedPet?.version === 1 ? window.savedPet : newPet(Date.now());
 const buddy = new Buddy(document.getElementById("buddy"), fromConfig(petConfig(pet)), { scale: SCALE, floor: false, readable: true });
-let view = null, dying = false, shown = false, lastSave = 0;
+let view = null, dying = false, shown = false, lastSave = 0, pointerX = 0;
+// While it holds out two fists for you to pick one: the timer that gives up on you.
+let picking = null;
 
 setFrameRate(30);
 animate(buddy);
@@ -16,7 +20,8 @@ function save(now = Date.now()) { lastSave = now; post({ type: "save", pet: JSON
 
 function status() {
   post({ type: "status", name: pet.config.name, stage: view.stage, age: view.age, hunger: view.hunger, happy: view.happy,
-    discipline: view.discipline, calling: view.calling, asleep: view.mood === "asleep", lightsOff: view.lightsOff, cause: pet.cause });
+    discipline: view.discipline, calling: view.calling, asleep: view.mood === "asleep", lightsOff: view.lightsOff, cause: pet.cause,
+    fading: view.fading, round: view.game ? view.game.round + 1 : 0, rounds: view.game?.rounds ?? 0, wins: view.game?.wins ?? 0 });
 }
 
 // Brings the buddy in line with the pet: egg or grave, mood, mess and size.
@@ -55,19 +60,44 @@ function react(events) {
 function tick() {
   const now = Date.now(), events = advance(pet, now);
   react(events);
+  if (picking && !pet.game) stopPicking();
   show();
   if (events.length || now - lastSave > SAVE_EVERY) save(now);
 }
 
 const REPLIES = { eat: "eat", full: "no", clean: "proud", medicine: "medicine", scolded: "nervous", sulk: "sulk", no: "huh" };
+const capital = word => word[0].toUpperCase() + word.slice(1);
+
+// Which hand? It holds out two fists until you click one (or pick from the menu), or gets bored and stops.
+function holdOutFists() {
+  buddy.cancelEmote();
+  buddy.emote("pickHand");
+  clearTimeout(picking);
+  picking = setTimeout(() => { care(pet, "quit", Date.now()); stopPicking(); buddy.emote("huh"); show(); save(); }, PICK_WAIT);
+}
+
+function stopPicking() { clearTimeout(picking); picking = null; buddy.cancelEmote(); }
+
+// The gift is in one hand: found it, or it shows you where it was. After the last round, a party for a good score.
+function reveal(reply) {
+  const [result, side] = reply.split("-");
+  stopPicking();
+  buddy.emote(`${result === "won" ? "found" : "tease"}${capital(side)}`);
+  setTimeout(() => {
+    if (pet.game) return holdOutFists();
+    const { hearts } = pet.lastGame;
+    buddy.emote(hearts ? "party" : "shrug");
+    if (hearts > 1) setTimeout(() => buddy.emote("love"), 2400);
+  }, REVEAL);
+}
 
 function doCare(action, guess) {
+  if (action === "guess" && !picking) return;
   const reply = care(pet, action, Date.now(), guess);
   if (reply === "asleep") buddy.mark("z");
-  else if (reply.startsWith("won") || reply.startsWith("lost")) {
-    buddy.look(reply.endsWith("left") ? -1 : 1);
-    setTimeout(() => buddy.emote(reply.startsWith("won") ? "laugh" : "huh"), 700);
-  } else if (REPLIES[reply]) buddy.emote(REPLIES[reply]);
+  else if (reply === "play") holdOutFists();
+  else if (action === "guess") reveal(reply);
+  else if (REPLIES[reply]) buddy.emote(REPLIES[reply]);
   show();
   save();
 }
@@ -88,12 +118,15 @@ function newEgg() {
 
 // Care itself comes from the app's native menus, which call desktop.care.
 window.desktop = {
-  // x, y are window pixels from the top left. Returns whether the window should take the mouse.
+  // x, y are window pixels from the top left. Returns whether the window should take the mouse: anywhere while it
+  // holds out its fists, so a guess never has to hit a small bobbing hand.
   tick(x, y, moved) {
-    if (moved) setPointer(x, y);
-    return buddy.hitTest(x, y);
+    if (moved) { setPointer(x, y); pointerX = x; }
+    return !!picking || buddy.hitTest(x, y);
   },
+  // A click: a guess while it holds out its fists (which half of the window), else a boop.
   boop() {
+    if (picking) return doCare("guess", pointerX < innerWidth / 2 ? "left" : "right");
     if (view.stage === "egg" || (view.mood !== "asleep" && view.stage !== "dead")) buddy.boop();
   },
   // A right-click on an egg, which has no menu yet: it rocks to show it heard.
