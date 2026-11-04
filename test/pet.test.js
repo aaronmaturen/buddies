@@ -110,6 +110,19 @@ test("a game of which hand lasts five guesses and pays out for a good score", ()
   }
 });
 
+test("a gift is a heart, but only every few hours", () => {
+  const pet = hatched(), given = pet.t;
+  pet.happy = 1;
+  assert.equal(care(pet, "gift", given), "gift");
+  assert.equal(pet.happy, 2);
+  assert.equal(care(pet, "gift", given + 10 * MIN), "bored");
+  assert.equal(pet.happy, 2);
+  advance(pet, given + PACE.giftWait);
+  pet.happy = 2;
+  assert.equal(care(pet, "gift", pet.t), "gift");
+  assert.equal(pet.happy, 3);
+});
+
 test("a game nobody finishes is dropped", () => {
   const pet = hatched();
   care(pet, "play", pet.t);

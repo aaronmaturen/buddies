@@ -23,6 +23,7 @@
 - [ ] Optional WebGL renderer with the same spec and mood system
 
 ### Done
+- [x] Gift care action: a heart of happiness right away, once every 4 hours; sooner gets a shrug (2026-11-04)
 - [x] Play is a game of "which hand?": five rounds of clicking the fist with the gift, sparkles or a tease each round, a party for 3+ and two hearts for 5/5; buddies look sick in the last 6 hours before starving, sickness or old age would end them (2026-11-04)
 - [x] The Mac app is now Fussbuddy, with an app icon rendered from the library (orange gumdrop on a sky tile); the saved pet moves to the new folder on first launch (2026-11-04)
 - [x] New Egg no longer flashes the next buddy or the dead one: held morphs can start formed, and a held egg or grave vanishes as itself; a hatching egg melts into the round baby (2026-11-04)

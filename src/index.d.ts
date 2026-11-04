@@ -93,8 +93,9 @@ export function setPointer(x: number, y: number): void;
 
 /** A pet's saved state: plain JSON, safe to store and load. */
 export interface Pet { version: number; stage: "egg" | "baby" | "child" | "adult" | "dead"; config: BuddyConfig; [key: string]: unknown }
-/** play starts a game of "which hand?"; guess picks a hand in it; quit ends it with no score. */
-export type CareAction = "feed" | "play" | "guess" | "clean" | "medicine" | "lights" | "scold" | "quit";
+/** play starts a game of "which hand?"; guess picks a hand in it; quit ends it with no score.
+ *  gift is a heart of happiness right away, once every few hours ("bored" if sooner). */
+export type CareAction = "feed" | "play" | "gift" | "guess" | "clean" | "medicine" | "lights" | "scold" | "quit";
 export interface PetView {
   stage: Pet["stage"]; morph: "egg" | "grave" | null; mood: string; mark: string | null;
   calling: "hungry" | "sad" | "sick" | "lights" | "naughty" | null;

@@ -7,6 +7,7 @@ import { randomConfig } from "./spec.js";
 //   const events = advance(pet, Date.now());   // catches up on real time, even days; ["hatch", "poop", ...]
 //   care(pet, "feed", Date.now());             // "eat", "full", "asleep", ...
 //   care(pet, "play", Date.now());             // starts a game of "which hand?"; then care(pet, "guess", now, "left")
+//   care(pet, "gift", Date.now());             // a heart of happiness right away, but only one gift every few hours
 //   petView(pet);                              // what to show: morph, mood, marks, messes, size
 //   petConfig(pet);                            // the buddy config for its current life stage
 
@@ -28,6 +29,7 @@ export const PACE = {
   warning: 6 * HOUR,         // it looks sick this long before starving, sickness or old age would end it
   rounds: 5, toWin: 3,       // a game of "which hand?": win toWin of rounds for a heart, all of them for two
   guessWait: 2 * MIN,        // a game left this long without a guess is over
+  giftWait: 4 * HOUR,        // a gift sooner than this after the last one doesn't impress it
 };
 
 export const HEARTS = 4;
@@ -51,7 +53,7 @@ function roll(pet) {
 export function newPet(now, { config, seed = Math.floor(Math.random() * 2 ** 31) } = {}) {
   const pet = { version: 1, rng: seed, stage: "egg", form: "any", born: now, stageAt: now, t: now,
     hunger: HEARTS, happy: HEARTS, discipline: 0, mistakes: 0, poops: 0, messSince: null, nextPoop: now + PACE.poop,
-    sick: false, sickSince: null, asleep: false, lightsOff: false, call: null, naughty: false, game: null, lastGame: null,
+    sick: false, sickSince: null, asleep: false, lightsOff: false, call: null, naughty: false, game: null, lastGame: null, giftAt: null,
     hungerAt: now, happyAt: now, starvingSince: null, lifespan: null, diedAt: null, cause: null };
   pet.config = config || randomConfig({ rand: () => roll(pet) });
   return pet;
@@ -180,6 +182,10 @@ export function care(pet, action, now, guess) {
     return "play";
   } else if (action === "guess") {
     return guessHand(pet, now, guess);
+  } else if (action === "gift") {
+    if (pet.happy >= HEARTS) return "full";
+    if (pet.giftAt != null && now - pet.giftAt < PACE.giftWait) return "bored";
+    pet.happy++; pet.happyAt = now; pet.giftAt = now;
   } else if (action === "medicine") {
     if (!pet.sick) return "no";
     pet.sick = false; pet.sickSince = null;
@@ -188,7 +194,7 @@ export function care(pet, action, now, guess) {
     pet.naughty = false; pet.discipline = Math.min(HEARTS, pet.discipline + 1);
   } else return "no";
   calls(pet, now);
-  return { feed: "eat", medicine: "medicine", scold: "scolded" }[action];
+  return { feed: "eat", gift: "gift", medicine: "medicine", scold: "scolded" }[action];
 }
 
 // What to show for the pet right now. size is relative to a grown buddy.

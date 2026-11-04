@@ -101,6 +101,7 @@ final class StatusMenu: NSObject, NSMenuDelegate {
       menu.addItem(action("Right Hand", #selector(care(_:)), id: "guess right"))
     } else {
       menu.addItem(action("Play", #selector(care(_:)), id: "play"))
+      menu.addItem(action("Gift", #selector(care(_:)), id: "gift"))
     }
     menu.addItem(action("Clean", #selector(care(_:)), id: "clean"))
     menu.addItem(action("Medicine", #selector(care(_:)), id: "medicine"))
