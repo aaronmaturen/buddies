@@ -65,7 +65,7 @@ function tick() {
   if (events.length || now - lastSave > SAVE_EVERY) save(now);
 }
 
-const REPLIES = { eat: "eat", gift: "gift", bored: "shrug", full: "no", clean: "proud", medicine: "medicine", scolded: "nervous", sulk: "sulk", no: "huh" };
+const REPLIES = { eat: "eat", gift: "gift", bored: "shrug", full: "no", clean: "proud", medicine: "medicine", well: "refuse", scolded: "nervous", sulk: "sulk", no: "huh" };
 const capital = word => word[0].toUpperCase() + word.slice(1);
 
 // Which hand? It holds out two fists until you click one (or pick from the menu), or gets bored and stops.

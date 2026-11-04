@@ -96,6 +96,9 @@ export const EMOTES = {
       { at: 0, hand: "right", pose: "fist", holds: "pill", x: .38, y: .42, rot: -.1, face: true },
       { at: 1.3, mood: "happy", jump: 1.6, symbol: "sparkle" },
     ] },
+  // Medicine when it isn't sick: the pill comes up and it shakes its head with its mouth shut.
+  refuse: { duration: 2, mood: "skeptical", mouth: "flat", motion: "shake", game: true,
+    events: [{ at: 0, hand: "right", pose: "fist", holds: "pill", x: .38, y: .42, rot: -.1, face: true }] },
   sulk: { duration: 2.2, mood: "sad", mouth: "frown", motion: "sigh",
     events: [{ at: .2, symbol: "sweat" }] },
   inspect: { duration: 2.6, mood: "curious", mouth: "o",

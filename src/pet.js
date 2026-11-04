@@ -187,7 +187,7 @@ export function care(pet, action, now, guess) {
     if (pet.giftAt != null && now - pet.giftAt < PACE.giftWait) return "bored";
     pet.happy++; pet.happyAt = now; pet.giftAt = now;
   } else if (action === "medicine") {
-    if (!pet.sick) return "no";
+    if (!pet.sick) return "well";
     pet.sick = false; pet.sickSince = null;
   } else if (action === "scold") {
     if (!pet.naughty) { pet.happy = Math.max(0, pet.happy - 1); calls(pet, now); return "sulk"; }

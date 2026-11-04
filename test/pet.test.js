@@ -110,6 +110,14 @@ test("a game of which hand lasts five guesses and pays out for a good score", ()
   }
 });
 
+test("medicine only works when it's sick", () => {
+  const pet = hatched();
+  assert.equal(care(pet, "medicine", pet.t), "well");
+  pet.sick = true; pet.sickSince = pet.t;
+  assert.equal(care(pet, "medicine", pet.t), "medicine");
+  assert.equal(pet.sick, false);
+});
+
 test("a gift is a heart, but only every few hours", () => {
   const pet = hatched(), given = pet.t;
   pet.happy = 1;
